@@ -24,12 +24,14 @@ test('distributed HTML embeds the current PRST Lab JS bridge, not a stale build'
 });
 
 test('Void MOD policy is embedded before the live PMBuild module', () => {
-  const find=(token) => scripts.findIndex(text => text.includes(token));
-  const policyAt=find('// Void\'s MOD — hard runtime policy');
-  const buildAt=find('// pmbuild.js — in-browser/Node port');
-  assert.ok(policyAt>=0 && buildAt>policyAt,'missing policy or wrong script order');
+  // Identify the actual bundled source modules, not mutable header comments.
+  // This remains valid when the policy is renamed or its description changes.
   const policySource=fs.readFileSync(path.join(root,'src/void_policy.js'),'utf8');
   const builderSource=fs.readFileSync(path.join(root,'src/pmbuild.js'),'utf8');
+  const policyAt=scripts.findIndex(text => text.includes(policySource));
+  const buildAt=scripts.findIndex(text => text.includes(builderSource));
+  assert.ok(policyAt>=0, 'missing or outdated embedded Void policy');
+  assert.ok(buildAt>policyAt, 'missing PMBuild or wrong policy-before-build script order');
   assert.ok(scripts[policyAt].includes(policySource),'outdated embedded Void policy');
   assert.ok(scripts[buildAt].includes(builderSource),'outdated embedded PMBuild');
   const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
