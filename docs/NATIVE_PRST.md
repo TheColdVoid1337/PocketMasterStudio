@@ -38,7 +38,7 @@ node tools/sonicmaster_to_prst.js json_nam/AC-DC.json \\
 ## Safety and verification
 
 - **Donorless is the default.** The Normal reference is a genuine SONICLINK export; the Clone reference is an independent genuine Clone-ON export (`P17-VindSorg L.prst`) from the owner's device, preserving its opaque fields. Slot 1–5 selections were verified against five original SONICLINK exports: for the Clone source only offset 175 (slot) and offset 20 (CRC) differ; expected slot CRCs are `FB C0 8D B6 17`. This is stronger than synthesizing Clone-ON from a Normal file but still does **not** prove that newly generated combinations import and sound as intended. For another firmware, optionally provide a custom export. Test SONICLINK readback and listening.
-- FX1/FX2 four-byte selectors remain partly inferred; user IR native selectors are unsupported and rejected. A successful parser/CRC check is only an offline check.
+- FX1/FX2 four-byte selectors remain partly inferred. **User IR 1–5 selectors are now encoded** with the real SONIC LINK mapping `[n−1, 00, 10, 0A]` at offsets `155..158`; the user IR/WAV content must already be present on the pedal. Encoding a selector does **not** establish whether onboard IR runs in Clone mode. A successful parser/CRC check is only an offline check.
 - The owner reports that Pocket Master **bypasses its onboard IR in Clone mode**, even when the UI allows toggling its enable flag. This importer preserves JSON IR values but **does not claim the IR actually processes Clone audio**. Amp-only NAM files need external cabinet processing; prefer full-rig NAMs when using the pedal directly.
 - This integration adds an exporter without changing the existing JSON tone-generator semantics or either original project. `PocketMasterStudio.html` in this fork includes the browser module. Code is published here at the PRST Lab owner's explicit request.
 
@@ -48,7 +48,7 @@ Copied verbatim from `TheColdVoid1337/PRST-Lab`: `tools/sonicmaster_to_prst.js`,
 
 ## Authentic Clone reference provenance
 
-Source: user-provided `Vindsorg.zip` (2026-10-09), file `P17-VindSorg L.prst` (User Profile 1), sha256 `bf79ef9b7a8786747a02919803b14ebc4115eb72d468bfaed6dfc58be8d3e8e4`. File is exactly 515 bytes; CRC-8/SMBUS matches; bit 9 is set in enabled mask `0x03ED`; selector bytes 175..178 are `00 00 00 0F`. The other four originals from this ZIP were analyzed and matched the byte-175/CRC-only difference, but do not need to be added to the release. `Prst_diag.zip` was also inspected (17 Clone-ON diagnostic exports); those experimental user IR/FX selectors are **not** interpreted or enabled by this migration.
+Source: user-provided `Vindsorg.zip` (2026-10-09), file `P17-VindSorg L.prst` (User Profile 1), sha256 `bf79ef9b7a8786747a02919803b14ebc4115eb72d468bfaed6dfc58be8d3e8e4`. File is exactly 515 bytes; CRC-8/SMBUS matches; bit 9 is set in enabled mask `0x03ED`; selector bytes 175..178 are `00 00 00 0F`. The other four originals from this ZIP were analyzed and matched the byte-175/CRC-only difference, but do not need to be added to the release. `Prst_diag.zip` was separately inspected (17 Clone-ON diagnostic exports). The subsequent User IR 1–5 mapping is supported by its own authenticated SONIC LINK export evidence and the current PRST-Lab 0.0.1 codec; unsupported selectors remain blocked.
 
 ## Synced PRST-Lab 0.0.1 integration source (2026-10-10)
 
@@ -70,7 +70,7 @@ node src/build_studio.js
 
 **Important:** `PocketMasterStudio.html` is a generated bundle. Updating `tools/*.js`
 without running `node src/build_studio.js` does **not** update the HTML distributed
-to browsers. Rebuild and review the diff before deploying the new editor.
+to browsers. This fork's bundled HTML has been refreshed for the PRST-Lab 0.0.1 bridge; `tests/test_studio_prst_bundle.cjs` guards against future stale bundles. Rebuild and review the diff before deploying the new editor.
 See [the current native binary specification](https://github.com/TheColdVoid1337/PRST-Lab/blob/release/0.0.1/docs/FORMAT.md).
 
 Hardware caveats: two previously generated native candidates survived import/save/export
