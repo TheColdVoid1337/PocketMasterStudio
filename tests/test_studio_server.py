@@ -48,6 +48,7 @@ class StudioServerTests(unittest.TestCase):
             with self.subTest(path=path), self.assertRaises(HTTPError) as ctx:
                 self.get(path)
             self.assertEqual(ctx.exception.code, 404)
+            ctx.exception.close()  # Avoid ResourceWarning from retained HTTPError response
 
     def test_head_serves_only_html(self):
         from urllib.request import Request
@@ -57,6 +58,7 @@ class StudioServerTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as ctx:
             urlopen(Request(self.base + "/config/studio_state.json", method="HEAD"), timeout=3)
         self.assertEqual(ctx.exception.code, 404)
+        ctx.exception.close()  # Avoid ResourceWarning from retained HTTPError response
 
 
 if __name__ == "__main__":
