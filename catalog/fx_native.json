@@ -1,0 +1,143 @@
+{
+  "schema": "prst_lab_fx_native_v1",
+  "sources": {
+    "signatures": "https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/effect_signatures.json",
+    "parameters": "https://github.com/sadurni/PocketMasterStudio/blob/main/src/assets/mld.json",
+    "selection_frames": "https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/command_library.json"
+  },
+  "confidence": "FX signatures and device commands confirmed in source; compression into PRST 4-byte selectors inferred from verified legacy modules; hardware test of new FX selection pending",
+  "models": {
+    "FX1": {
+      "COMP 1": {
+        "sonicmaster_signature": "0000000000000000",
+        "prst_selector": "00000000"
+      },
+      "COMP 2": {
+        "sonicmaster_signature": "0001000000000000",
+        "prst_selector": "01000000"
+      },
+      "AC G": {
+        "sonicmaster_signature": "0001000000000001",
+        "prst_selector": "01000001"
+      },
+      "Touch Wah": {
+        "sonicmaster_signature": "000F000000000001",
+        "prst_selector": "0F000001"
+      },
+      "Auto Wah": {
+        "sonicmaster_signature": "0105000000000001",
+        "prst_selector": "15000001"
+      },
+      "Boost": {
+        "sonicmaster_signature": "010A000000000000",
+        "prst_selector": "1A000000"
+      },
+      "A-Chorus": {
+        "sonicmaster_signature": "0000000000000004",
+        "prst_selector": "00000004"
+      },
+      "B-Chorus": {
+        "sonicmaster_signature": "0008000000000004",
+        "prst_selector": "08000004"
+      },
+      "Flanger": {
+        "sonicmaster_signature": "0101000000000004",
+        "prst_selector": "11000004"
+      },
+      "Phaser": {
+        "sonicmaster_signature": "0109000000000004",
+        "prst_selector": "19000004"
+      },
+      "Vibe": {
+        "sonicmaster_signature": "010F000000000004",
+        "prst_selector": "1F000004"
+      },
+      "Vibrato": {
+        "sonicmaster_signature": "0105000000000004",
+        "prst_selector": "15000004"
+      },
+      "Tremolo": {
+        "sonicmaster_signature": "0201000000000004",
+        "prst_selector": "21000004"
+      },
+      "Sine Trem": {
+        "sonicmaster_signature": "0206000000000004",
+        "prst_selector": "26000004"
+      },
+      "Bias Trem": {
+        "sonicmaster_signature": "0208000000000004",
+        "prst_selector": "28000004"
+      }
+    },
+    "FX2": {
+      "COMP 1": {
+        "sonicmaster_signature": "0000000000000000",
+        "prst_selector": "00000000"
+      },
+      "COMP 2": {
+        "sonicmaster_signature": "0001000000000000",
+        "prst_selector": "01000000"
+      },
+      "Touch Wah": {
+        "sonicmaster_signature": "000F000000000001",
+        "prst_selector": "0F000001"
+      },
+      "Auto Wah": {
+        "sonicmaster_signature": "0105000000000001",
+        "prst_selector": "15000001"
+      },
+      "Boost": {
+        "sonicmaster_signature": "010A000000000000",
+        "prst_selector": "1A000000"
+      },
+      "Pitch": {
+        "sonicmaster_signature": "0203000000000001",
+        "prst_selector": "23000001"
+      },
+      "Octave": {
+        "sonicmaster_signature": "0201000000000001",
+        "prst_selector": "21000001"
+      },
+      "Detune": {
+        "sonicmaster_signature": "0209000000000001",
+        "prst_selector": "29000001"
+      },
+      "A-Chorus": {
+        "sonicmaster_signature": "0000000000000004",
+        "prst_selector": "00000004"
+      },
+      "B-Chorus": {
+        "sonicmaster_signature": "0008000000000004",
+        "prst_selector": "08000004"
+      },
+      "Flanger": {
+        "sonicmaster_signature": "0101000000000004",
+        "prst_selector": "11000004"
+      },
+      "Phaser": {
+        "sonicmaster_signature": "0109000000000004",
+        "prst_selector": "19000004"
+      },
+      "Vibe": {
+        "sonicmaster_signature": "010F000000000004",
+        "prst_selector": "1F000004"
+      },
+      "Vibrato": {
+        "sonicmaster_signature": "0105000000000004",
+        "prst_selector": "15000004"
+      },
+      "Tremolo": {
+        "sonicmaster_signature": "0201000000000004",
+        "prst_selector": "21000004"
+      },
+      "Sine Trem": {
+        "sonicmaster_signature": "0206000000000004",
+        "prst_selector": "26000004"
+      },
+      "Bias Trem": {
+        "sonicmaster_signature": "0208000000000004",
+        "prst_selector": "28000004"
+      }
+    }
+  }
+}
