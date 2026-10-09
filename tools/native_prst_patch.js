@@ -51,7 +51,23 @@ function write(template,changes,{catalog,fxNative}={}){
   const i=MODS.indexOf(module);ok(i>=1&&i<=8&&module!=='Clone','Bad stock module '+module);
   const fields=modelSpec(catalog,module,model);
   const at=139+4*i;
-  if(module==='FX1'||module==='FX2'){
+  if(module==='IR'){
+   // Five genuine SONIC LINK exports confirm: User IR n = [n-1, 00, 10, 0A].
+   // Stock IR uses the same module family but a different 3rd selector byte.
+   const userMatch=/^User IR ([1-5])$/.exec(model);
+   if(userMatch){
+    bytes[at]=Number(userMatch[1])-1;
+    bytes[at+1]=0x00;
+    bytes[at+2]=0x10;
+    bytes[at+3]=0x0A;
+   } else {
+    ok(Object.hasOwn(CODES.IR,model),'Unverified native selector '+module+'.'+model);
+    bytes[at]=CODES.IR[model];
+    bytes[at+1]=0x00;
+    bytes[at+2]=0x00;
+    bytes[at+3]=0x0A;
+   }
+  } else if(module==='FX1'||module==='FX2'){
    const hex=fxNative?.models?.[module]?.[model]?.prst_selector;
    ok(typeof hex==='string'&&/^[\da-fA-F]{8}$/.test(hex),'Missing FX selector for '+module+'.'+model);
    for(let j=0;j<4;j++)bytes[at+j]=parseInt(hex.slice(j*2,j*2+2),16);

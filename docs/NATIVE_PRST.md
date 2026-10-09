@@ -49,3 +49,30 @@ Copied verbatim from `TheColdVoid1337/PRST-Lab`: `tools/sonicmaster_to_prst.js`,
 ## Authentic Clone reference provenance
 
 Source: user-provided `Vindsorg.zip` (2026-10-09), file `P17-VindSorg L.prst` (User Profile 1), sha256 `bf79ef9b7a8786747a02919803b14ebc4115eb72d468bfaed6dfc58be8d3e8e4`. File is exactly 515 bytes; CRC-8/SMBUS matches; bit 9 is set in enabled mask `0x03ED`; selector bytes 175..178 are `00 00 00 0F`. The other four originals from this ZIP were analyzed and matched the byte-175/CRC-only difference, but do not need to be added to the release. `Prst_diag.zip` was also inspected (17 Clone-ON diagnostic exports); those experimental user IR/FX selectors are **not** interpreted or enabled by this migration.
+
+## Synced PRST-Lab 0.0.1 integration source (2026-10-10)
+
+The canonical project is **Python-first** at [PRST-Lab](https://github.com/TheColdVoid1337/PRST-Lab).
+The JS bridge originates in `PRST-Lab/integrations/pocketmasterstudio/tools/` and is
+copied into this fork's `tools/` (with companion tests under `tests/`).
+The importer continues to use **separate authentic Modeled and Clone-ON reference files**
+for each preset in a mixed batch; the five **User IR 1–5** native selectors
+are now supported from real SONIC LINK export evidence (`[n-1,00,10,0A]` at 155..158).
+Optional `--donor` remains supported; `--bundled-template` is an explicit compatibility alias
+and cannot be mixed with `--donor`.
+
+Run from this fork's root:
+
+```bash
+node --test tests/*.cjs
+node src/build_studio.js
+```
+
+**Important:** `PocketMasterStudio.html` is a generated bundle. Updating `tools/*.js`
+without running `node src/build_studio.js` does **not** update the HTML distributed
+to browsers. Rebuild and review the diff before deploying the new editor.
+See [the current native binary specification](https://github.com/TheColdVoid1337/PRST-Lab/blob/release/0.0.1/docs/FORMAT.md).
+
+Hardware caveats: two previously generated native candidates survived import/save/export
+readback with 513/515 and 512/515 byte matches; inactive DLY Time normalized to 150
+and native BPM 68 read back as 120. These observations are not universal firmware guarantees.

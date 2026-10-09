@@ -71,7 +71,7 @@ function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) 
     changes.enabled[module]=item.enabled;
     if (!item.enabled) continue;
     requireThat(typeof item.effect==='string' && isObj(item.parameters), name+': '+module+' effect and parameters required');
-    requireThat(!(module==='IR' && /^User IR\s+[1-5]$/.test(item.effect)), name+': User IR native selector not validated');
+    // User IR 1..5: native [index, 00, 10, 0A], verified by five device exports.
     if(module!=='NR')changes.models[module]=item.effect;
     changes.parameters[module]=item.parameters;
     if((module==='FX1'||module==='FX2')) warnings.push(module+' selector is catalog-inferred; verify SONICLINK import');
@@ -109,6 +109,11 @@ function parseArgs(args){
   for(let i=0;i<args.length;i++){
     const arg=args[i];
     if(arg==='--help'||arg==='-h')return {help:true};
+    if(arg==='--bundled-template'){
+      requireThat(result.bundledTemplate===undefined,'Duplicate --bundled-template');
+      result.bundledTemplate=true;
+      continue;
+    }
     if(Object.hasOwn(opts,arg)) {
       requireThat(args[i+1]!==undefined && !args[i+1].startsWith('--'),arg+' requires a value');
       requireThat(result[opts[arg]]===undefined,'Duplicate argument '+arg);
@@ -116,13 +121,19 @@ function parseArgs(args){
     } else if(arg.startsWith('-'))throw Error('Unknown option '+arg);
     else { requireThat(input===undefined,'Only one input file allowed');input=arg; }
   }
-  requireThat(input && (!!result.output !== !!result.outDir),'Specify INPUT and exactly one of -o / --out-dir');
+  requireThat(input && !(result.donor && result.bundledTemplate) && (!!result.output !== !!result.outDir),
+    'Specify INPUT, exactly one output target and do not combine --donor with --bundled-template');
   result.input=input;return result;
 }
 function main(argv){
   const args=parseArgs(argv);
-  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nDonor .prst is optional: genuine SONICLINK Modeled/Clone references are selected per preset.\nRequires explicit NAM slots for Clone presets. Generated output still needs SONICLINK import/readback testing. Outputs never overwrite files.');return;}
-  const base=path.resolve(__dirname,'..');
+  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nDonor .prst is optional: genuine SONICLINK Modeled/Clone references are selected per preset.\n--bundled-template is a compatibility alias for automatic reference selection.\nRequires explicit NAM slots for Clone presets. Generated output still needs SONICLINK import/readback testing. Outputs never overwrite files.');return;}
+  // Works both inside PRST-Lab/integrations/pocketmasterstudio/tools and in
+  // PocketMasterStudio/tools after vendoring the three JS sources unchanged.
+  const base=[path.resolve(__dirname,'..'),path.resolve(__dirname,'../../..')]
+    .find(dir=>fs.existsSync(path.join(dir,'catalog/effects.json')) &&
+      fs.existsSync(path.join(dir,'templates/pocket_master_reference.prst')));
+  requireThat(base,'Cannot find repository root (catalog/ and templates/)');
   const catalog=JSON.parse(fs.readFileSync(path.join(base,'catalog/effects.json'),'utf8'));
   const fxNative=JSON.parse(fs.readFileSync(path.join(base,'catalog/fx_native.json'),'utf8'));
   const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):undefined;

@@ -5,7 +5,10 @@ const {spawnSync}=require('node:child_process');
 const convert=require('../tools/sonicmaster_to_prst.js');
 const slots=require('../tools/prst_clone_slots.js');
 const writer=require('../tools/native_prst_patch.js');
-const repo=path.resolve(__dirname,'..');
+const repo=[path.resolve(__dirname,'..'),path.resolve(__dirname,'../../..')]
+ .find(dir=>fs.existsSync(path.join(dir,'catalog/effects.json')) && fs.existsSync(path.join(dir,'templates/pocket_master_reference.prst')));
+assert.ok(repo,'Repository root not found');
+const cli=path.resolve(__dirname,'../tools/sonicmaster_to_prst.js');
 const donor=fs.readFileSync(path.join(repo,'templates/pocket_master_reference.prst'));
 const realCloneDonor=fs.readFileSync(path.join(repo,'templates/pocket_master_clone_reference.prst'));
 const catalog=JSON.parse(fs.readFileSync(path.join(repo,'catalog/effects.json')));
@@ -20,6 +23,11 @@ const a={version:'1.0',presetName:'TESTCLONE',ampMode:'Clone',presetVolume:100,
  FX2:fx('Phaser',{Rate:0.5}),DLY:fx('Analog',{Mix:19,Time:400,'F.Back':32}),
  RVB:fx('Room',{Mix:10,Decay:40}),Clone:fx('JCM800',{Gain:50,Vol:100,Bass:50,Middle:50,Treble:50})},signalChain:chain};
 const opts={catalog,fxNative,namSlots};
+// Standalone source fixture: same test suite runs in PRST-Lab and in the Studio fork.
+const globalModeled={...a,presetName:'TESTNORMAL',ampMode:'Normal',modules:{...a.modules,
+ AMP:fx('Brit 45',{Gain:25,Pres:65,Vol:50,Bass:45,Middle:50,Treble:65})}};
+delete globalModeled.modules.Clone;
+
 function decoded(n){const v=new DataView(n.buffer,n.byteOffset,n.byteLength);return {name:String.fromCharCode(...n.subarray(25,41)).split('\0')[0],volume:v.getUint32(97,true),mask:v.getUint32(117,true),crc:n[20]};}
 test('all 5 slots reproduce exactly the real selectors and valid CRC',()=>{
  for(let slot=1;slot<=5;slot++){const map={[a.modules.Clone.effect]:slot};const {bytes}=convert.convert(a,donor,{...opts,namSlots:map});const p=slots.inspect(bytes);
@@ -44,9 +52,7 @@ test('requires explicit correct slot map and refuses duplicate names for same sl
  assert.throws(()=>convert.convert(a,donor,{...opts,namSlots:{JCM800:2,Plexi:2}}),/Multiple NAM names/);
  assert.throws(()=>convert.convert(a,donor,{...opts,namSlots:undefined}),/Provide a name-to-slot/);
 });
-test('malformed presets and unverified user IR are blocked',()=>{
- const p=structuredClone(a);p.modules.IR.effect='User IR 1';
- assert.throws(()=>convert.convert(p,donor,opts),/User IR native selector/);
+test('malformed presets and invalid parameter values are blocked',()=>{
  const p2=structuredClone(a);p2.modules.Clone.parameters.Gain=101;
  assert.throws(()=>convert.convert(p2,donor,opts),/above maximum/);
  const p3=structuredClone(a);p3.modules.FX2.parameters.Rate=0.53;
@@ -68,7 +74,6 @@ test('CLI exports native file, rejects overwrite and no partial output on invali
  try{
   const input=path.join(tmp,'input.json'),map=path.join(tmp,'slots.json'),out=path.join(tmp,'single.prst');
   fs.writeFileSync(input,JSON.stringify(a));fs.writeFileSync(map,JSON.stringify(namSlots));
-  const cli=path.resolve(repo,'tools/sonicmaster_to_prst.js');
   const args=[cli,input,'--donor',path.join(repo,'templates/pocket_master_reference.prst'),'--nam-slots',map,'-o',out];
   const good=spawnSync(process.execPath,args,{encoding:'utf8'});
   assert.equal(good.status,0,good.stderr);assert.equal(slots.inspect(fs.readFileSync(out)).cloneSlot,2);
@@ -100,9 +105,11 @@ test('preserves genuine donor BPM when source omits presetBpm; edits only when g
 test('CLI donorless defaults to bundled reference for Modeled and Clone',()=>{
  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'prst-no-donor-'));
  try{
-  const cli=path.join(repo,'tools/sonicmaster_to_prst.js');
   const modeled=path.join(tmp,'modeled.prst');
-  const result=spawnSync(process.execPath,[cli,path.join(repo,'json/AC-DC.json'),'--select','BackBlck R','-o',modeled],{encoding:'utf8'});
+  const modeledFixture=JSON.parse(JSON.stringify(globalModeled));
+  const inputModeled=path.join(tmp,'modeled.json');
+  fs.writeFileSync(inputModeled,JSON.stringify(modeledFixture));
+  const result=spawnSync(process.execPath,[cli,inputModeled,'-o',modeled],{encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);
   const modelBytes=fs.readFileSync(modeled);
   assert.equal(modelBytes.length,515);
@@ -120,7 +127,7 @@ test('CLI donorless defaults to bundled reference for Modeled and Clone',()=>{
   assert.match(result2.stderr,/genuine bundled Modeled\/Clone SONICLINK references/);
  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });
-test('both standalone browser references are exactly the authentic fixture files',()=>{
+test('both standalone browser references are exactly the authentic fixture files', {skip:!fs.existsSync(path.join(repo,'PocketMasterStudio.html'))},()=>{
  const html=fs.readFileSync(path.join(repo,'PocketMasterStudio.html'),'utf8');
  for(const [key,fixture,clone] of [['templateBase64',donor,false],['cloneTemplateBase64',realCloneDonor,true]]){
   const match=html.match(new RegExp('"'+key+'":"([A-Za-z0-9+/=]+)"'));
@@ -154,8 +161,7 @@ test('default donor selection is mode-specific and does not rewrite original ref
 test('donorless mixed batch uses actual Modeled and Clone references separately',()=>{
  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'prst-mixed-'));
  try{
-  const cli=path.join(repo,'tools/sonicmaster_to_prst.js');
-  const modeled=JSON.parse(fs.readFileSync(path.join(repo,'json/AC-DC.json'),'utf8')).presets[0];
+  const modeled=JSON.parse(JSON.stringify(globalModeled));
   const input=path.join(tmp,'mixed.json'),map=path.join(tmp,'map.json'),dir=path.join(tmp,'output');
   fs.writeFileSync(input,JSON.stringify({type:'PocketMasterBatch',version:'1.0',presets:[modeled,a]}));
   fs.writeFileSync(map,JSON.stringify(namSlots));
@@ -168,4 +174,21 @@ test('donorless mixed batch uses actual Modeled and Clone references separately'
   assert.equal(output.cloneEnabled,true);
   assert.equal(output.cloneSlot,2);
  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
+});
+
+test('User IR 1..5 selector encoding from authenticated SONIC LINK exports',()=>{
+ for(let slot=1;slot<=5;slot++){
+  const p=structuredClone(a);p.modules.IR.effect='User IR '+slot;
+  const {bytes}=convert.convert(p,realCloneDonor,opts);
+  assert.deepEqual([...bytes.subarray(155,159)],[slot-1,0,0x10,0x0A]);
+  assert.equal(slots.crc8(bytes.subarray(21)),bytes[20]);
+  const stock=structuredClone(p);stock.modules.IR.effect='BritGN 4x12';
+  const back=convert.convert(stock,bytes,opts).bytes;
+  assert.deepEqual([...back.subarray(155,159)],[0x22,0,0,0x0A]);
+ }
+});
+
+test('compatibility bundled flag is accepted but donor + bundled flag fails',()=>{
+ assert.equal(convert.parseArgs(['input.json','--bundled-template','-o','x.prst']).bundledTemplate,true);
+ assert.throws(()=>convert.parseArgs(['input.json','--donor','x.prst','--bundled-template','-o','out.prst']),/do not combine/);
 });
