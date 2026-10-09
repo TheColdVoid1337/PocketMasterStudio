@@ -50,3 +50,7 @@ src/
 
 To edit the app: change a module here and re-run `build_studio.js`. To add/edit an artist: edit
 `../data/<Artist>.json` (or do it in the app and Save), then rebuild.
+
+## Native `.prst` export (fork integration)
+
+The self-contained HTML Studio now includes **Studio → Overview → Native SONICLINK .prst export** for one native preset or an artist ZIP (Modeled, Clone/NAM, Mixed). You must provide a genuine SONICLINK donor .prst; Clone-containing selections require a **Clone-ON** donor and a device-verified NAM slot map. Codec and mappings come from this owner's [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab). See [docs/NATIVE_PRST.md](../docs/NATIVE_PRST.md). Offline CRC is not hardware acceptance. Source UI: `prst_studio_ui.js`; Node converter: `../tools/sonicmaster_to_prst.js`.

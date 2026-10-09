@@ -3794,4 +3794,433 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
   }
   window.addEventListener("DOMContentLoaded", boot);
 })();
+</script>
+<script>
+/* Pocket Master native Clone slot/mode editor. Paired SONICLINK exports, 2026-10-09.
+ * Mode: mask bit 9 at offset 117. Slot: byte 175, values 0..4 (slots 1..5).
+ * Native selector: [slot - 1, 0, 0, 0x0F]. Does NOT embed NAM models.
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.PRSTCloneSlots = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+  const asBytes = (x) => {
+    if (x instanceof ArrayBuffer) return new Uint8Array(x.slice(0));
+    if (ArrayBuffer.isView(x)) return new Uint8Array(x.buffer.slice(x.byteOffset, x.byteOffset+x.byteLength));
+    throw new TypeError('Expected a byte buffer');
+  };
+  function crc8(data) {
+    let c=0;
+    for (const b of data) {
+      c ^= b;
+      for (let j=0; j<8; j++) c = (c&128) ? ((c<<1)^7)&255 : (c<<1)&255;
+    }
+    return c;
+  }
+  function inspect(raw) {
+    const b=asBytes(raw);
+    if (b.length!==515 || String.fromCharCode(...b.subarray(0,13))!=='Pocket Master')
+      throw new Error('Not the documented 515-byte Pocket Master PRST format');
+    const v=new DataView(b.buffer);
+    if (v.getUint16(113,true)!==0x3001 || v.getUint16(135,true)!==0x3003 ||
+        v.getUint16(137,true)!==40 || v.getUint16(179,true)!==0x3004)
+      throw new Error('Unexpected PRST effect section layout');
+    if (crc8(b.subarray(21))!==b[20]) throw new Error('Invalid PRST CRC-8/SMBUS');
+    const selector=b.subarray(175,179);
+    const known = selector[1]===0 && selector[2]===0 && selector[3]===15 && selector[0]<=4;
+    return {cloneEnabled: Boolean(v.getUint32(117,true)&0x200),
+      cloneSlot: known ? selector[0]+1 : null,
+      selectorKnown: known,
+      selector: [...selector]};
+  }
+  function edit(raw, {slot, enabled}={}) {
+    const b=asBytes(raw), found=inspect(b);
+    if (slot!==undefined && (!Number.isInteger(slot) || slot<1 || slot>5))
+      throw new RangeError('Clone slot must be an integer from 1 to 5');
+    if (enabled!==undefined && typeof enabled!=='boolean')
+      throw new TypeError('Clone enabled must be boolean');
+    if ((slot!==undefined || enabled===true) && !found.selectorKnown)
+      throw new Error('Unknown Clone selector layout: refusing to modify');
+    if (slot!==undefined) b[175]=slot-1;
+    if (enabled!==undefined) {
+      const v=new DataView(b.buffer),mask=v.getUint32(117,true);
+      v.setUint32(117, enabled ? mask|0x200 : mask&~0x200, true);
+    }
+    b[20]=crc8(b.subarray(21));
+    inspect(b);
+    return b;
+  }
+  return Object.freeze({inspect,edit,crc8});
+});
+
+</script>
+<script>
+(function(){const module={exports:{}};function require(id){if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;throw Error("Unexpected browser require: "+id);}/* Native 515-byte PRST patcher for vetted controls; dependency-free JS.
+ * Unknown bytes are retained from a genuine exported template.
+ * Clone mode/slot mapping was verified with paired SONICLINK exports.
+ */
+'use strict';
+const slots=require('./prst_clone_slots.js');
+const MODS=['NR','FX1','DRV','AMP','IR','EQ','FX2','DLY','RVB','Clone'];
+const CODES={
+ DRV:{'Scream':0,'Bass Drive':64,'Butter OD':2,'JP Dist':42,'Shark':48,'Dark Mouse':43,'Grey Fuzz':34,'Red Fuzz':36},
+ AMP:{'TWD Deluxe':1,'B-Man N':3,'Dark Twin':4,'Voks 30N':17,'Jazz 120':20,'Brit 45':42,'Brit 50JP':47,'Brit 800':53,'B-Man B':36,'Voks 30TB':39,'Sol 100 OD':71,'Dizzy VH':101,'Eng 120':95,'Halen 51':90,'Sol 100 LD':89,'Calif DualV':104,'Calif DualM':105,'Eng Power':99,'Flyman B1+':93,'Bog XT':109,'A BassVT':115,'Voks Bass':117},
+ IR:{'TWD 1x8':1,'TWD-P 1x10':2,'Viblux 1x12':4,'Voks 1x12':8,'TWD 2x12':27,'Double 2x12':18,'Star 2x12':25,'Jazz 2x12':17,'BritGN 2x12':19,'BritGN 4x12':34,'Bog 4x12':39,'Dizzy 4x12':46,'Halen 4x12':32,'Sol 4x12':40,'Dual 4x12':36},
+ EQ:{'GT EQ 1':53,'GT EQ 2':54,'Bass EQ':58},
+ DLY:{'Pure':0,'Slap':5,'Warm':13,'Mag':2,'Tube':11,'Reverse':19,'Analog':20,'Sweep':6,'Ping Pong':4},
+ RVB:{'Air':11,'Room':0,'Hall':1,'Church':2,'Plate 1':16,'Plate 2':15,'Spring':4,'Light':6,'Ocean':7,'Dream':21}
+};
+const ok=(v,m)=>{if(!v)throw Error(m)};
+const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);
+function modelSpec(catalog,module,model){
+ const m=catalog?.modules?.find(x=>x.name===module);
+ const e=m?.effectIds?.map(id=>catalog.effects[String(id)]).find(x=>x?.name===model);
+ ok(e&&Array.isArray(e.parameters),'Unknown official model '+module+'.'+model);
+ return e.parameters;
+}
+function safeValue(field,v,module){
+ ok(typeof v==='number'&&Number.isFinite(v),module+'.'+field.name+' not a number');
+ if(field.min!=null)ok(v>=field.min-1e-5,module+'.'+field.name+' below minimum');
+ if(field.max!=null)ok(v<=field.max+1e-5,module+'.'+field.name+' above maximum');
+ if(field.step&&field.min!=null)ok(Math.abs((v-field.min)/field.step-Math.round((v-field.min)/field.step))<1e-5,module+'.'+field.name+' invalid step');
+ if(field.min==null&&field.max==null&&['Bright','Char','+3dB'].includes(field.name))ok(v===0||v===1,module+'.'+field.name+' invalid toggle');
+}
+function write(template,changes,{catalog,fxNative}={}){
+ const input=slots.inspect(template); // length/magic/CRC/critical TLVs
+ const bytes=Uint8Array.from(template), view=new DataView(bytes.buffer);
+ ok(view.getUint16(121,true)===0x3002&&view.getUint16(123,true)===10&&
+   view.getUint16(179,true)===0x3004&&view.getUint16(181,true)===320,'Unsupported effect TLV layout');
+ ok(obj(changes),'Patch changes must be an object');
+ const supported=new Set(['name','preset_volume','bpm','models','parameters','enabled','signal_chain','clone_slot']);
+ for(const k of Object.keys(changes))ok(supported.has(k),'Unknown patch key '+k);
+ if(changes.name!==undefined){ok(typeof changes.name==='string'&&/^[\x20-\x7e]{1,15}$/.test(changes.name),'Name 1..15 ASCII required');bytes.fill(0,25,41);for(let i=0;i<changes.name.length;i++)bytes[25+i]=changes.name.charCodeAt(i)}
+ for(const [k,offset,lo,hi] of [['preset_volume',97,0,100],['bpm',105,40,260]])if(changes[k]!==undefined){const n=changes[k];ok(Number.isInteger(n)&&n>=lo&&n<=hi,k+' outside range');view.setUint32(offset,n,true)}
+ const models=changes.models||{},parameters=changes.parameters||{},enabled=changes.enabled||{};
+ ok(obj(models)&&obj(parameters)&&obj(enabled),'models/parameters/enabled must be objects');
+ const sel=slots.inspect(template);
+ if(changes.clone_slot!==undefined){
+  ok(sel.selectorKnown,'Unexpected Clone selector bytes');
+  const slot=changes.clone_slot;ok(Number.isInteger(slot)&&slot>=1&&slot<=5,'Clone slot must be 1..5');
+  bytes[175]=slot-1;
+ }
+ const newModel={};
+ for(const [module,model] of Object.entries(models)){
+  const i=MODS.indexOf(module);ok(i>=1&&i<=8&&module!=='Clone','Bad stock module '+module);
+  const fields=modelSpec(catalog,module,model);
+  const at=139+4*i;
+  if(module==='FX1'||module==='FX2'){
+   const hex=fxNative?.models?.[module]?.[model]?.prst_selector;
+   ok(typeof hex==='string'&&/^[\da-fA-F]{8}$/.test(hex),'Missing FX selector for '+module+'.'+model);
+   for(let j=0;j<4;j++)bytes[at+j]=parseInt(hex.slice(j*2,j*2+2),16);
+  }else{
+   ok(Object.hasOwn(CODES[module]||{},model),'Unverified native selector '+module+'.'+model);
+   bytes[at]=CODES[module][model]; // preserve three opaque module bytes
+  }
+  newModel[module]=model;
+  for(const field of fields){ok(Number.isInteger(field.algId)&&field.algId>=0&&field.algId<=7,'Bad parameter algId');safeValue(field,field.default,module);view.setFloat32(183+32*i+4*field.algId,field.default,true)}
+ }
+ for(const [module,values] of Object.entries(parameters)){
+  const i=MODS.indexOf(module);ok(i>=0&&obj(values),'Invalid parameter block '+module);
+  let model=newModel[module];
+  if(module==='NR')model='Gate';
+  if(module==='Clone'){
+   ok(input.selectorKnown,'Clone selector unknown');
+   model='User Profile '+(changes.clone_slot??input.cloneSlot);
+  }
+  ok(model,'Set a model for active '+module+' before writing parameters');
+  const fields=modelSpec(catalog,module,model);
+  for(const [label,value]of Object.entries(values)){
+   const field=fields.find(f=>f.name===label);
+   ok(field,'Unknown parameter '+module+'.'+label);
+   safeValue(field,value,module);
+   view.setFloat32(183+32*i+4*field.algId,value,true);
+  }
+ }
+ for(const [module,flag] of Object.entries(enabled)){
+  const i=MODS.indexOf(module);ok(i>=0&&typeof flag==='boolean','Invalid enable flag '+module);
+  const mask=view.getUint32(117,true);
+  view.setUint32(117,flag?mask|(1<<i):mask&~(1<<i),true);
+ }
+ if(changes.signal_chain!==undefined){const chain=changes.signal_chain;
+  ok(Array.isArray(chain)&&chain.length===10&&new Set(chain).size===10&&MODS.every(m=>chain.includes(m)),'Bad signal chain');
+  for(let i=0;i<10;i++)bytes[125+i]=MODS.indexOf(chain[i]);
+ }
+ bytes[20]=slots.crc8(bytes.subarray(21));
+ slots.inspect(bytes);
+ return bytes;
+}
+module.exports={MODS,write};
+
+window.PMPRSTNative=module.exports;})();
+</script>
+<script>
+(function(){const module={exports:{}};function require(id){if(id==="./native_prst_patch.js")return window.PMPRSTNative;if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;if(id.startsWith("node:"))return {};throw Error("Unexpected browser require: "+id);}
+/* Import PocketMasterStudio/SonicMaster v1.0 presets as native 515-byte PRST.
+ * Native codec only: no Python, Bluetooth, network, or NAM upload.
+ * Capture names are mapped to physical slots using a REQUIRED user-provided JSON map.
+ */
+'use strict';
+const {write,MODS} = require('./native_prst_patch.js');
+const slots = require('./prst_clone_slots.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+
+const SLOTS = MODS.slice(0,9);
+const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+function requireThat(ok, msg) { if (!ok) throw Error(msg); }
+function checkMap(map) {
+  requireThat(isObj(map), 'Provide a name-to-slot JSON map, e.g. {"JCM800":2,"Plexi":3}');
+  const seen = new Set();
+  for (const [name, slot] of Object.entries(map)) {
+    requireThat(name.trim() === name && name.length>0, 'Empty or whitespace-padded NAM name');
+    requireThat(Number.isInteger(slot) && slot>=1 && slot<=5, 'Invalid physical slot for '+name);
+    requireThat(!seen.has(slot), 'Multiple NAM names claim physical slot '+slot);
+    seen.add(slot);
+  }
+  return map;
+}
+function unpack(doc) {
+  if (isObj(doc) && doc.version==='1.0' && isObj(doc.modules)) return [doc];
+  if (isObj(doc) && doc.type==='PocketMasterBatch' && doc.version==='1.0' && Array.isArray(doc.presets) && doc.presets.length)
+    return doc.presets;
+  throw Error('Expected single v1.0 preset or PocketMasterBatch v1.0');
+}
+function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) {
+  requireThat(isObj(preset) && preset.version==='1.0' && isObj(preset.modules), 'Malformed v1.0 preset');
+  const clone = preset.ampMode==='Clone';
+  requireThat(clone || preset.ampMode==='Normal', 'Unsupported ampMode '+preset.ampMode);
+  const name = overrideName ?? preset.presetName;
+  requireThat(typeof name==='string' && /^[\x20-\x7e]{1,10}$/.test(name), 'Use a unique 1–10-character ASCII presetName');
+  requireThat(Number.isInteger(preset.presetVolume) && preset.presetVolume>=0 && preset.presetVolume<=100, name+': invalid presetVolume');
+  const bpm = preset.presetBpm;
+  if (bpm !== undefined)
+    requireThat(Number.isInteger(bpm) && bpm>=40 && bpm<=260, name+': invalid presetBpm');
+  requireThat(Array.isArray(preset.signalChain) && preset.signalChain.length===9 &&
+    new Set(preset.signalChain).size===9 && SLOTS.every(s=>preset.signalChain.includes(s)), name+': signalChain must contain nine distinct modules');
+  requireThat(Object.keys(preset.modules).every(s=>MODS.includes(s)), name+': unknown module key');
+  requireThat(Object.keys(preset.modules).every(s=>s==='AMP' ? !clone : true), name+': Clone JSON must not include AMP block');
+  requireThat(isObj(catalog) && isObj(catalog.effects) && Array.isArray(catalog.modules), 'Official effects catalog required');
+  requireThat(isObj(fxNative) && isObj(fxNative.models), 'Official FX selector catalog required');
+  const changes={name,preset_volume:preset.presetVolume,bpm,models:{},parameters:{},enabled:{},signal_chain:[...preset.signalChain,'Clone']};
+  const warnings=[];
+  if (clone) {
+    checkMap(namSlots);
+    const entry=preset.modules.Clone;
+    requireThat(isObj(entry) && entry.enabled===true && typeof entry.effect==='string', name+': enabled Clone module and effect name required');
+    requireThat(Object.hasOwn(namSlots,entry.effect), name+': NAM "'+entry.effect+'" has no assigned slot in --nam-slots');
+    changes.clone_slot=namSlots[entry.effect];
+    changes.enabled.Clone=true;
+    const props=entry.parameters;
+    requireThat(isObj(props), name+': Clone parameters object required');
+    changes.parameters.Clone=props;
+    warnings.push('Clone '+entry.effect+' uses physical User Profile '+changes.clone_slot+'; capture itself is NOT embedded');
+  } else {
+    requireThat(!('Clone' in preset.modules), name+': Normal preset unexpectedly includes Clone block');
+    changes.enabled.Clone=false;
+    requireThat(isObj(preset.modules.AMP) && preset.modules.AMP.enabled, name+': active modeled AMP required');
+  }
+  for(const module of SLOTS) {
+    if (clone && module==='AMP') continue; // preserve genuine donor AMP bytes and bit; real Clone exports keep bit 3 set.
+    const item=preset.modules[module];
+    requireThat(isObj(item) && typeof item.enabled==='boolean', name+': missing or invalid '+module+'.enabled');
+    changes.enabled[module]=item.enabled;
+    if (!item.enabled) continue;
+    requireThat(typeof item.effect==='string' && isObj(item.parameters), name+': '+module+' effect and parameters required');
+    requireThat(!(module==='IR' && /^User IR\s+[1-5]$/.test(item.effect)), name+': User IR native selector not validated');
+    if(module!=='NR')changes.models[module]=item.effect;
+    changes.parameters[module]=item.parameters;
+    if((module==='FX1'||module==='FX2')) warnings.push(module+' selector is catalog-inferred; verify SONICLINK import');
+  }
+  const output=write(donor,changes,{catalog,fxNative});
+  const parsed=slots.inspect(output);
+  const storedName=String.fromCharCode(...output.subarray(25,41)).split('\0')[0];
+  requireThat(storedName===name && parsed.cloneEnabled===clone,name+': output failed validation');
+  if (clone) requireThat(parsed.cloneSlot===changes.clone_slot, name+': wrong native Clone slot');
+  return {bytes:output,changes,warnings};
+}
+function collect(doc,donor,options) {
+  const all=unpack(doc);
+  requireThat(all.every(x=>isObj(x) && x.version==='1.0'), 'Every batch item must be v1.0');
+  const selected=options.select===undefined?all:all.filter(x=>x.presetName===options.select);
+  requireThat(selected.length && (options.select===undefined || selected.length===1),'--select must identify exactly one preset');
+  requireThat(options.overrideName===undefined || selected.length===1,'--name only allowed with one preset');
+  return selected.map((preset,index)=>({index,sourceName:preset.presetName,...convert(preset,donor,options)}));
+}
+function parseArgs(args){
+  const result={};let input;
+  const opts={'--donor':'donor','--nam-slots':'namSlots','--select':'select','-o':'output','--output':'output','--out-dir':'outDir','--name':'overrideName'};
+  for(let i=0;i<args.length;i++){
+    const arg=args[i];
+    if(arg==='--help'||arg==='-h')return {help:true};
+    if(Object.hasOwn(opts,arg)) {
+      requireThat(args[i+1]!==undefined && !args[i+1].startsWith('--'),arg+' requires a value');
+      requireThat(result[opts[arg]]===undefined,'Duplicate argument '+arg);
+      result[opts[arg]]=args[++i];
+    } else if(arg.startsWith('-'))throw Error('Unknown option '+arg);
+    else { requireThat(input===undefined,'Only one input file allowed');input=arg; }
+  }
+  requireThat(input && result.donor && !!result.output!==!!result.outDir,'Specify INPUT, --donor, and exactly one of -o / --out-dir');
+  result.input=input;return result;
+}
+function main(argv){
+  const args=parseArgs(argv);
+  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nRequires explicit NAM slots for Clone presets. All outputs are local and will not overwrite files.');return;}
+  const base=path.resolve(__dirname,'..');
+  const catalog=JSON.parse(fs.readFileSync(path.join(base,'catalog/effects.json'),'utf8'));
+  const fxNative=JSON.parse(fs.readFileSync(path.join(base,'catalog/fx_native.json'),'utf8'));
+  const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):undefined;
+  const donor=fs.readFileSync(args.donor);slots.inspect(donor); // refuse damaged donor
+  const doc=JSON.parse(fs.readFileSync(args.input,'utf8'));
+  const items=collect(doc,donor,{catalog,fxNative,namSlots,select:args.select,overrideName:args.overrideName});
+  requireThat(!args.output || items.length===1,'Multiple presets require --out-dir');
+  const files=items.map((p,i)=>args.output?args.output:path.join(args.outDir,
+    String(i+1).padStart(3,'0')+'_'+p.changes.name.replace(/[^a-zA-Z0-9_-]/g,'_')+'.prst'));
+  const resolved=files.map(f=>path.resolve(f));
+  requireThat(new Set(resolved).size===resolved.length,'Output path collision');
+  for(const f of resolved)requireThat(!fs.existsSync(f),'Refusing overwrite: '+f);
+  // Every conversion and output path is validated before writing the first file.
+  for(let i=0;i<items.length;i++){
+    fs.mkdirSync(path.dirname(resolved[i]),{recursive:true});
+    fs.writeFileSync(resolved[i],items[i].bytes,{flag:'wx'});
+    console.log(items[i].sourceName+' => '+resolved[i]+ '  '+(items[i].changes.clone_slot?'NAM slot '+items[i].changes.clone_slot:'modeled')+' CRC OK');
+    for(const w of items[i].warnings)console.error('  NOTICE: '+w);
+  }
+}
+module.exports=Object.freeze({checkMap,unpack,convert,collect,parseArgs,main});
+if(require.main===module){try{main(process.argv.slice(2));}catch(e){console.error('Conversion failed: '+e.message);process.exitCode=1;}}
+
+window.PRSTConvert=module.exports;})();
+</script>
+<script>
+window.PMPRSTAssets = {"catalog":{"schema":"prst-lab-catalog-0.5","notes":"Model names, module membership and parameter limits extracted from the open-source PocketMasterStudio mld catalog (not an official Sonicake specification). Not all selector codes have been checked on hardware.","upstream":"https://github.com/sadurni/PocketMasterStudio/blob/main/src/assets/mld.json","modules":[{"name":"NR","id":0,"effectIds":[1]},{"name":"FX1","id":1,"effectIds":[101,102,103,104,105,106,107,108,109,110,111,112,113,114,115]},{"name":"DRV","id":2,"effectIds":[201,202,203,204,205,206,207,208]},{"name":"AMP","id":3,"effectIds":[301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322]},{"name":"IR","id":4,"effectIds":[401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420]},{"name":"EQ","id":5,"effectIds":[501,502,503]},{"name":"FX2","id":6,"effectIds":[101,102,103,104,116,117,118,105,106,107,108,109,110,111,112,113,114]},{"name":"DLY","id":7,"effectIds":[701,702,703,704,705,706,707,708,709]},{"name":"RVB","id":8,"effectIds":[801,802,803,804,805,806,807,808,809,810]},{"name":"Clone","id":9,"effectIds":[901,902,903,904,905]}],"effects":{"1":{"name":"Gate","parameters":[{"name":"THRE","algId":0,"default":50,"min":0,"max":100,"step":1}]},"101":{"name":"COMP 1","parameters":[{"name":"Sustain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"102":{"name":"COMP 2","parameters":[{"name":"Sustain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Attack","algId":1,"default":60,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Clip","algId":3,"default":10,"min":0,"max":100,"step":1}]},"103":{"name":"Touch Wah","parameters":[{"name":"Sense","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Range","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Q","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Mix","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Mode","algId":4,"default":0}]},"104":{"name":"Auto Wah","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Low","algId":3,"default":25,"min":0,"max":100,"step":1},{"name":"Q","algId":4,"default":70,"min":0,"max":100,"step":1},{"name":"High","algId":5,"default":60,"min":0,"max":100,"step":1}]},"105":{"name":"Boost","parameters":[{"name":"Gain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"+3dB","algId":1,"default":1},{"name":"Bright","algId":2,"default":1}]},"106":{"name":"A-Chorus","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Tone","algId":2,"default":50,"min":0,"max":100,"step":1}]},"107":{"name":"B-Chorus","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"108":{"name":"Flanger","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"P.Delay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"F.Back","algId":3,"default":50,"min":0,"max":100,"step":1}]},"109":{"name":"Phaser","parameters":[{"name":"Rate","algId":0,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"110":{"name":"Vibe","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"111":{"name":"Vibrato","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"112":{"name":"Tremolo","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"113":{"name":"Sine Trem","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"114":{"name":"Bias Trem","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bias","algId":4,"default":50,"min":0,"max":100,"step":1}]},"115":{"name":"AC G","parameters":[{"name":"Body","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Top","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Mode","algId":3,"default":2}]},"116":{"name":"Octave","parameters":[{"name":"Low","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"High","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1}]},"117":{"name":"Pitch","parameters":[{"name":"High","algId":0,"default":12,"min":0,"max":24,"step":1},{"name":"Low Pitch","algId":1,"default":-12,"min":-24,"max":0,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"H-Vol","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"L-Vol","algId":4,"default":50,"min":0,"max":100,"step":1}]},"118":{"name":"Detune","parameters":[{"name":"Detune","algId":0,"default":-25,"min":-50,"max":50,"step":1},{"name":"Wet","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1}]},"201":{"name":"Scream","parameters":[{"name":"Gain","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":70,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"202":{"name":"Butter OD","parameters":[{"name":"Gain","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"203":{"name":"JP Dist","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"204":{"name":"Shark","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"205":{"name":"Dark Mouse","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Filter","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"206":{"name":"Grey Fuzz","parameters":[{"name":"Fuzz","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"207":{"name":"Red Fuzz","parameters":[{"name":"Fuzz","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"208":{"name":"Bass Drive","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Blend","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"301":{"name":"TWD Deluxe","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"302":{"name":"B-Man N","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"303":{"name":"Dark Twin","parameters":[{"name":"Gain","algId":0,"default":35,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":40,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":60,"min":0,"max":100,"step":1},{"name":"Bright","algId":5,"default":1}]},"304":{"name":"Voks 30N","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone Cut","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bright","algId":3,"default":0}]},"305":{"name":"Jazz 120","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Bright","algId":4,"default":0}]},"306":{"name":"Brit 45","parameters":[{"name":"Gain","algId":0,"default":25,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":65,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":45,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":65,"min":0,"max":100,"step":1}]},"307":{"name":"Brit 50JP","parameters":[{"name":"Gain 1","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1},{"name":"Gain 2","algId":6,"default":50,"min":0,"max":100,"step":1}]},"308":{"name":"Brit 800","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"309":{"name":"B-Man B","parameters":[{"name":"Gain","algId":0,"default":35,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"310":{"name":"Voks 30TB","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone Cut","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Char","algId":5,"default":0}]},"311":{"name":"Sol 100 OD","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"312":{"name":"Dizzy VH","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"313":{"name":"Eng 120","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"314":{"name":"Halen 51","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":6,"default":50,"min":0,"max":100,"step":1}]},"315":{"name":"Sol 100 LD","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"316":{"name":"Calif DualV","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"317":{"name":"Calif DualM","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"318":{"name":"Eng Power","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"319":{"name":"Flyman B1+","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"320":{"name":"Bog XT","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"321":{"name":"A BassVT","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"MidFreq","algId":3,"default":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"322":{"name":"Voks Bass","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":2,"default":50,"min":0,"max":100,"step":1}]},"401":{"name":"TWD 1x8","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"402":{"name":"TWD-P 1x10","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"403":{"name":"Viblux 1x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"404":{"name":"Voks 1x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"405":{"name":"TWD 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"406":{"name":"Double 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"407":{"name":"Star 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"408":{"name":"Jazz 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"409":{"name":"BritGN 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"410":{"name":"BritGN 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"411":{"name":"Bog 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"412":{"name":"Dizzy 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"413":{"name":"Halen 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"414":{"name":"Sol 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"415":{"name":"Dual 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"416":{"name":"User IR 1","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"417":{"name":"User IR 2","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"418":{"name":"User IR 3","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"419":{"name":"User IR 4","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"420":{"name":"User IR 5","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"501":{"name":"GT EQ 1","parameters":[{"name":"125Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"400Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"800Hz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"1.6kHz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"4kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"502":{"name":"GT EQ 2","parameters":[{"name":"100Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"500Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"1kHz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"3kHz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"6kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"503":{"name":"Bass EQ","parameters":[{"name":"50Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"120Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"400Hz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"800Hz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"4.5kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"701":{"name":"Pure","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"702":{"name":"Slap","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":150,"min":20,"max":300,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"703":{"name":"Warm","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"704":{"name":"Mag","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"705":{"name":"Tube","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"706":{"name":"Reverse","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":500,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"707":{"name":"Analog","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"708":{"name":"Sweep","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1},{"name":"S-Depth","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"S-Rate","algId":4,"default":50,"min":0,"max":100,"step":1}]},"709":{"name":"Ping Pong","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":500,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"801":{"name":"Air","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":0,"min":0,"max":100,"step":1}]},"802":{"name":"Room","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"803":{"name":"Hall","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"804":{"name":"Church","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"805":{"name":"Plate 1","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"806":{"name":"Plate 2","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":50,"min":0,"max":100,"step":1}]},"807":{"name":"Spring","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"808":{"name":"Light","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"809":{"name":"Ocean","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"810":{"name":"Dream","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":0,"min":0,"max":100,"step":1},{"name":"Mod","algId":5,"default":50,"min":0,"max":100,"step":1}]},"901":{"name":"User Profile 1","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"902":{"name":"User Profile 2","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"903":{"name":"User Profile 3","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"904":{"name":"User Profile 4","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"905":{"name":"User Profile 5","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]}}},"fxNative":{"schema":"prst_lab_fx_native_v1","sources":{"signatures":"https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/effect_signatures.json","parameters":"https://github.com/sadurni/PocketMasterStudio/blob/main/src/assets/mld.json","selection_frames":"https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/command_library.json"},"confidence":"FX signatures and device commands confirmed in source; compression into PRST 4-byte selectors inferred from verified legacy modules; hardware test of new FX selection pending","models":{"FX1":{"COMP 1":{"sonicmaster_signature":"0000000000000000","prst_selector":"00000000"},"COMP 2":{"sonicmaster_signature":"0001000000000000","prst_selector":"01000000"},"AC G":{"sonicmaster_signature":"0001000000000001","prst_selector":"01000001"},"Touch Wah":{"sonicmaster_signature":"000F000000000001","prst_selector":"0F000001"},"Auto Wah":{"sonicmaster_signature":"0105000000000001","prst_selector":"15000001"},"Boost":{"sonicmaster_signature":"010A000000000000","prst_selector":"1A000000"},"A-Chorus":{"sonicmaster_signature":"0000000000000004","prst_selector":"00000004"},"B-Chorus":{"sonicmaster_signature":"0008000000000004","prst_selector":"08000004"},"Flanger":{"sonicmaster_signature":"0101000000000004","prst_selector":"11000004"},"Phaser":{"sonicmaster_signature":"0109000000000004","prst_selector":"19000004"},"Vibe":{"sonicmaster_signature":"010F000000000004","prst_selector":"1F000004"},"Vibrato":{"sonicmaster_signature":"0105000000000004","prst_selector":"15000004"},"Tremolo":{"sonicmaster_signature":"0201000000000004","prst_selector":"21000004"},"Sine Trem":{"sonicmaster_signature":"0206000000000004","prst_selector":"26000004"},"Bias Trem":{"sonicmaster_signature":"0208000000000004","prst_selector":"28000004"}},"FX2":{"COMP 1":{"sonicmaster_signature":"0000000000000000","prst_selector":"00000000"},"COMP 2":{"sonicmaster_signature":"0001000000000000","prst_selector":"01000000"},"Touch Wah":{"sonicmaster_signature":"000F000000000001","prst_selector":"0F000001"},"Auto Wah":{"sonicmaster_signature":"0105000000000001","prst_selector":"15000001"},"Boost":{"sonicmaster_signature":"010A000000000000","prst_selector":"1A000000"},"Pitch":{"sonicmaster_signature":"0203000000000001","prst_selector":"23000001"},"Octave":{"sonicmaster_signature":"0201000000000001","prst_selector":"21000001"},"Detune":{"sonicmaster_signature":"0209000000000001","prst_selector":"29000001"},"A-Chorus":{"sonicmaster_signature":"0000000000000004","prst_selector":"00000004"},"B-Chorus":{"sonicmaster_signature":"0008000000000004","prst_selector":"08000004"},"Flanger":{"sonicmaster_signature":"0101000000000004","prst_selector":"11000004"},"Phaser":{"sonicmaster_signature":"0109000000000004","prst_selector":"19000004"},"Vibe":{"sonicmaster_signature":"010F000000000004","prst_selector":"1F000004"},"Vibrato":{"sonicmaster_signature":"0105000000000004","prst_selector":"15000004"},"Tremolo":{"sonicmaster_signature":"0201000000000004","prst_selector":"21000004"},"Sine Trem":{"sonicmaster_signature":"0206000000000004","prst_selector":"26000004"},"Bias Trem":{"sonicmaster_signature":"0208000000000004","prst_selector":"28000004"}}}},"defaultSlots":{"AC30 May":1,"JCM800":2,"Plexi":3,"TwinCln":4,"SoloSLO":5}};
+</script>
+<script>
+// Native PRST export widget for the self-contained Studio (PRST Lab codec).
+// Deliberately uses the built-in JSON presets; never modifies or uploads to the pedal.
+(function () {
+  "use strict";
+  function mount() {
+    const host = document.getElementById("panel-overview");
+    if (!host || document.getElementById("native-prst-export")) return;
+    const section = document.createElement("section");
+    section.id = "native-prst-export";
+    section.innerHTML = [
+      '<hr style="border:0;border-top:1px solid var(--line);margin:22px 0">',
+      '<h2 style="font-size:17px;margin:6px 0">Native SONICLINK .prst export (PRST Lab)</h2>',
+      '<p class="mut">Export genuine 515-byte binary presets from Modeled, Clone/NAM or Mixed JSON. Offline conversion only; no NAM is installed on the pedal.</p>',
+      '<label for="prst-mode">Preset set</label>',
+      '<select id="prst-mode"><option value="modeled">Modeled</option><option value="clone">Clone/NAM</option><option value="mixed">Mixed</option></select>',
+      '<label for="prst-artist">Artist / pack</label><select id="prst-artist"></select>',
+      '<label for="prst-preset">Preset(s)</label><select id="prst-preset"></select>',
+      '<label for="prst-donor">Donor .prst exported from SONICLINK (same pedal/firmware)</label>',
+      '<input type="file" accept=".prst" id="prst-donor">',
+      '<p class="mut">Clone output REQUIRES a genuine Clone-ON donor. The bundled stock template is only for stock/model CLI use.</p>',
+      '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
+      '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
+      '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. IR may be bypassed while Clone is on—amp-only NAM may need an external cab simulator.</p>',
+      '<div class="row"><button type="button" class="primary" id="prst-export">⬇️ Export native .prst / ZIP</button></div>',
+      '<div id="prst-status" class="mut" role="status" aria-live="polite"></div>'
+    ].join("");
+    host.appendChild(section);
+    const $ = (id) => section.querySelector("#" + id);
+    const mode = $("prst-mode"), artist = $("prst-artist"), preset = $("prst-preset");
+    const status = $("prst-status");
+    const asset = window.PMPRSTAssets;
+    $("prst-slots").value = JSON.stringify(asset.defaultSlots, null, 2);
+    const state = () => window.PMStudio && window.PMStudio.S;
+    const mapNow = () => {
+      const s = state(); if (!s || !s.built) return null;
+      return mode.value === "clone" ? s.built.namMap : mode.value === "mixed" ? s.built.mixedMap : s.built.jsonMap;
+    };
+    function options(select, items) {
+      select.replaceChildren();
+      for (const [value, label] of items) {
+        const opt = document.createElement("option");
+        opt.value = value; opt.textContent = label; select.appendChild(opt);
+      }
+    }
+    function refreshArtist() {
+      const map = mapNow(); if (!map) return;
+      const previous = artist.value;
+      const names = Object.entries(map).filter(([name, doc]) =>
+        !name.includes("/") && name.endsWith(".json") && doc &&
+        doc.type === "PocketMasterBatch" && typeof doc.artist === "string" &&
+        Array.isArray(doc.presets)).sort((a,b) => a[1].artist.localeCompare(b[1].artist));
+      options(artist, names.map(([name, doc]) => [name, doc.artist + " (" + doc.presets.length + ")"]));
+      if (names.some(([name]) => name === previous)) artist.value = previous;
+      refreshPreset();
+    }
+    function refreshPreset() {
+      const map = mapNow(), batch = map && map[artist.value];
+      if (!batch) { options(preset, []); return; }
+      const previous = preset.value;
+      options(preset, [["all","All " + batch.presets.length + " presets (ZIP)"],
+        ...batch.presets.map((p,i) => [String(i), String(i+1).padStart(2,"0") + " · " + p.presetName + " (" + p.ampMode + ")"])]);
+      if ([...preset.options].some((o) => o.value === previous)) preset.value = previous;
+    }
+    const safeName = (s) => String(s).replace(/[^a-zA-Z0-9_-]+/g, "_").slice(0,60);
+    function download(filename, blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+    async function exportNative() {
+      const button = $("prst-export");
+      button.disabled = true;
+      status.textContent = "Validating source and donor…";
+      try {
+        const map = mapNow(); if (!map) throw Error("Studio data is not ready.");
+        const batch = map[artist.value]; if (!batch) throw Error("Choose an artist.");
+        const chosen = preset.value === "all" ? batch.presets : [batch.presets[Number(preset.value)]];
+        if (!chosen.length || chosen.some((p) => !p)) throw Error("No presets selected.");
+        const donorFile = $("prst-donor").files[0];
+        if (!donorFile) throw Error("Select a genuine donor .prst file exported by SONICLINK.");
+        const donor = new Uint8Array(await donorFile.arrayBuffer());
+        const donorInfo = window.PRSTCloneSlots.inspect(donor); // checks magic/length/CRC/layout
+        const hasClone = chosen.some((p) => p.ampMode === "Clone");
+        if (hasClone && !donorInfo.cloneEnabled)
+          throw Error("This batch includes Clone presets. Export a genuine Clone-ON donor from the pedal.");
+        let namSlots;
+        if (hasClone) {
+          try { namSlots = JSON.parse($("prst-slots").value); }
+          catch(e) { throw Error("Invalid NAM slot map JSON: " + e.message); }
+          window.PRSTConvert.checkMap(namSlots);
+        }
+        // Convert and verify ALL results before offering any download.
+        const result = chosen.map((p) => window.PRSTConvert.convert(p, donor, {
+          catalog: asset.catalog, fxNative: asset.fxNative, namSlots
+        }));
+        for (const r of result) {
+          const parsed = window.PRSTCloneSlots.inspect(r.bytes);
+          if (!parsed) throw Error("Invalid output");
+        }
+        if (result.length === 1) {
+          download(safeName(chosen[0].presetName) + ".prst", new Blob([result[0].bytes], {type:"application/octet-stream"}));
+        } else {
+          const entries = result.map((r,i) => ({
+            name: String(i+1).padStart(3,"0") + "_" + safeName(chosen[i].presetName) + ".prst",
+            data: r.bytes
+          }));
+          download(safeName(batch.artist || "presets") + "_" + mode.value + "_native.zip", await window.PMZip.create(entries));
+        }
+        status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. Import/readback/listening in SONICLINK still required." +
+          (hasClone ? " Clone capture files are NOT embedded. Built-in IR may be bypassed in Clone mode." : "");
+      } catch (e) {
+        status.textContent = "Export blocked: " + (e && e.message || String(e));
+      } finally { button.disabled = false; }
+    }
+    mode.addEventListener("change", refreshArtist);
+    artist.addEventListener("change", refreshPreset);
+    $("prst-export").addEventListener("click", exportNative);
+    const stats = document.getElementById("stats");
+    if (stats) new MutationObserver(() => refreshArtist()).observe(stats, {childList:true,subtree:true});
+    refreshArtist();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
+  else mount();
+})();
 </script></body></html>

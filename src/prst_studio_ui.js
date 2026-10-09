@@ -1,0 +1,125 @@
+// Native PRST export widget for the self-contained Studio (PRST Lab codec).
+// Deliberately uses the built-in JSON presets; never modifies or uploads to the pedal.
+(function () {
+  "use strict";
+  function mount() {
+    const host = document.getElementById("panel-overview");
+    if (!host || document.getElementById("native-prst-export")) return;
+    const section = document.createElement("section");
+    section.id = "native-prst-export";
+    section.innerHTML = [
+      '<hr style="border:0;border-top:1px solid var(--line);margin:22px 0">',
+      '<h2 style="font-size:17px;margin:6px 0">Native SONICLINK .prst export (PRST Lab)</h2>',
+      '<p class="mut">Export genuine 515-byte binary presets from Modeled, Clone/NAM or Mixed JSON. Offline conversion only; no NAM is installed on the pedal.</p>',
+      '<label for="prst-mode">Preset set</label>',
+      '<select id="prst-mode"><option value="modeled">Modeled</option><option value="clone">Clone/NAM</option><option value="mixed">Mixed</option></select>',
+      '<label for="prst-artist">Artist / pack</label><select id="prst-artist"></select>',
+      '<label for="prst-preset">Preset(s)</label><select id="prst-preset"></select>',
+      '<label for="prst-donor">Donor .prst exported from SONICLINK (same pedal/firmware)</label>',
+      '<input type="file" accept=".prst" id="prst-donor">',
+      '<p class="mut">Clone output REQUIRES a genuine Clone-ON donor. The bundled stock template is only for stock/model CLI use.</p>',
+      '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
+      '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
+      '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. IR may be bypassed while Clone is on—amp-only NAM may need an external cab simulator.</p>',
+      '<div class="row"><button type="button" class="primary" id="prst-export">⬇️ Export native .prst / ZIP</button></div>',
+      '<div id="prst-status" class="mut" role="status" aria-live="polite"></div>'
+    ].join("");
+    host.appendChild(section);
+    const $ = (id) => section.querySelector("#" + id);
+    const mode = $("prst-mode"), artist = $("prst-artist"), preset = $("prst-preset");
+    const status = $("prst-status");
+    const asset = window.PMPRSTAssets;
+    $("prst-slots").value = JSON.stringify(asset.defaultSlots, null, 2);
+    const state = () => window.PMStudio && window.PMStudio.S;
+    const mapNow = () => {
+      const s = state(); if (!s || !s.built) return null;
+      return mode.value === "clone" ? s.built.namMap : mode.value === "mixed" ? s.built.mixedMap : s.built.jsonMap;
+    };
+    function options(select, items) {
+      select.replaceChildren();
+      for (const [value, label] of items) {
+        const opt = document.createElement("option");
+        opt.value = value; opt.textContent = label; select.appendChild(opt);
+      }
+    }
+    function refreshArtist() {
+      const map = mapNow(); if (!map) return;
+      const previous = artist.value;
+      const names = Object.entries(map).filter(([name, doc]) =>
+        !name.includes("/") && name.endsWith(".json") && doc &&
+        doc.type === "PocketMasterBatch" && typeof doc.artist === "string" &&
+        Array.isArray(doc.presets)).sort((a,b) => a[1].artist.localeCompare(b[1].artist));
+      options(artist, names.map(([name, doc]) => [name, doc.artist + " (" + doc.presets.length + ")"]));
+      if (names.some(([name]) => name === previous)) artist.value = previous;
+      refreshPreset();
+    }
+    function refreshPreset() {
+      const map = mapNow(), batch = map && map[artist.value];
+      if (!batch) { options(preset, []); return; }
+      const previous = preset.value;
+      options(preset, [["all","All " + batch.presets.length + " presets (ZIP)"],
+        ...batch.presets.map((p,i) => [String(i), String(i+1).padStart(2,"0") + " · " + p.presetName + " (" + p.ampMode + ")"])]);
+      if ([...preset.options].some((o) => o.value === previous)) preset.value = previous;
+    }
+    const safeName = (s) => String(s).replace(/[^a-zA-Z0-9_-]+/g, "_").slice(0,60);
+    function download(filename, blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+    async function exportNative() {
+      const button = $("prst-export");
+      button.disabled = true;
+      status.textContent = "Validating source and donor…";
+      try {
+        const map = mapNow(); if (!map) throw Error("Studio data is not ready.");
+        const batch = map[artist.value]; if (!batch) throw Error("Choose an artist.");
+        const chosen = preset.value === "all" ? batch.presets : [batch.presets[Number(preset.value)]];
+        if (!chosen.length || chosen.some((p) => !p)) throw Error("No presets selected.");
+        const donorFile = $("prst-donor").files[0];
+        if (!donorFile) throw Error("Select a genuine donor .prst file exported by SONICLINK.");
+        const donor = new Uint8Array(await donorFile.arrayBuffer());
+        const donorInfo = window.PRSTCloneSlots.inspect(donor); // checks magic/length/CRC/layout
+        const hasClone = chosen.some((p) => p.ampMode === "Clone");
+        if (hasClone && !donorInfo.cloneEnabled)
+          throw Error("This batch includes Clone presets. Export a genuine Clone-ON donor from the pedal.");
+        let namSlots;
+        if (hasClone) {
+          try { namSlots = JSON.parse($("prst-slots").value); }
+          catch(e) { throw Error("Invalid NAM slot map JSON: " + e.message); }
+          window.PRSTConvert.checkMap(namSlots);
+        }
+        // Convert and verify ALL results before offering any download.
+        const result = chosen.map((p) => window.PRSTConvert.convert(p, donor, {
+          catalog: asset.catalog, fxNative: asset.fxNative, namSlots
+        }));
+        for (const r of result) {
+          const parsed = window.PRSTCloneSlots.inspect(r.bytes);
+          if (!parsed) throw Error("Invalid output");
+        }
+        if (result.length === 1) {
+          download(safeName(chosen[0].presetName) + ".prst", new Blob([result[0].bytes], {type:"application/octet-stream"}));
+        } else {
+          const entries = result.map((r,i) => ({
+            name: String(i+1).padStart(3,"0") + "_" + safeName(chosen[i].presetName) + ".prst",
+            data: r.bytes
+          }));
+          download(safeName(batch.artist || "presets") + "_" + mode.value + "_native.zip", await window.PMZip.create(entries));
+        }
+        status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. Import/readback/listening in SONICLINK still required." +
+          (hasClone ? " Clone capture files are NOT embedded. Built-in IR may be bypassed in Clone mode." : "");
+      } catch (e) {
+        status.textContent = "Export blocked: " + (e && e.message || String(e));
+      } finally { button.disabled = false; }
+    }
+    mode.addEventListener("change", refreshArtist);
+    artist.addEventListener("change", refreshPreset);
+    $("prst-export").addEventListener("click", exportNative);
+    const stats = document.getElementById("stats");
+    if (stats) new MutationObserver(() => refreshArtist()).observe(stats, {childList:true,subtree:true});
+    refreshArtist();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
+  else mount();
+})();

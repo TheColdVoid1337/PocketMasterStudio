@@ -111,6 +111,25 @@ const modules = ["pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js",
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
+const prstWrap = (file, globalName) => {
+  const deps = globalName === "PMPRSTNative"
+    ? 'if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;'
+    : 'if(id==="./native_prst_patch.js")return window.PMPRSTNative;if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;if(id.startsWith("node:"))return {};';
+  return '(function(){const module={exports:{}};function require(id){'+deps+'throw Error("Unexpected browser require: "+id);}'+rd(path.join(ROOT, "tools", file)).replace(/^#![^\n]*\n/, "")+'\nwindow.'+globalName+'=module.exports;})();';
+};
+const prstScripts = [
+  rd(path.join(ROOT, "tools/prst_clone_slots.js")),
+  prstWrap("native_prst_patch.js", "PMPRSTNative"),
+  prstWrap("sonicmaster_to_prst.js", "PRSTConvert"),
+  "window.PMPRSTAssets = " + JSON.stringify({
+    catalog: rdj(path.join(ROOT, "catalog/effects.json")),
+    fxNative: rdj(path.join(ROOT, "catalog/fx_native.json")),
+    defaultSlots: rdj(path.join(ROOT, "config/nam_slots.owner.example.json"))
+  }) + ";"
+].map((s) => "<script>\n" + inlineSafe(s) + "\n</script>").join("\n");
+const prstUi = inlineSafe(rd(path.join(HERE, "prst_studio_ui.js")));
+
+
 const CSS = String.raw`
  :root{--bg:#0f1115;--card:#181b21;--card2:#1b2028;--ink:#e8eaed;--mut:#9aa1ad;--line:#272c34;--acc:#6f95ff;--ok:#3ecf9a;--warn:#e6b34d;--err:#ff6f6f}
  @media(prefers-color-scheme:light){:root{--bg:#f6f7f9;--card:#fff;--card2:#f2f4f7;--ink:#1b1d22;--mut:#616773;--line:#e3e6eb}}
@@ -332,6 +351,8 @@ ${BODY}
 <script type="text/plain" id="pm-editor">${editorBlob}</script>
 ${modules}
 <script>${appJs}</script>
+${prstScripts}
+<script>${prstUi}</script>
 </body></html>`;
 
 const OUT = path.join(ROOT, "PocketMasterStudio.html");
