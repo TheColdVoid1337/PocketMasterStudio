@@ -61,7 +61,7 @@ test('legacy non-full-rig override is ignored instead of leaking unsafe Clone',(
  assert.ok(result.unknown.some(s=>s.includes('blocked non-full-rig override')));
 });
 test('verified Clone override is normalized to IR OFF even if user enabled it',()=>{
- const doc={type:'PocketMasterBatch',version:'1.0',artist:'Unit',presets:[preset('Brit 800')]};
+ const doc={type:'PocketMasterBatch',version:'1.0',artist:'Unit',presets:[preset('Voks 30TB')]};
  const override={'Unit|POLICYTEST':{ampMode:'Clone',modules:{
   Clone:{enabled:true,effect:'AC30 May',parameters:{Gain:50}},IR:{...mod,enabled:true}
  }}};

@@ -919,9 +919,12 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
     const m=p.modules;
     if(!m||!m.AMP||p.ampMode!=="Normal")return;
     const chosen=VoidPolicy.resolveForModel(m.AMP.effect,voidConfig);
-    if(!chosen)return; // explicit Modelled fallback for any unassigned AMP
     const art=p.artist||artist, sng=p.song||song, pn=p.presetName;
     const ov=overrides[art+"|"+pn]||overrides[art+"|"+sng];
+    if(!chosen){
+      if(ov?.ampMode==="Clone")unknown.add("Void MOD blocked non-full-rig override "+art+"|"+pn+": no assigned confirmed Full Rig");
+      return; // explicit Modeled fallback for any unassigned AMP
+    }
     if(ov) {
       if(ov.ampMode==="Clone"&&ov.modules?.Clone?.effect===chosen.captureName){
         p.ampMode="Clone";
