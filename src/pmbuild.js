@@ -447,117 +447,66 @@
   }
 
   // ===================== gen_nam_folder.py port =====================
-  const AMP_TO_NAM = {
-    "Voks 30TB": "AC30 May", "Voks 30N": "AC30 May",
-    "Dark Twin": "TwinCln", "TWD Deluxe": "TwinCln", "Jazz 120": "TwinCln",
-    "B-Man N": "TwinCln", "B-Man B": "TwinCln",
-    "Brit 45": "Plexi", "Brit 50JP": "Plexi",
-    "Brit 800": "JCM800", "A BassVT": "JCM800",
-    "Sol 100 LD": "SoloSLO", "Sol 100 OD": "SoloSLO",
-    "Calif DualM": "SoloSLO", "Calif DualV": "SoloSLO",
-    "Halen 51": "SoloSLO", "Dizzy VH": "SoloSLO",
-    "Eng 120": "SoloSLO", "Eng Power": "SoloSLO",
-    "Bog XT": "SoloSLO", "Flyman B1+": "SoloSLO",
-  };
-  // Void's MOD: only specific amp+cab NAM capture(s) are allowed.
-  // JCM800/Plexi/TwinCln/SoloSLO links in the upstream README are amp-head only.
-  const NAM_CAPTURES = Object.keys(VoidPolicy.FULL_RIG_CAPTURES);
-
-  // ===================== Mixed set =====================
-  // For the "Mixed" variant we keep the modeled amp UNLESS the modeled amp is the same
-  // as (or the same voice/lineage as) one of the 5 NAM captures, in which case we use the
-  // clone. These are the modeled amps that map "directly / very-equivalently" to a capture
-  // (→ Clone); every other amp is only a plausible stand-in (→ keep Modeled). Amps not in
-  // AMP_TO_NAM are unknown → also kept Modeled.
-  const MIXED_CLONE = new Set([
-    "Voks 30TB", "Voks 30N",   // Vox AC30 (top boost / normal) → AC30 May
-    "Dark Twin",               // Fender Twin → TwinCln
-    "Brit 50JP",               // Marshall Plexi 50 → Plexi
-    "Brit 800",                // Marshall JCM800 → JCM800
-    "Sol 100 LD", "Sol 100 OD",// Soldano SLO (lead / od) → SoloSLO
-  ]);
-  const mixedUsesClone = (effect) => MIXED_CLONE.has(effect) &&
-    VoidPolicy.isFullRig(AMP_TO_NAM[effect]);
-
-  // pred (optional): given the modeled amp's effect name, return true to convert to a clone,
-  // false to keep the preset modeled as-is (used by the Mixed set). Omitted → always convert.
-  function convert_preset(p, overrides, unknown, artist, song, pred) {
-    if (pred) {
-      const m0 = p.modules;
-      if (m0 && m0.AMP && !pred(m0.AMP.effect)) return; // keep modeled
-    }
-    const art = p.artist || artist;
-    const sng = p.song || song;
-    const pn = p.presetName;
-    const ov = overrides[`${art}|${pn}`] || overrides[`${art}|${sng}`];
-    if (ov) {
-      const mode = "ampMode" in ov ? ov.ampMode : "Clone";
-      const effect = ov.modules && ov.modules.Clone && ov.modules.Clone.effect;
-      if (mode === "Clone" && !VoidPolicy.isFullRig(effect)) {
-        // Fail-safe: never output an amp-only Clone. Ignore unsafe legacy
-        // Clone overrides and retain the original modeled preset.
-        unknown.add("Void MOD blocked non-full-rig override " + art + "|" + pn + " (" + effect + ")");
+  // Slot-based NAM: the user's five installed Full Rig captures decide which
+  // exact modeled AMPs may be replaced. Unmapped models always remain Modeled.
+  // Never guess a different amp family to fill missing physical slots.
+  const NAM_CAPTURES = []; // counts are supplied by active config, not historical TONE3000 links.
+  function convert_preset(p,overrides,unknown,artist,song,voidConfig) {
+    const m=p.modules;
+    if(!m||!m.AMP||p.ampMode!=="Normal")return;
+    const chosen=VoidPolicy.resolveForModel(m.AMP.effect,voidConfig);
+    if(!chosen)return; // explicit Modelled fallback for any unassigned AMP
+    const art=p.artist||artist, sng=p.song||song, pn=p.presetName;
+    const ov=overrides[art+"|"+pn]||overrides[art+"|"+sng];
+    if(ov) {
+      if(ov.ampMode==="Clone"&&ov.modules?.Clone?.effect===chosen.captureName){
+        p.ampMode="Clone";
+        p.presetVolume="presetVolume" in ov?ov.presetVolume:100;
+        p.modules=clone(ov.modules);
+        VoidPolicy.enforceClone(p,voidConfig);
         return;
       }
-      p.ampMode = mode;
-      p.presetVolume = "presetVolume" in ov ? ov.presetVolume : 100;
-      p.modules = clone(ov.modules);
-      VoidPolicy.enforceClone(p);
-      return;
+      unknown.add("Void MOD ignored legacy NAM override for "+art+"|"+pn+
+        ": slot assignment takes precedence");
     }
-    const m = p.modules;
-    if (!m || !("AMP" in m)) return;
-    const amp = m["AMP"];
-    const nam = AMP_TO_NAM[amp.effect];
-    if (!VoidPolicy.isFullRig(nam)) {
-      // Both NAM-safe and Mixed keep the original modeled AMP instead of
-      // silently replacing a DI capture with an arbitrary full-rig NAM.
-      unknown.add("Void MOD modeled fallback: " + amp.effect + " (unapproved NAM " + (nam || "none") + ")");
-      return;
-    }
-    delete m["AMP"];
-    m["Clone"] = { enabled: true, effect: nam,
-      parameters: { Gain: 50, Vol: 100, Bass: 50, Middle: 50, Treble: 50 } };
-    p.ampMode = "Clone";
-    p.presetVolume = 100;
-    VoidPolicy.enforceClone(p);
-    const eq = m["EQ"];
-    if (eq && eq.enabled) eq.parameters["Vol"] = 100;
-    else m["EQ"] = { enabled: true, effect: "GT EQ 1",
-      parameters: { "125Hz": 0, "400Hz": 0, "800Hz": 0, "1.6kHz": 0, "4kHz": 0, Vol: 100 } };
+    delete m.AMP;
+    m.Clone={enabled:true,effect:chosen.captureName,
+      parameters:{Gain:50,Vol:100,Bass:50,Middle:50,Treble:50}};
+    p.ampMode="Clone";
+    p.presetVolume=100;
+    VoidPolicy.enforceClone(p,voidConfig);
+    const eq=m.EQ;
+    if(eq&&eq.enabled)eq.parameters.Vol=100;
+    else m.EQ={enabled:true,effect:"GT EQ 1",
+      parameters:{"125Hz":0,"400Hz":0,"800Hz":0,"1.6kHz":0,"4kHz":0,Vol:100}};
   }
 
-  function convert_file(data, overrides, unknown, ctxArtist, ctxSlug, pred) {
-    if (Array.isArray(data.presets)) {
-      const art = data.artist || ctxArtist;
-      for (const p of data.presets) convert_preset(p, overrides, unknown, art, ctxSlug, pred);
-    } else if ("modules" in data) {
-      convert_preset(data, overrides, unknown, ctxArtist, ctxSlug, pred);
-    }
+  function convert_file(data,overrides,unknown,ctxArtist,ctxSlug,voidConfig) {
+    if(Array.isArray(data.presets)) {
+      const art=data.artist||ctxArtist;
+      for(const p of data.presets)convert_preset(p,overrides,unknown,art,ctxSlug,voidConfig);
+    } else if("modules" in data)convert_preset(data,overrides,unknown,ctxArtist,ctxSlug,voidConfig);
     return data;
   }
-
-  // files: the full json/ map (song files + compilation files). Returns a converted map.
-  // pred (optional): per-preset "convert to clone?" predicate; omitted → convert everything (NAM).
-  function convertFolder(files, overrides = {}, pred) {
-    const out = {};
-    const unknown = new Set();
-    for (const [rel, obj] of Object.entries(files)) {
-      const parts = rel.split("/");
-      let ctxArtist = null, ctxSlug = null;
-      if (parts.length > 1) {
-        ctxArtist = parts[0];
-        const bits = parts[parts.length - 1].replace(/\.json$/, "").split("_");
-        if (bits.length > 1) ctxSlug = bits[1];
+  function convertFolder(files,overrides={},voidConfig=null){
+    const out={},unknown=new Set();
+    if(voidConfig)VoidPolicy.normalize(voidConfig);
+    for(const [rel,obj] of Object.entries(files)){
+      const parts=rel.split("/");
+      let artist=null,slug=null;
+      if(parts.length>1){
+        artist=parts[0];
+        const bits=parts[parts.length-1].replace(/\.json$/,"").split("_");
+        if(bits.length>1)slug=bits[1];
       }
-      out[rel] = convert_file(clone(obj), overrides, unknown, ctxArtist, ctxSlug, pred);
+      out[rel]=convert_file(clone(obj),overrides,unknown,artist,slug,voidConfig);
     }
-    return { files: out, unknown: [...unknown] };
+    return {files:out,unknown:[...unknown]};
   }
-  // The full NAM set (every preset → clone).
-  const buildNam = (files, overrides = {}) => convertFolder(files, overrides, null);
-  // The Mixed set (clone only where the modeled amp matches a capture; else keep modeled).
-  const buildMixed = (files, overrides = {}) => convertFolder(files, overrides, mixedUsesClone);
+  // Both NAM and Mixed prefer the configured Full Rig when that exact AMP is
+  // assigned; all other models safely fall back to Modeled.
+  const buildNam=(files,overrides={},voidConfig=null)=>convertFolder(files,overrides,voidConfig);
+  const buildMixed=(files,overrides={},voidConfig=null)=>convertFolder(files,overrides,voidConfig);
 
   // ===================== gen_editor_library.py port (the library object) =====================
   // Build [{artist, songs:[{song, presets:[{n:name, p:cleanPreset}]}]}] for a folder map.

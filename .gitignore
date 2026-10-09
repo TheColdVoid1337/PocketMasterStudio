@@ -1,0 +1,6 @@
+# Local Void's MOD state: browser-owned, not part of the distributable app.
+/config/
+/.venv/
+/node_modules/
+__pycache__/
+*.pyc

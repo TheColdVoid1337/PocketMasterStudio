@@ -208,3 +208,24 @@ test('compatibility bundled flag is accepted but donor + bundled flag fails',()=
  assert.equal(convert.parseArgs(['input.json','--bundled-template','-o','x.prst']).bundledTemplate,true);
  assert.throws(()=>convert.parseArgs(['input.json','--donor','x.prst','--bundled-template','-o','out.prst']),/do not combine/);
 });
+
+
+test('custom Full Rig label from NAM/Clone slot config exports through native PRST',()=>{
+ const policy=require('../src/void_policy.js');
+ const config=policy.defaults();
+ config.slots[4]={ampModel:'Brit 800',captureName:'My Full Rig JCM',fullRig:true};
+ const source=structuredClone(a);
+ source.modules.Clone.effect='My Full Rig JCM';
+ source.modules.IR.enabled=true;
+ const result=convert.convert(source,realCloneDonor,{
+   ...opts,namSlots:policy.slotMap(config),voidConfig:config
+ });
+ const view=new DataView(result.bytes.buffer,result.bytes.byteOffset,result.bytes.byteLength);
+ assert.equal(slots.inspect(result.bytes).cloneSlot,5);
+ assert.equal(view.getUint32(117,true)&0x10,0);
+ assert.equal(slots.crc8(result.bytes.subarray(21)),result.bytes[20]);
+ config.slots[4].fullRig=false;
+ assert.throws(()=>convert.convert(source,realCloneDonor,{
+   ...opts,namSlots:{'My Full Rig JCM':5},voidConfig:config
+ }),/confirm/);
+});

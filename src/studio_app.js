@@ -9,6 +9,67 @@
   const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   const S = { payload: null, built: null, nameIndex: {}, dirty: false, origBlob: null };
+  const IO = window.PMVoidConfigIO;
+  const Policy = window.PMVoidPolicy;
+  let saveTimer=null, revision=0, namView=null;
+  const namConfig=()=>S.payload?.void_nam||Policy.defaults();
+  const ampNames=()=>Policy.validAmpNames(window.PMPRSTAssets.catalog);
+  function statusIO(){
+    return IO.connected()?"Connected: "+IO.location()+(S.dirty?" · saving changes…":" · all saved"):
+      "Not connected — select the project folder to persist changes in config/*.json (HTML is never rewritten).";
+  }
+  async function persistConfig(){
+    if(!IO.connected())throw Error("Connect the project folder to save JSON, or download a backup");
+    const version=revision;
+    await IO.save({state:sourcePayload(),nam:Policy.normalize(namConfig(),ampNames())});
+    if(version===revision)markDirty(false);
+    if(namView)namView.status();
+  }
+  function changed(){
+    markDirty(true);
+    if(saveTimer)clearTimeout(saveTimer);
+    if(IO.connected())saveTimer=setTimeout(()=>persistConfig().catch(e=>toast("Config save failed: "+e.message)),350);
+  }
+  function applyNAM(config){S.payload.void_nam=Policy.normalize(config,ampNames());changed();rebuild()}
+  function applyStored(loaded){
+    if(!loaded)return false;
+    if(loaded.state){
+      const previous=S.payload;
+      const next=loaded.state;
+      if(!next.config||!next.data)throw Error("Saved studio_state.json has no project source");
+      S.payload={...previous,...next,mld:previous.mld,factory:previous.factory};
+    }
+    const nam=loaded.nam||S.payload.void_nam||Policy.defaults();
+    S.payload.void_nam=Policy.normalize(nam,ampNames());
+    return Boolean(loaded.state||loaded.nam);
+  }
+  async function connectFolder(){
+    const saved=await IO.connect();
+    if(saved&&(saved.state||saved.nam)){
+      if(S.dirty&&!confirm("Existing config found. Load saved project settings and replace unsaved changes?"))
+        return;
+      applyStored(saved);rebuild();markDirty(false);toast("Loaded config/*.json");
+    }else{
+      await persistConfig();toast("Config folder connected and initialized.");
+    }
+  }
+  async function saveConfig(){
+    if(!IO.connected()){await connectFolder();return}
+    await persistConfig();toast("Saved config/*.json");
+  }
+  function downloadConfigBackup(){
+    const nam=namConfig();
+    download("nam_clone.json",JSON.stringify(nam,null,2)+"\n","application/json");
+    download("studio_state.json",JSON.stringify(sourcePayload(),null,2)+"\n","application/json");
+  }
+  async function importConfigFile(file){
+    const o=JSON.parse(await file.text());
+    if(o.schema===Policy.SCHEMA){
+      applyNAM(o);
+    }else if(o.config&&o.data){
+      applyStored({state:o,nam:o.void_nam||namConfig()});changed();rebuild();
+    }else throw Error("Select nam_clone.json or studio_state.json");
+  }
 
   // ---- gzip/base64 helpers ----
   async function inflateText(b64) {
@@ -32,8 +93,8 @@
     // skipMissing:true so user deletions never crash the build (identical output when nothing is missing).
     const comps = PMBuild.buildCompilations(files, { collections: pl.collections || undefined, skipMissing: true });
     const jsonMap = Object.assign({}, files, comps);
-    const { files: namMap } = PMBuild.buildNam(jsonMap, pl.nam_overrides || {});
-    const { files: mixedMap } = PMBuild.buildMixed(jsonMap, pl.nam_overrides || {});
+    const { files: namMap } = PMBuild.buildNam(jsonMap, pl.nam_overrides || {}, pl.void_nam);
+    const { files: mixedMap } = PMBuild.buildMixed(jsonMap, pl.nam_overrides || {}, pl.void_nam);
     const library = PMBuild.buildLibrary(jsonMap, namMap, mixedMap);
     return { files, summary, jsonMap, namMap, mixedMap, comps, library, total, artistCount };
   }
@@ -45,7 +106,7 @@
       const stats = PMStats.compute(S.built, {
         collections: S.payload.collections,
         defaultFiles: PMBuild.defaultCollectionDefs().map((d) => d.file),
-        namCaptures: PMBuild.NAM_CAPTURES.length,
+        namCaptures: namConfig().slots.filter(x=>x.ampModel).length,
       });
       S.payload.readme = PMStats.apply(S.payload.readme || "", stats);
       const d = (S.payload.docs || []).find((x) => x.id === "readme");
@@ -56,8 +117,13 @@
   // authoritative fork appendix without rewriting the upstream README text.
   function ensureVoidReadme() {
     const appendix = window.PMVoidModReadme;
-    if (!S.payload || !appendix || (S.payload.readme || "").includes("## Void's MOD")) return;
-    S.payload.readme = (S.payload.readme || "").trimEnd() + "\n\n---\n\n" + appendix;
+    if (!S.payload || !appendix) return;
+    const v3 = "### Void's MOD v0.3.0 — persistent JSON configuration";
+    if ((S.payload.readme || "").includes(v3)) return;
+    const appended = (S.payload.readme || "").includes("## Void's MOD")
+      ? appendix.slice(appendix.indexOf(v3))
+      : appendix;
+    S.payload.readme = (S.payload.readme || "").trimEnd() + "\n\n" + appended;
     const doc = (S.payload.docs || []).find((d) => d.id === "readme");
     if (doc) doc.md = S.payload.readme;
   }
@@ -73,7 +139,7 @@
     $("#stats").innerHTML = "<b>" + b.artistCount + "</b> artists · <b>" + b.total +
       "</b> presets · <b>" + Object.keys(b.jsonMap).length + "</b> json · <b>" + Object.keys(b.namMap).length +
       "</b> NAM · <b>" + nOv + "</b> overrides · <b>" + dt + " ms</b>";
-    const idx = PMHtml.buildIndex(b.jsonMap);
+    const idx = PMHtml.buildIndex(b.mixedMap);
     $("#preview").srcdoc = idx["index.html"];
     renderData();
     renderCollections();
@@ -81,9 +147,12 @@
     markDirty(S.dirty);
   }
   function markDirty(d) {
+    if(d) {revision++;if(saveTimer)clearTimeout(saveTimer);
+      if(IO.connected())saveTimer=setTimeout(()=>persistConfig().catch(e=>toast("Config save failed: "+e.message)),350);
+    }
     S.dirty = d;
     const btn = $("#saveBtn");
-    btn.textContent = d ? "💾 Save changes (HTML)" : "💾 Save this app (HTML)";
+    btn.textContent = d ? "💾 Save config (changes)" : "💾 Save config";
     btn.classList.toggle("attn", d);
     $("#dirtyTag").hidden = !d;
   }
@@ -392,6 +461,7 @@
     return {
       config: S.payload.config, data: S.payload.data, mld: S.payload.mld, factory: S.payload.factory,
       factory_overrides: S.payload.factory_overrides || {}, nam_overrides: S.payload.nam_overrides || {},
+      void_nam: namConfig(),
       collections: S.payload.collections || null, prompt: S.payload.prompt || "", readme: S.payload.readme || "",
       docs: S.payload.docs || [], changelog: S.payload.changelog || null,
     };
@@ -402,17 +472,8 @@
     const a = el("a"); a.href = u; a.download = fn; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(u), 2000);
   }
-  async function saveApp() {
-    const blob = await gzipB64(JSON.stringify(sourcePayload()));
-    const html = serializeApp(blob);
-    const fn = "PocketMasterStudio.html";
-    if (window.showSaveFilePicker) {
-      try { const h = await window.showSaveFilePicker({ suggestedName: fn, types: [{ description: "HTML", accept: { "text/html": [".html"] } }] });
-        const w = await h.createWritable(); await w.write(html); await w.close(); markDirty(false); toast("Saved."); return;
-      } catch (e) { if (e && e.name === "AbortError") return; }
-    }
-    download(fn, html, "text/html"); markDirty(false); toast("Downloaded " + fn + ".");
-  }
+  // Unlike upstream, Save writes JSON to config/ — never another HTML.
+  async function saveApp(){try{await saveConfig()}catch(e){toast("Save failed: "+e.message)}}
   // Export the full extracted file tree (source + generated json/json_nam + listings + app + lossless source.json) as a ZIP.
   async function exportZip() {
     // A full ZIP export is a "complete export": advance the change history (stamp created/modified,
@@ -433,7 +494,7 @@
     const stats = PMStats.compute(S.built, {
       collections: S.payload.collections,
       defaultFiles: PMBuild.defaultCollectionDefs().map((d) => d.file),
-      namCaptures: PMBuild.NAM_CAPTURES.length,
+      namCaptures: namConfig().slots.filter(x=>x.ampModel).length,
     });
     let readme = PMStats.apply(S.payload.readme || "", stats);
     readme = PMChangelog.applyRecent(readme, PMChangelog.renderRecent(res.state, ctx, since),
@@ -459,12 +520,13 @@
       const mp = PMMap.buildM50(map); files.push({ name: folder + "/map_Best50.html", data: mp["map_Best50.html"] }); files.push({ name: folder + "/map_Best50_print.html", data: mp["map_Best50_print.html"] });
     };
     emit("json", b.jsonMap); emit("json_nam", b.namMap); emit("json_mixed", b.mixedMap);
-    files.push({ name: "pocketmaster.source.json", data: JSON.stringify(sourcePayload(), null, 1) });
+    files.push({ name: "pocketmaster.source.json", data: JSON.stringify(sourcePayload(),null,1) });
+    files.push({ name: "config/nam_clone.json", data: JSON.stringify(namConfig(),null,2) });
     if (S.payload.readme) files.push({ name: "README.md", data: S.payload.readme });
     files.push({ name: "changelog.json", data: JSON.stringify(res.state, null, 1) });
     files.push({ name: "CHANGELOG.md", data: changelogMd });
-    const appBlob = await gzipB64(JSON.stringify(sourcePayload()));
-    files.push({ name: "PocketMasterStudio.html", data: serializeApp(appBlob) });
+    // The application remains a static distributable; settings live in JSON.
+    files.push({ name: "PocketMasterStudio.html", data: PRISTINE });
     const zip = await PMZip.create(files);
     download("PocketMasterStudio-project.zip", zip);
     toast("ZIP downloaded (" + files.length + " files).");
@@ -487,6 +549,7 @@
       src.mld = src.mld || S.payload.mld; src.factory = src.factory || S.payload.factory; src.prompt = src.prompt || S.payload.prompt;
       src.readme = src.readme || S.payload.readme; src.docs = (src.docs && src.docs.length) ? src.docs : S.payload.docs; src.factory_overrides = src.factory_overrides || {}; src.nam_overrides = src.nam_overrides || {};
       src.collections = src.collections || null;
+      src.void_nam = Policy.normalize(src.void_nam || namConfig(), ampNames());
       src.changelog = src.changelog || S.payload.changelog || null;
       if (!src.config || !src.data) throw new Error("Incomplete project (missing config or data).");
       S.payload = src; markDirty(true); rebuild(); toast("Project imported."); showTab("overview");
@@ -497,6 +560,7 @@
   // ---- main views (Studio + embedded editor + live listings + docs) ----
   const MAIN = [
     { id: "studio", label: "Studio", icon: "🎛️", group: "" },
+    { id: "nam", label: "NAM/Clone", icon: "🎚️", group: "" },
     { id: "editor", label: "Editor", icon: "🎸", group: "", allow: "bluetooth *; usb *; midi *; serial *; hid *" },
     { id: "index", label: "Listing", icon: "📋", group: "", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
     { id: "full", label: "Table", icon: "🗂️", group: "", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
@@ -567,6 +631,14 @@
     const t = MAIN.find((x) => x.id === id);
     const view = el("section", { class: "view", id: "view-" + id });
     $("#views").appendChild(view);
+    if(id==="nam"){
+      namView=window.PMVoidNAMUI.mount(view,{
+        getConfig:namConfig,catalog:window.PMPRSTAssets.catalog,onApply:applyNAM,
+        getSaveStatus:statusIO,onConnect:connectFolder,onSave:saveConfig,
+        onBackup:downloadConfigBackup,onImport:importConfigFile
+      });
+      return;
+    }
     if (id === "editor") return mountEditor(view, t);
     if (id === "docs") return mountDocs(view);
     const f = el("iframe", { class: "full", title: t.label });
@@ -706,7 +778,7 @@
     $("#copyPrompt").addEventListener("click", copyPrompt);
     $("#analyzeBtn").addEventListener("click", analyze);
     $("#applyBtn").addEventListener("click", applyPending);
-    $("#saveBtn").addEventListener("click", saveApp);
+    $("#saveBtn").addEventListener("click",saveApp);
     $("#dlIndex").addEventListener("click", () => S.built && download("index.html", PMHtml.buildIndex(S.built.jsonMap)["index.html"], "text/html"));
     $("#delBtn").addEventListener("click", doDelete);
     $("#collSel").addEventListener("change", renderCollections);
@@ -741,9 +813,18 @@
       S.payload = await inflate(S.origBlob);
       if (!S.payload.factory_overrides) S.payload.factory_overrides = {};
       if (!S.payload.nam_overrides) S.payload.nam_overrides = {};
+      S.payload.void_nam=Policy.defaults();
+      // A previously granted project-directory handle can be reused; a new
+      // permission prompt always requires the user to click Connect.
+      try{
+        if(await IO.restore()){
+          const stored=await IO.load();applyStored(stored);
+        }
+      }catch(e){console.warn("Void config restore:",e)}
       rebuild();
+      markDirty(false);
     } catch (e) { $("#stats").innerHTML = '<span class="err">ERROR: ' + escH(e.message) + "</span>"; }
-    window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, sourcePayload };
+    window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, sourcePayload, saveConfig, applyNAM, connectFolder };
   }
   window.addEventListener("DOMContentLoaded", boot);
 })();

@@ -111,14 +111,14 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
-const modules = ["pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
+const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
 const prstWrap = (file, globalName) => {
   const deps = globalName === "PMPRSTNative"
     ? 'if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;'
-    : 'if(id==="./native_prst_patch.js")return window.PMPRSTNative;if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;if(id.startsWith("node:"))return {};';
+    : 'if(id==="./native_prst_patch.js")return window.PMPRSTNative;if(id==="./prst_clone_slots.js")return window.PRSTCloneSlots;if(id==="../src/void_policy.js")return window.PMVoidPolicy;if(id.startsWith("node:"))return {};';
   return '(function(){const module={exports:{}};function require(id){'+deps+'throw Error("Unexpected browser require: "+id);}'+rd(path.join(ROOT, "tools", file)).replace(/^#![^\n]*\n/, "")+'\nwindow.'+globalName+'=module.exports;})();';
 };
 const prstScripts = [
@@ -128,7 +128,6 @@ const prstScripts = [
   "window.PMPRSTAssets = " + JSON.stringify({
     catalog: rdj(path.join(ROOT, "catalog/effects.json")),
     fxNative: rdj(path.join(ROOT, "catalog/fx_native.json")),
-    defaultSlots: rdj(path.join(ROOT, "config/nam_slots.owner.example.json")),
     templateBase64: fs.readFileSync(path.join(ROOT, "templates/pocket_master_reference.prst")).toString("base64"),
     cloneTemplateBase64: fs.readFileSync(path.join(ROOT, "templates/pocket_master_clone_reference.prst")).toString("base64")
   }) + ";",
@@ -199,7 +198,8 @@ const CSS = String.raw`
  .pickfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
  .pickfoot[hidden]{display:none} .pickfootbtns{display:flex;gap:6px} #pickAdd[disabled]{opacity:.5}
  .appbar{position:sticky;top:0;z-index:15;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:8px 12px}
- .brand{font-size:15px;white-space:nowrap} .brand b{font-weight:800}
+ .brand{font-size:15px;white-space:nowrap;display:flex;flex-direction:column;line-height:1.15;gap:3px}.brand b{font-weight:800}
+ .brand-version{font:10px/1.1 ui-monospace,Consolas,monospace;letter-spacing:.01em;color:var(--mut);opacity:.85}
  .maintabs{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1}
  .maintab{flex:0 0 auto;display:inline-flex;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;white-space:nowrap;min-height:40px;position:relative}
  .maintab.on{background:var(--acc);color:#fff;border-color:transparent;font-weight:600}
@@ -215,6 +215,12 @@ const CSS = String.raw`
  .mitem{display:flex;align-items:center;width:100%;text-align:left;padding:11px 12px;border:0;background:transparent;color:var(--ink);font-size:14.5px;border-radius:8px;cursor:pointer;min-height:44px;position:relative}
  .mitem.on{background:var(--acc);color:#fff;font-weight:600}
  @media(max-width:720px){ .maintabs{display:none} .menuBtn{display:inline-flex} }
+ .void-wrap{max-width:920px;margin:0 auto;padding:20px 16px 100px}
+ .void-wrap h2{font-size:19px;margin:8px 0}.void-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:14px;margin-top:16px}
+ .void-slot{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+ .void-slot-num{font-weight:750}.void-slot-num .mut{font-size:12px;font-weight:400;margin-left:4px}
+ .void-slot label.chk2{margin:12px 0 0;font-size:12px;line-height:1.4}
+ .void-slot input[type=checkbox]{width:auto}
  .view{display:none} .view.active{display:block}
  .view .tabs{position:static}
  .view iframe.full{width:100%;height:calc(100vh - 120px);border:0;border-radius:0;margin:0;background:#fff}
@@ -255,7 +261,7 @@ const CSS = String.raw`
 
 const BODY = String.raw`
 <div class="appbar">
- <div class="brand">🎛️ PocketMaster <b>Studio</b></div>
+ <div class="brand"><span>🎛️ PocketMaster <b>Studio</b></span><span class="brand-version">Void&#39;s MOD v0.3.0 · Original v0.1 (assumed)</span></div>
  <div class="maintabs" id="maintabs"></div>
  <button class="menuBtn" id="menuBtn" aria-expanded="false" aria-haspopup="true"><span id="menuBtnLabel"></span><span class="caret">▾</span></button>
  <div class="menu" id="menu"></div>
@@ -342,7 +348,7 @@ const BODY = String.raw`
 </div>
 <div class="savebar">
  <span id="dirtyTag" hidden>unsaved changes</span><span class="sp"></span>
- <button id="saveBtn" class="primary">💾 Save this app (HTML)</button>
+ <button id="saveBtn" class="primary">💾 Save config</button>
 </div>
 <div id="toast" hidden></div>
 `;

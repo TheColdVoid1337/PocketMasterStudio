@@ -40,6 +40,21 @@ test('Void MOD policy is embedded before the live PMBuild module', () => {
   assert.ok(appendixScript.includes(JSON.stringify(appendix)));
 });
 
+test('Void MOD v0.3.0 includes NAM tab, static app and detached config storage',()=>{
+ const files=['src/void_policy.js','src/void_config_io.js','src/void_nam_ui.js','src/prst_studio_ui.js'];
+ for(const file of files){
+  const code=fs.readFileSync(path.join(root,file),'utf8');
+  assert.ok(scripts.some(x=>x.includes(code)),file+' is stale inside compiled HTML');
+ }
+ assert.match(html,/Void&#39;s MOD v0\.3\.0/);
+ assert.match(html,/Save config/);
+ const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+ assert.ok(app.includes('label: "NAM/Clone"'),'NAM/Clone top-level nav missing');
+ const ignored=fs.readFileSync(path.join(root,'.gitignore'),'utf8');
+ assert.match(ignored,/^\/config\/$/m);
+ assert.match(html,/studio_state\.json/);
+});
+
 test('distributed HTML embeds exact authentic Normal and Clone-ON donor bytes', () => {
   const assetJs = scripts.find(text => text.includes('window.PMPRSTAssets = '));
   assert.ok(assetJs, 'missing embedded PRST assets');

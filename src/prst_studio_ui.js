@@ -18,9 +18,7 @@
       '<label for="prst-donor">Custom donor .prst (optional)</label>',
       '<input type="file" accept=".prst" id="prst-donor">',
       '<p class="mut">Leave empty to use two bundled genuine SONICLINK references: a normal AMP preset and a separate real Clone-ON export. Mixed batches pick the appropriate reference for each preset. Custom donor is optional, ideally exported by your firmware.</p>',
-      '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
-      '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
-      '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. Void MOD: Clone ALWAYS bypasses onboard IR DSP. Only confirmed Amp + Cab / Full Rig NAM captures are allowed. Unapproved captures are blocked; other tones stay Modeled.</p>',
+      '<p class="mut">Five NAM slots are configured under <b>NAM/Clone</b> in the main menu. There is no separate slot-map textbox here. Clone always bypasses onboard IR, and preset files never install the .nam capture.</p>',
       '<div class="row"><button type="button" class="primary" id="prst-export">⬇️ Export native .prst / ZIP</button></div>',
       '<div id="prst-status" class="mut" role="status" aria-live="polite"></div>'
     ].join("");
@@ -29,7 +27,7 @@
     const mode = $("prst-mode"), artist = $("prst-artist"), preset = $("prst-preset");
     const status = $("prst-status");
     const asset = window.PMPRSTAssets;
-    $("prst-slots").value = JSON.stringify(asset.defaultSlots, null, 2);
+    // Physical slot mapping is owned by NAM/Clone settings (config/nam_clone.json).
     const state = () => window.PMStudio && window.PMStudio.S;
     const mapNow = () => {
       const s = state(); if (!s || !s.built) return null;
@@ -93,15 +91,14 @@
             throw Error("Bundled Clone reference has Clone OFF.");
         } else window.PRSTCloneSlots.inspect(references.custom);
         const hasClone = chosen.some((p) => p.ampMode === "Clone");
-        let namSlots;
-        if (hasClone) {
-          try { namSlots = JSON.parse($("prst-slots").value); }
-          catch(e) { throw Error("Invalid NAM slot map JSON: " + e.message); }
-          window.PRSTConvert.checkMap(namSlots);
-        }
+        const cfg = state()?.payload?.void_nam || window.PMVoidPolicy.defaults();
+        const validated = window.PMVoidPolicy.normalize(cfg,window.PMVoidPolicy.validAmpNames(asset.catalog));
+        const namSlots = window.PMVoidPolicy.slotMap(validated);
+        if(hasClone && !Object.keys(namSlots).length)throw Error("Configure Full Rig NAM slots in NAM/Clone first.");
+        if(hasClone)window.PRSTConvert.checkMap(namSlots);
         // Convert and verify ALL results before offering any download.
         const result = chosen.map((p) => window.PRSTConvert.convert(p, window.PRSTConvert.selectDonor(p, references), {
-          catalog: asset.catalog, fxNative: asset.fxNative, namSlots
+          catalog: asset.catalog, fxNative: asset.fxNative, namSlots, voidConfig: validated
         }));
         for (const r of result) {
           const parsed = window.PRSTCloneSlots.inspect(r.bytes);

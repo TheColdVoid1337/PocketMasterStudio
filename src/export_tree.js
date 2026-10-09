@@ -29,8 +29,10 @@ console.log("changelog:", cl.changed ? (cl.baseline ? "baseline recorded" : "bat
 const { files } = PMBuild.buildSongs(mld, config, data, fov);
 const comps = PMBuild.buildCompilations(files, collections ? { collections, skipMissing: true } : undefined);
 const jsonMap = Object.assign({}, files, comps);
-const { files: namMap } = PMBuild.buildNam(jsonMap, nov);
-const { files: mixedMap } = PMBuild.buildMixed(jsonMap, nov);
+const configPath=path.join(ROOT,"config/nam_clone.json");
+const voidConfig=fs.existsSync(configPath)?require("./void_policy.js").normalize(rdj(configPath)):null;
+const { files: namMap } = PMBuild.buildNam(jsonMap, nov, voidConfig);
+const { files: mixedMap } = PMBuild.buildMixed(jsonMap, nov, voidConfig);
 
 function writeFolder(folder, map) {
   const dir = path.join(ROOT, folder);

@@ -31,7 +31,7 @@ function unpack(doc) {
     return doc.presets;
   throw Error('Expected single v1.0 preset or PocketMasterBatch v1.0');
 }
-function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) {
+function convert(preset, donor, {catalog, fxNative, namSlots, overrideName, voidConfig}={}) {
   requireThat(isObj(preset) && preset.version==='1.0' && isObj(preset.modules), 'Malformed v1.0 preset');
   const clone = preset.ampMode==='Clone';
   requireThat(clone || preset.ampMode==='Normal', 'Unsupported ampMode '+preset.ampMode);
@@ -53,7 +53,7 @@ function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) 
     checkMap(namSlots);
     const entry=preset.modules.Clone;
     requireThat(isObj(entry) && entry.enabled===true && typeof entry.effect==='string', name+': enabled Clone module and effect name required');
-    voidPolicy.assertFullRig(entry.effect);
+    voidPolicy.assertFullRig(entry.effect,voidConfig);
     requireThat(Object.hasOwn(namSlots,entry.effect), name+': NAM "'+entry.effect+'" has no assigned slot in --nam-slots');
     changes.clone_slot=namSlots[entry.effect];
     changes.enabled.Clone=true;
@@ -146,7 +146,10 @@ function main(argv){
   requireThat(base,'Cannot find repository root (catalog/ and templates/)');
   const catalog=JSON.parse(fs.readFileSync(path.join(base,'catalog/effects.json'),'utf8'));
   const fxNative=JSON.parse(fs.readFileSync(path.join(base,'catalog/fx_native.json'),'utf8'));
-  const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):undefined;
+  const localConfigPath=path.join(base,'config/nam_clone.json');
+  const voidConfig=!args.namSlots&&fs.existsSync(localConfigPath)?voidPolicy.normalize(JSON.parse(fs.readFileSync(localConfigPath,'utf8')),voidPolicy.validAmpNames(catalog)):null;
+  const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):
+    voidConfig?voidPolicy.slotMap(voidConfig):undefined;
   const doc=JSON.parse(fs.readFileSync(args.input,'utf8'));
   const references=args.donor
     ? {custom:fs.readFileSync(args.donor)}
@@ -158,7 +161,7 @@ function main(argv){
   if(references.stock)requireThat(!slots.inspect(references.stock).cloneEnabled,'Invalid stock reference');
   if(references.clone)requireThat(slots.inspect(references.clone).cloneEnabled,'Invalid Clone-ON reference');
   if(references.custom)slots.inspect(references.custom);
-  const items=collect(doc,null,{catalog,fxNative,namSlots,select:args.select,
+  const items=collect(doc,null,{catalog,fxNative,namSlots,voidConfig,select:args.select,
     overrideName:args.overrideName,donorForPreset:p=>selectDonor(p,references)});
   if(!args.donor)console.error('NOTICE: Using genuine bundled Modeled/Clone SONICLINK references per preset; verify import/readback and sound on the pedal.');
   requireThat(!args.output || items.length===1,'Multiple presets require --out-dir');

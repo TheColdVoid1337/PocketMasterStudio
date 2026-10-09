@@ -4,7 +4,13 @@ This fork vendors the JavaScript native-preset converter from [PRST Lab](https:/
 
 ## Void's MOD — Clone IR and Full Rig hard rule
 
-**Authoritative fork behavior:** Pocket Master's built-in IR is DSP-inactive in Clone mode regardless of the IR ON/OFF indication shown by the firmware. Every Clone preset must reference a verified **Full Rig (amp+cab+mic)** NAM; DI, amp-head-only, preamp-only and unverified captures are blocked. Void's MOD forces `modules.IR.enabled=false` for all generated Clone JSON and native PRST export always clears IR enable bit 4. The approved capture registry is `src/void_policy.js` (currently only `AC30 May`, **VOX AC30 DRIVER**). Other NAM or Mixed candidates stay Modeled rather than being converted into invalid Clone. Legacy exported `json_nam/` and `json_mixed/` must be regenerated before direct use. See [the authoritative fork README appendix](../README.md#voids-mod--clonenam-full-rig-policy-authoritative) and [Void's MOD policy](VOID_MOD.md).
+**Authoritative fork behavior:** Pocket Master's built-in IR is DSP-inactive in Clone mode regardless of the IR ON/OFF indication shown by the firmware. Every Clone preset must reference a verified **Full Rig (amp+cab+mic)** NAM; DI, amp-head-only, preamp-only and unverified captures are blocked. Void's MOD forces `modules.IR.enabled=false` for all generated Clone JSON and native PRST export always clears IR enable bit 4. The current mapping and explicit user Full Rig confirmation live in `config/nam_clone.json`, validated by `src/void_policy.js`. Without a configured matching slot, NAM and Mixed candidates stay Modeled. The old AC30-only allowlist applies only to legacy/no-config direct binary conversion. Legacy exported `json_nam/` and `json_mixed/` must be regenerated before direct use. See [the authoritative fork README appendix](../README.md#voids-mod--clonenam-full-rig-policy-authoritative) and [Void's MOD policy](VOID_MOD.md).
+
+## Void's MOD v0.3.0 — persistent NAM/Clone slot setup
+
+**Current authority** (supersedes the historical AC30-only allowlist discussed earlier): the user configures up to five physical NAM profiles in the **NAM/Clone** top-level menu. Each position selects one of all 22 modeled AMP identifiers, a custom exact NAM name, and an explicit **Full Rig (amp + cabinet + microphone)** confirmation. Configured Clone has priority; unassigned or unverified AMP stays Modeled. Clone disables the onboard IR module in both JSON and .prst. These rules do not imply automatic verification of the installed NAM file.
+
+Use **Connect project folder** in Chrome/Edge and select the repository root. The browser creates **`config/nam_clone.json`** and **`config/studio_state.json`**, persists edits there, and never rewrites the HTML for saves. The `config/` folder is excluded by Git via `.gitignore`. Physical permission is required by browser security; reconnect after reload if requested. Backup and import buttons work without File System Access. The JS CLI also reads the local `config/nam_clone.json` automatically; the legacy `--nam-slots` CLI option is supported as a compatibility path.
 
 ## Browser workflow
 
@@ -30,7 +36,7 @@ node tools/sonicmaster_to_prst.js json/AC-DC.json \\
 
 # Clone batch: automatically use the genuine bundled Clone-ON reference
 node tools/sonicmaster_to_prst.js json_nam/AC-DC.json \\
-  --nam-slots config/nam_slots.owner.example.json \\
+  --nam-slots examples/nam_slots.owner.example.json \\
   --out-dir generated/AC-DC
 
 # Optional: supply a genuine Clone-ON reference from your own pedal
@@ -48,7 +54,7 @@ node tools/sonicmaster_to_prst.js json_nam/AC-DC.json \\
 
 ## Source provenance
 
-Copied verbatim from `TheColdVoid1337/PRST-Lab`: `tools/sonicmaster_to_prst.js`, `tools/native_prst_patch.js`, `tools/prst_clone_slots.js`, `catalog/effects.json`, `catalog/fx_native.json`, `config/nam_slots.owner.example.json`, binary reference template and the two JavaScript tests. Keep upstream changes traceable. PocketMasterStudio original: https://github.com/sadurni/PocketMasterStudio.
+Copied verbatim from `TheColdVoid1337/PRST-Lab`: `tools/sonicmaster_to_prst.js`, `tools/native_prst_patch.js`, `tools/prst_clone_slots.js`, `catalog/effects.json`, `catalog/fx_native.json`, `examples/nam_slots.owner.example.json`, binary reference template and the two JavaScript tests. Keep upstream changes traceable. PocketMasterStudio original: https://github.com/sadurni/PocketMasterStudio.
 
 ## Authentic Clone reference provenance
 
