@@ -57,7 +57,7 @@ Local export and CLI also read \`config/nam_clone.json\`, when present. \`node s
 
 ### Void's MOD v0.4.0 — native PRST import into the shared library
 
-**Import .prst** is now available under **Studio → Overview → Import .prst files…**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.
+**Import .prst** is now available under **.prst Lab → Import .prst**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.
 
 Imported presets appear as **PRST Imports 001**, **PRST Imports 002**, etc. inside the common Listing, Table, Editor library and Collections picker (50 presets per artist batch). The original 515-byte binary is stored byte-for-byte as Base64 inside the ignored local **config/studio_state.json**, with a stable fingerprint. Duplicate binaries are ignored. Each entry can be removed from the library or downloaded unchanged; project ZIP exports carry the imported archive.
 
@@ -86,3 +86,14 @@ Then paste the localhost address into **Windows Chrome** (requires working WSL l
 **One-time upgrade warning:** If a previous untracked `START.bat` shows as `?? START.bat` in Git, preserve it *before* `git pull`, e.g. `mv START.bat ../START.before_void_mod.bat` from WSL. The newly tracked launcher will then pull without an untracked-file conflict. Your old launcher remains backed up.
 
 Run server smoke checks via `python3 -m unittest discover -s tests -p 'test_studio_server.py' -v`. Native PRST tests remain `node --test tests/*.cjs`.
+
+### Void's MOD v0.4.1 — dedicated .prst Lab submenu
+
+All native `.prst` interactions now live in the **`.prst Lab`** item in the main menu (desktop tabs and mobile menu). Open it and use its **Import .prst** / **Export .prst** sub-tabs:
+
+- **Import .prst:** select multiple SONICLINK files, inspect the saved read-only snapshots, download their original 515 bytes, or remove them from the shared library. Imported presets continue appearing in Listing, Table, Editor and Collections.
+- **Export .prst:** choose Modeled, Clone/NAM or Mixed; select artist and preset (or the whole pack as ZIP), optionally provide a genuine donor, and export native binaries with the existing validation and Full Rig safeguards.
+
+Neither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`, and no data migration or new save format is needed. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.
+
+Older v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.

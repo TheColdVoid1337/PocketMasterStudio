@@ -1,6 +1,6 @@
 # Native SONICLINK .prst support — PRST Lab integration
 
-This fork vendors the JavaScript native-preset converter from [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab), source snapshot 2026-10-09. It converts the existing PocketMasterStudio v1.0 JSON preset format (single preset or `PocketMasterBatch`) into **genuine 515-byte .prst files**, with CRC-8/SMBUS and preservation of unknown donor bytes. All code lives in `tools/`, the device mappings in `catalog/`, and regression tests in `tests/`. The fork provides both a Node.js CLI **and a browser export panel** in the self-contained `PocketMasterStudio.html` under **Studio → Overview → Native SONICLINK .prst export**. It supports one preset (.prst) or all presets for an artist (ZIP) in Modeled, Clone/NAM, and Mixed sets.
+This fork vendors the JavaScript native-preset converter from [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab), source snapshot 2026-10-09. It converts the existing PocketMasterStudio v1.0 JSON preset format (single preset or `PocketMasterBatch`) into **genuine 515-byte .prst files**, with CRC-8/SMBUS and preservation of unknown donor bytes. All code lives in `tools/`, the device mappings in `catalog/`, and regression tests in `tests/`. The fork provides both a Node.js CLI **and a browser export panel** in the self-contained `PocketMasterStudio.html` under **.prst Lab → Export .prst**. It supports one preset (.prst) or all presets for an artist (ZIP) in Modeled, Clone/NAM, and Mixed sets.
 
 ## Void's MOD — Clone IR and Full Rig hard rule
 
@@ -14,8 +14,8 @@ Use **Connect project folder** in Chrome/Edge and select the repository root. Th
 
 ## Browser workflow
 
-1. Open `PocketMasterStudio.html` in Chrome/Edge and go to **Studio → Overview**.
-2. In **Native SONICLINK .prst export**, choose Modeled, Clone/NAM or Mixed; select an artist and one preset or All (ZIP).
+1. Open `PocketMasterStudio.html` in Chrome/Edge and go to **.prst Lab → Export .prst**.
+2. In **.prst Lab → Export**, choose Modeled, Clone/NAM or Mixed; select an artist and one preset or All (ZIP).
 3. By default, **do not upload any donor**. Studio includes two genuine SONICLINK reference files: a Modeled export (`templates/pocket_master_reference.prst`) and a **genuine Clone-ON export** (`templates/pocket_master_clone_reference.prst`, original `P17-VindSorg L.prst`, 515 bytes). For Mixed bundles it selects the correct donor **per preset**. Optionally use the **Custom donor .prst** field for firmware-specific experiments. Confirm the physical NAM slot map matches your installed captures.
 4. Click **Export .prst / ZIP**. All conversions and CRC checks occur locally; a failed conversion blocks the download (no partial ZIP).
 5. Import via SONICLINK and check readback and sound. Binary software validation alone is not hardware acceptance.
@@ -89,10 +89,21 @@ and native BPM 68 read back as 120. These observations are not universal firmwar
 
 ### Void's MOD v0.4.0 — native PRST import into the shared library
 
-**Import .prst** is now available under **Studio → Overview → Import .prst files…**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.
+**Import .prst** is now available under **.prst Lab → Import .prst**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.
 
 Imported presets appear as **PRST Imports 001**, **PRST Imports 002**, etc. inside the common Listing, Table, Editor library and Collections picker (50 presets per artist batch). The original 515-byte binary is stored byte-for-byte as Base64 inside the ignored local **config/studio_state.json**, with a stable fingerprint. Duplicate binaries are ignored. Each entry can be removed from the library or downloaded unchanged; project ZIP exports carry the imported archive.
 
 The decoded models, modules and parameters are a **read-only view**. They are not guaranteed to represent every opaque native field, and imported presets must not be silently regenerated from that interpretation. The original binary is authoritative and is re-exported unchanged. Native Clone imports do not install NAM files: an installed NAM is resolved only when the physical slot has a confirmed Full Rig mapping. Otherwise the entry remains an unmapped archival Clone snapshot with a warning, not a newly generated Full Rig tone. New Clone generation still requires a configured Full Rig and always bypasses onboard IR.
 
 Existing Studio save behavior is unchanged: importing presets into a connected project updates the separate JSON state, not PocketMasterStudio.html. All selected files validate before any are added, avoiding partial imports. Without folder permission, export a JSON backup and connect/import it again in Chrome/Edge.
+
+### Void's MOD v0.4.1 — dedicated .prst Lab submenu
+
+All native `.prst` interactions now live in the **`.prst Lab`** item in the main menu (desktop tabs and mobile menu). Open it and use its **Import .prst** / **Export .prst** sub-tabs:
+
+- **Import .prst:** select multiple SONICLINK files, inspect the saved read-only snapshots, download their original 515 bytes, or remove them from the shared library. Imported presets continue appearing in Listing, Table, Editor and Collections.
+- **Export .prst:** choose Modeled, Clone/NAM or Mixed; select artist and preset (or the whole pack as ZIP), optionally provide a genuine donor, and export native binaries with the existing validation and Full Rig safeguards.
+
+Neither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`, and no data migration or new save format is needed. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.
+
+Older v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.

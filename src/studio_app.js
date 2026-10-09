@@ -129,7 +129,7 @@
   function ensureVoidReadme() {
     const appendix = window.PMVoidModReadme;
     if (!S.payload || !appendix) return;
-    const latest = "### Void's MOD v0.4.0 — native PRST import into the shared library";
+    const latest = "### Void's MOD v0.4.1 — dedicated .prst Lab submenu";
     if ((S.payload.readme || "").includes(latest)) return;
     const start = appendix.indexOf(latest);
     const appended = (S.payload.readme || "").includes("## Void's MOD") && start >= 0
@@ -643,6 +643,7 @@
   const MAIN = [
     { id: "studio", label: "Studio", icon: "🎛️", group: "" },
     { id: "nam", label: "NAM/Clone", icon: "🎚️", group: "" },
+    { id: "prst", label: ".prst Lab", icon: "🧪", group: "" },
     { id: "editor", label: "Editor", icon: "🎸", group: "", allow: "bluetooth *; usb *; midi *; serial *; hid *" },
     { id: "index", label: "Listing", icon: "📋", group: "", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
     { id: "full", label: "Table", icon: "🗂️", group: "", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
@@ -719,6 +720,66 @@
         getSaveStatus:statusIO,onConnect:connectFolder,onSave:saveConfig,
         onBackup:downloadConfigBackup,onImport:importConfigFile
       });
+      return;
+    }
+    if (id === "prst") {
+      view.classList.add("prst-lab");
+      view.innerHTML = [
+        '<div class="wrap prst-lab-wrap">',
+        '<h2 style="margin:0 0 8px">🧪 .prst Lab</h2>',
+        '<p class="mut">Native SONICLINK preset tools. Import files into the shared library or export native 515-byte presets. NAM/Clone slot assignments are configured separately.</p>',
+        '<div class="tabs prst-lab-tabs" role="tablist" aria-label=".prst Lab tools">',
+        '<button class="tab on" type="button" role="tab" aria-selected="true" aria-controls="prst-pane-import" data-prst-pane="import">📥 Import .prst</button>',
+        '<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="prst-pane-export" data-prst-pane="export">⬇️ Export .prst</button>',
+        '</div>',
+        '<section class="prst-pane" id="prst-pane-import" role="tabpanel">',
+        '<div class="ovbox">',
+        '<h2 style="font-size:17px;margin:0 0 8px">Import .prst into shared library</h2>',
+        '<p class="mut">Select one or more original SONICLINK .prst files. Validate their 515-byte structure and CRC, preserve the binary bytes, and add read-only snapshots to Listing, Table, Editor and Collections. Unknown native selectors are explicitly labeled, never guessed.</p>',
+        '<div class="row"><button type="button" class="primary" id="importNativeBtn">Import .prst files…</button><input id="importNativeFile" type="file" accept=".prst" multiple hidden></div>',
+        '<div id="nativePrstList" class="mut" aria-live="polite"></div>',
+        '</div></section>',
+        '<section class="prst-pane" id="prst-pane-export" role="tabpanel" hidden></section>',
+        '</div>'
+      ].join("");
+      const choosePane = (which) => {
+        $("[data-prst-pane]", view).forEach((button) => {
+          const active = button.dataset.prstPane === which;
+          button.classList.toggle("on", active);
+          button.setAttribute("aria-selected", String(active));
+        });
+        for (const pane of ["import","export"]) {
+          view.querySelector("#prst-pane-" + pane).hidden = pane !== which;
+        }
+      };
+      $("[data-prst-pane]", view).forEach((button) =>
+        button.addEventListener("click", () => choosePane(button.dataset.prstPane)));
+      const nativeFile = view.querySelector("#importNativeFile");
+      view.querySelector("#importNativeBtn").addEventListener("click", () => nativeFile.click());
+      nativeFile.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = "";
+        try { await importNativeFiles(files); }
+        catch (err) { alert("PRST import blocked: " + err.message); }
+      });
+      view.querySelector("#nativePrstList").addEventListener("click", (e) => {
+        const remove = e.target.closest("[data-native-remove]");
+        if (remove) {
+          try { removeNative(Number(remove.dataset.nativeRemove)); }
+          catch (err) { alert(err.message); }
+          return;
+        }
+        const down = e.target.closest("[data-native-download]");
+        if (down) {
+          const item = S.payload.prst_imports?.[Number(down.dataset.nativeDownload)];
+          if (item) download(item.filename || "preset.prst",
+            new Blob([Native().fromBase64(item.rawBase64)], {type:"application/octet-stream"}));
+        }
+      });
+      if (!window.PMPRSTExportUI || typeof window.PMPRSTExportUI.mount !== "function")
+        throw Error(".prst Lab export module is missing");
+      window.PMPRSTExportUI.mount(view.querySelector("#prst-pane-export"));
+      renderNativeImports();
       return;
     }
     if (id === "editor") return mountEditor(view, t);
@@ -870,20 +931,6 @@
     $("#exportZip").addEventListener("click", () => exportZip().catch((e) => alert("ZIP error: " + e.message)));
     $("#importBtn").addEventListener("click", () => $("#importFile").click());
     $("#importFile").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) importProject(f); e.target.value = ""; });
-    $("#importNativeBtn").addEventListener("click",()=>$("#importNativeFile").click());
-    $("#importNativeFile").addEventListener("change",async e=>{
-      const files=Array.from(e.target.files||[]);e.target.value="";
-      try{await importNativeFiles(files)}catch(err){alert("PRST import blocked: "+err.message)}
-    });
-    $("#nativePrstList").addEventListener("click",e=>{
-      const rm=e.target.closest("[data-native-remove]");
-      if(rm){try{removeNative(Number(rm.dataset.nativeRemove))}catch(err){alert(err.message)}return}
-      const down=e.target.closest("[data-native-download]");
-      if(down){
-        const item=S.payload.prst_imports?.[Number(down.dataset.nativeDownload)];
-        if(item)download(item.filename||"preset.prst",new Blob([Native().fromBase64(item.rawBase64)],{type:"application/octet-stream"}));
-      }
-    });
     document.addEventListener("click", (e) => {
       const ov = e.target.closest("button[data-ov]");
       if (ov) { S.payload = PMEdit.removeOverride(S.payload, ov.dataset.ov, ov.dataset.ovw); markDirty(true); rebuild(); return; }

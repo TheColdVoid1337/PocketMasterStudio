@@ -1,15 +1,14 @@
-// Native PRST export widget for the self-contained Studio (PRST Lab codec).
+// Native PRST export widget for the dedicated .prst Lab submenu (PRST Lab codec).
 // Deliberately uses the built-in JSON presets; never modifies or uploads to the pedal.
 (function () {
   "use strict";
-  function mount() {
-    const host = document.getElementById("panel-overview");
-    if (!host || document.getElementById("native-prst-export")) return;
+  function mount(host) {
+    if (!host) throw Error(".prst Lab export container is missing");
+    if (host.querySelector("#native-prst-export")) return;
     const section = document.createElement("section");
     section.id = "native-prst-export";
     section.innerHTML = [
-      '<hr style="border:0;border-top:1px solid var(--line);margin:22px 0">',
-      '<h2 style="font-size:17px;margin:6px 0">Native SONICLINK .prst export (PRST Lab)</h2>',
+      '<h2 style="font-size:17px;margin:6px 0">Export native .prst / ZIP</h2>',
       '<p class="mut">Export 515-byte binary presets. Void MOD: Clone IR is always OFF; only approved Full Rig (amp+cab) NAM is allowed. Other tones remain Modeled.</p>',
       '<label for="prst-mode">Preset set</label>',
       '<select id="prst-mode"><option value="modeled">Modeled</option><option value="clone">Clone/NAM</option><option value="mixed">Mixed</option></select>',
@@ -137,6 +136,6 @@
     if (stats) new MutationObserver(() => refreshArtist()).observe(stats, {childList:true,subtree:true});
     refreshArtist();
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
-  else mount();
+  // Mounted only when the user visits the dedicated .prst Lab main-menu view.
+  window.PMPRSTExportUI = Object.freeze({ mount });
 })();

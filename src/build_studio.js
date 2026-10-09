@@ -222,6 +222,12 @@ const CSS = String.raw`
  .void-slot-num{font-weight:750}.void-slot-num .mut{font-size:12px;font-weight:400;margin-left:4px}
  .void-slot label.chk2{margin:12px 0 0;font-size:12px;line-height:1.4}
  .void-slot input[type=checkbox]{width:auto}
+ .prst-lab-wrap{padding-top:22px;padding-bottom:85px}
+ .prst-lab-tabs{margin:18px 0 20px;padding:8px 0}
+ .prst-pane[hidden]{display:none!important}
+ .prst-pane .ovbox{padding:17px;border-radius:12px}
+ .prst-pane #native-prst-export{border:1px solid var(--line);border-radius:12px;background:var(--card2);padding:18px}
+ .prst-pane #nativePrstList{margin-top:14px}
  .view{display:none} .view.active{display:block}
  .view .tabs{position:static}
  .view iframe.full{width:100%;height:calc(100vh - 120px);border:0;border-radius:0;margin:0;background:#fff}
@@ -262,7 +268,7 @@ const CSS = String.raw`
 
 const BODY = String.raw`
 <div class="appbar">
- <div class="brand"><span>🎛️ PocketMaster <b>Studio</b></span><span class="brand-version">Void&#39;s MOD v0.4.0 · Original v0.1 (assumed)</span></div>
+ <div class="brand"><span>🎛️ PocketMaster <b>Studio</b></span><span class="brand-version">Void&#39;s MOD v0.4.1 · Original v0.1 (assumed)</span></div>
  <div class="maintabs" id="maintabs"></div>
  <button class="menuBtn" id="menuBtn" aria-expanded="false" aria-haspopup="true"><span id="menuBtnLabel"></span><span class="caret">▾</span></button>
  <div class="menu" id="menu"></div>
@@ -288,12 +294,6 @@ const BODY = String.raw`
    <input id="importFile" type="file" accept=".zip,.json" hidden>
   </div>
   <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
-  <section id="nativePrstImport" class="ovbox" aria-label="Native PRST library import">
-   <h2 style="font-size:16px;margin:0 0 6px">📥 Import .prst into shared library</h2>
-   <p class="mut">Choose one or multiple original SONICLINK .prst files. Validate 515-byte layout, CRC, selectors; store original bytes losslessly in config/studio_state.json. Imported records appear as <b>PRST Imports</b> in Listing, Table, Editor library and Collections. Unknown active selectors are marked read-only without guessing a model; the original PRST is retained.</p>
-   <div class="row"><button type="button" id="importNativeBtn" class="primary">Import .prst files…</button><input id="importNativeFile" type="file" accept=".prst" multiple hidden></div>
-   <div id="nativePrstList" class="mut"></div>
-  </section>
   <div class="sub">Preview of the generated listing:</div>
   <iframe id="preview" title="preview"></iframe>
  </section>

@@ -42,13 +42,13 @@ test('Void MOD policy is embedded before the live PMBuild module', () => {
   assert.ok(appendixScript.includes(JSON.stringify(appendix)));
 });
 
-test('Void MOD v0.3.0 includes NAM tab, static app and detached config storage',()=>{
+test('Void MOD v0.4.1 includes NAM tab, static app and detached config storage',()=>{
  const files=['src/void_policy.js','src/void_config_io.js','src/void_nam_ui.js','src/prst_studio_ui.js'];
  for(const file of files){
   const code=fs.readFileSync(path.join(root,file),'utf8');
   assert.ok(scripts.some(x=>x.includes(code)),file+' is stale inside compiled HTML');
  }
- assert.match(html,/Void&#39;s MOD v0\.4\.0/);
+ assert.match(html,/Void&#39;s MOD v0\.4\.1/);
  assert.match(html,/Save config/);
  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
  assert.ok(app.includes('label: "NAM/Clone"'),'NAM/Clone top-level nav missing');
@@ -74,6 +74,44 @@ test('native PRST importer is in the standalone HTML and shared library bindings
   assert.match(html,/v0\.4\.0/);
   const appendix=fs.readFileSync(path.join(root,'docs/VOID_MOD.md'),'utf8');
   assert.match(appendix,/native PRST import into the shared library/);
+});
+
+test('all .prst controls are moved from Studio Overview into the .prst Lab submenu',()=>{
+  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+  const exportUI=fs.readFileSync(path.join(root,'src/prst_studio_ui.js'),'utf8');
+  const builder=fs.readFileSync(path.join(root,'src/build_studio.js'),'utf8');
+  const policy=require('../src/void_policy.js');
+  assert.equal(policy.MOD_VERSION,'0.4.1');
+
+  // The desktop nav and mobile menu share MAIN; the label must be present there.
+  assert.match(app,/id: "prst", label: "\.prst Lab"/);
+  assert.match(app,/if \(id === "prst"\) \{/);
+  assert.match(app,/id="prst-pane-import"/);
+  assert.match(app,/id="prst-pane-export"/);
+  assert.match(app,/data-prst-pane="import"/);
+  assert.match(app,/data-prst-pane="export"/);
+  assert.match(app,/window\.PMPRSTExportUI\.mount\(view\.querySelector\("#prst-pane-export"\)\)/);
+  assert.match(app,/renderNativeImports\(\)/);
+  assert.match(app,/view\.querySelector\("#importNativeFile"\)/);
+  assert.match(app,/view\.querySelector\("#nativePrstList"\)/);
+
+  const overview=html.match(/<section class="panel" id="panel-overview">([\s\S]*?)<\/section>/);
+  assert.ok(overview,'Studio Overview panel missing');
+  assert.doesNotMatch(overview[1],/nativePrstImport|native-prst-export|importNativeBtn|importNativeFile|nativePrstList/);
+  assert.doesNotMatch(builder,/id="nativePrstImport"/);
+  assert.match(exportUI,/window\.PMPRSTExportUI = Object\.freeze\(\{ mount \}\)/);
+  assert.doesNotMatch(exportUI,/panel-overview/);
+  const isolated={window:{}};
+  vm.runInNewContext(exportUI,isolated,{filename:'prst_studio_ui.js'});
+  assert.equal(typeof isolated.window.PMPRSTExportUI.mount,'function');
+  // No automatic mutation of Overview at script evaluation.
+  assert.doesNotMatch(exportUI,/DOMContentLoaded/);
+  assert.ok(scripts.some(code=>code.includes(exportUI)),'compiled exporter is out of sync');
+  assert.ok(scripts.some(code=>code.includes(app)),'compiled controller is out of sync');
+  assert.match(html,/Void&#39;s MOD v0\.4\.1/);
+  assert.match(html,/\.prst Lab/);
+  const doc=fs.readFileSync(path.join(root,'docs/VOID_MOD.md'),'utf8');
+  assert.match(doc,/v0\.4\.1 — dedicated \.prst Lab submenu/);
 });
 
 test('distributed HTML embeds exact authentic Normal and Clone-ON donor bytes', () => {

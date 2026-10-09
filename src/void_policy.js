@@ -5,7 +5,7 @@
 })(typeof self!=="undefined"?self:this,function(){
 "use strict";
 const SCHEMA="void-mod-nam-clone/v1";
-const MOD_VERSION="0.3.0";
+const MOD_VERSION="0.4.1";
 const BASE_VERSION="0.1 (assumed)";
 const AMP_DISPLAY=Object.freeze({
 "TWD Deluxe":"Fender Tweed Deluxe","B-Man N":"Fender Bassman — Normal","Dark Twin":"Fender Twin Reverb","Voks 30N":"Vox AC30 — Normal","Jazz 120":"Roland JC-120",
