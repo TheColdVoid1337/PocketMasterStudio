@@ -390,3 +390,25 @@ Imported presets appear as **PRST Imports 001**, **PRST Imports 002**, etc. insi
 The decoded models, modules and parameters are a **read-only view**. They are not guaranteed to represent every opaque native field, and imported presets must not be silently regenerated from that interpretation. The original binary is authoritative and is re-exported unchanged. Native Clone imports do not install NAM files: an installed NAM is resolved only when the physical slot has a confirmed Full Rig mapping. Otherwise the entry remains an unmapped archival Clone snapshot with a warning, not a newly generated Full Rig tone. New Clone generation still requires a configured Full Rig and always bypasses onboard IR.
 
 Existing Studio save behavior is unchanged: importing presets into a connected project updates the separate JSON state, not PocketMasterStudio.html. All selected files validate before any are added, avoiding partial imports. Without folder permission, export a JSON backup and connect/import it again in Chrome/Edge.
+
+### Void's MOD — one-click START.bat (local Chrome server)
+
+On Windows, **double-click `START.bat`** in the project root. It locates Windows Python 3.9+ (`py -3` preferred, `python` fallback), runs `tools/studio_server.py` and opens **Google Chrome** at:
+
+`http://127.0.0.1:8765/PocketMasterStudio.html`
+
+Keep the terminal open while using Studio. **Ctrl+C** in that window stops the server. No internet, Node/npm or third-party Python packages are required; the server uses only the Python standard library. It binds to **127.0.0.1** (not the LAN). HTML caching is disabled, while private `config/`, `.git/` and project files are **not HTTP-accessible**.
+
+**Config remains external.** Use **NAM/Clone → Connect project folder** and select the project root to grant file-system access. Switching from `file://` to `http://127.0.0.1:8765` creates a different browser origin, so you may need to connect the folder again once. Existing `config/*.json` files remain intact. Saving still does NOT rewrite the HTML.
+
+If Windows Python is missing, install it from [python.org](https://www.python.org/downloads/windows/). The WSL `.venv` does not automatically make `py` available to a Windows BAT. Alternatively, from WSL:
+
+```bash
+python3 tools/studio_server.py --no-browser
+```
+
+Then paste the localhost address into **Windows Chrome** (requires working WSL localhost forwarding). The server deliberately does not silently change ports: the stable origin preserves browser file-handle permissions. If port 8765 is already occupied, close the previous server; `--port 8766` is an optional manual override with a different origin.
+
+**One-time upgrade warning:** If a previous untracked `START.bat` shows as `?? START.bat` in Git, preserve it *before* `git pull`, e.g. `mv START.bat ../START.before_void_mod.bat` from WSL. The newly tracked launcher will then pull without an untracked-file conflict. Your old launcher remains backed up.
+
+Run server smoke checks via `python3 -m unittest discover -s tests -p 'test_studio_server.py' -v`. Native PRST tests remain `node --test tests/*.cjs`.
