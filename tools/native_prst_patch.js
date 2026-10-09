@@ -113,4 +113,5 @@ function write(template,changes,{catalog,fxNative}={}){
  slots.inspect(bytes);
  return bytes;
 }
-module.exports={MODS,write};
+// Public reverse lookup used by the browser/native PRST library importer.
+module.exports={MODS,CODES,write};

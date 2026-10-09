@@ -48,13 +48,32 @@ test('Void MOD v0.3.0 includes NAM tab, static app and detached config storage',
   const code=fs.readFileSync(path.join(root,file),'utf8');
   assert.ok(scripts.some(x=>x.includes(code)),file+' is stale inside compiled HTML');
  }
- assert.match(html,/Void&#39;s MOD v0\.3\.0/);
+ assert.match(html,/Void&#39;s MOD v0\.4\.0/);
  assert.match(html,/Save config/);
  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
  assert.ok(app.includes('label: "NAM/Clone"'),'NAM/Clone top-level nav missing');
  const ignored=fs.readFileSync(path.join(root,'.gitignore'),'utf8');
  assert.match(ignored,/^\/config\/$/m);
  assert.match(html,/studio_state\.json/);
+});
+
+test('native PRST importer is in the standalone HTML and shared library bindings are live',()=>{
+  const importer=fs.readFileSync(path.join(root,'src/prst_import.js'),'utf8');
+  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+  const policy=fs.readFileSync(path.join(root,'src/pmbuild.js'),'utf8');
+  assert.ok(scripts.some(s=>s.includes(importer)),'stale or missing PRST importer');
+  assert.ok(scripts.some(s=>s.includes(app)),'stale app controller');
+  assert.ok(scripts.some(s=>s.includes(policy)),'stale library generator');
+  assert.match(html,/id="importNativeBtn"/);
+  assert.match(html,/id="importNativeFile"/);
+  assert.match(html,/id="nativePrstList"/);
+  assert.ok(app.includes('Native().asBatches('),'native library not merged');
+  assert.ok(app.includes('importNativeFiles('),'native import UI not wired');
+  assert.ok(app.includes('prst_imports: S.payload.prst_imports || []'),'binary imports not persisted');
+  assert.ok(app.includes('refreshNativeEditor()'),'Editor catalog not refreshed');
+  assert.match(html,/v0\.4\.0/);
+  const appendix=fs.readFileSync(path.join(root,'docs/VOID_MOD.md'),'utf8');
+  assert.match(appendix,/native PRST import into the shared library/);
 });
 
 test('distributed HTML embeds exact authentic Normal and Clone-ON donor bytes', () => {

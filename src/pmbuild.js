@@ -452,6 +452,9 @@
   // Never guess a different amp family to fill missing physical slots.
   const NAM_CAPTURES = []; // counts are supplied by active config, not historical TONE3000 links.
   function convert_preset(p,overrides,unknown,artist,song,voidConfig) {
+    // Native PRST library snapshots must stay byte-faithful; do not rewrite
+    // their amp mode during automatic NAM/Mixed conversion.
+    if(p.nativeImport)return;
     const m=p.modules;
     if(!m||!m.AMP||p.ampMode!=="Normal")return;
     const chosen=VoidPolicy.resolveForModel(m.AMP.effect,voidConfig);

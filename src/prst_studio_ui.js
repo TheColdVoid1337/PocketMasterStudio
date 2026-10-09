@@ -91,15 +91,25 @@
             throw Error("Bundled Clone reference has Clone OFF.");
         } else window.PRSTCloneSlots.inspect(references.custom);
         const hasClone = chosen.some((p) => p.ampMode === "Clone");
+        const hasGeneratedClone = chosen.some((p) => p.ampMode === "Clone" && !p.nativeImport);
         const cfg = state()?.payload?.void_nam || window.PMVoidPolicy.defaults();
         const validated = window.PMVoidPolicy.normalize(cfg,window.PMVoidPolicy.validAmpNames(asset.catalog));
         const namSlots = window.PMVoidPolicy.slotMap(validated);
-        if(hasClone && !Object.keys(namSlots).length)throw Error("Configure Full Rig NAM slots in NAM/Clone first.");
-        if(hasClone)window.PRSTConvert.checkMap(namSlots);
+        if(hasGeneratedClone && !Object.keys(namSlots).length)throw Error("Configure Full Rig NAM slots in NAM/Clone first.");
+        if(hasGeneratedClone)window.PRSTConvert.checkMap(namSlots);
         // Convert and verify ALL results before offering any download.
-        const result = chosen.map((p) => window.PRSTConvert.convert(p, window.PRSTConvert.selectDonor(p, references), {
-          catalog: asset.catalog, fxNative: asset.fxNative, namSlots, voidConfig: validated
-        }));
+        const result = chosen.map((p) => {
+          // Native library snapshots are archival: preserve the exact imported
+          // 515 bytes, even when the corresponding NAM slot is no longer mapped.
+          if (p.nativeImport?.rawBase64) {
+            const bytes = window.PMPRSTImport.fromBase64(p.nativeImport.rawBase64);
+            window.PRSTCloneSlots.inspect(bytes);
+            return {bytes,warnings:["Original PRST bytes preserved"]};
+          }
+          return window.PRSTConvert.convert(p, window.PRSTConvert.selectDonor(p, references), {
+            catalog: asset.catalog, fxNative: asset.fxNative, namSlots, voidConfig: validated
+          });
+        });
         for (const r of result) {
           const parsed = window.PRSTCloneSlots.inspect(r.bytes);
           if (!parsed) throw Error("Invalid output");
@@ -115,7 +125,7 @@
         }
         status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. SONICLINK import/readback/listening still required." +
           (automatic ? " Used authentic built-in Modeled/Clone references as appropriate." : " Used your custom donor.") +
-          (hasClone ? " Clone IR is OFF (bypassed in hardware); only approved full-rig captures are accepted. NAM captures are not embedded; verify the installed model." : "");
+          (hasClone ? " Generated Clone uses Full Rig and IR OFF; imported PRST snapshots are exported byte-for-byte and are not automatically Full Rig verified." : "");
       } catch (e) {
         status.textContent = "Export blocked: " + (e && e.message || String(e));
       } finally { button.disabled = false; }

@@ -11,6 +11,7 @@
   const S = { payload: null, built: null, nameIndex: {}, dirty: false, origBlob: null };
   const IO = window.PMVoidConfigIO;
   const Policy = window.PMVoidPolicy;
+  const Native = () => window.PMPRSTImport; // initialized by the later inlined PRST scripts
   let saveTimer=null, revision=0, namView=null;
   const namConfig=()=>S.payload?.void_nam||Policy.defaults();
   const ampNames=()=>Policy.validAmpNames(window.PMPRSTAssets.catalog);
@@ -91,6 +92,16 @@
   function regen(pl) {
     const { files, summary, total, artistCount } = PMBuild.buildSongs(pl.mld, pl.config, pl.data, pl.factory_overrides || {});
     // skipMissing:true so user deletions never crash the build (identical output when nothing is missing).
+    // Make native PRST records first-class artist batches BEFORE resolving
+    // collections, so imported tones are searchable and selectable everywhere.
+    const nativeBatches = Native().asBatches(pl.prst_imports || [], {
+      catalog:window.PMPRSTAssets.catalog,fxNative:window.PMPRSTAssets.fxNative,
+      voidConfig:pl.void_nam
+    });
+    for(const name of Object.keys(nativeBatches)){
+      if(Object.hasOwn(files,name))throw Error("PRST import artist conflicts with generated artist "+name);
+      files[name]=nativeBatches[name];
+    }
     const comps = PMBuild.buildCompilations(files, { collections: pl.collections || undefined, skipMissing: true });
     const jsonMap = Object.assign({}, files, comps);
     const { files: namMap } = PMBuild.buildNam(jsonMap, pl.nam_overrides || {}, pl.void_nam);
@@ -118,10 +129,11 @@
   function ensureVoidReadme() {
     const appendix = window.PMVoidModReadme;
     if (!S.payload || !appendix) return;
-    const v3 = "### Void's MOD v0.3.0 — persistent JSON configuration";
-    if ((S.payload.readme || "").includes(v3)) return;
-    const appended = (S.payload.readme || "").includes("## Void's MOD")
-      ? appendix.slice(appendix.indexOf(v3))
+    const latest = "### Void's MOD v0.4.0 — native PRST import into the shared library";
+    if ((S.payload.readme || "").includes(latest)) return;
+    const start = appendix.indexOf(latest);
+    const appended = (S.payload.readme || "").includes("## Void's MOD") && start >= 0
+      ? appendix.slice(start)
       : appendix;
     S.payload.readme = (S.payload.readme || "").trimEnd() + "\n\n" + appended;
     const doc = (S.payload.docs || []).find((d) => d.id === "readme");
@@ -143,6 +155,7 @@
     $("#preview").srcdoc = idx["index.html"];
     renderData();
     renderCollections();
+    renderNativeImports();
     refreshMountedViews();
     markDirty(S.dirty);
   }
@@ -461,6 +474,7 @@
     return {
       config: S.payload.config, data: S.payload.data, mld: S.payload.mld, factory: S.payload.factory,
       factory_overrides: S.payload.factory_overrides || {}, nam_overrides: S.payload.nam_overrides || {},
+      prst_imports: S.payload.prst_imports || [],
       void_nam: namConfig(),
       collections: S.payload.collections || null, prompt: S.payload.prompt || "", readme: S.payload.readme || "",
       docs: S.payload.docs || [], changelog: S.payload.changelog || null,
@@ -521,6 +535,7 @@
     };
     emit("json", b.jsonMap); emit("json_nam", b.namMap); emit("json_mixed", b.mixedMap);
     files.push({ name: "pocketmaster.source.json", data: JSON.stringify(sourcePayload(),null,1) });
+    files.push({ name: "config/prst_imports.json", data: JSON.stringify(S.payload.prst_imports || [],null,2) });
     files.push({ name: "config/nam_clone.json", data: JSON.stringify(namConfig(),null,2) });
     if (S.payload.readme) files.push({ name: "README.md", data: S.payload.readme });
     files.push({ name: "changelog.json", data: JSON.stringify(res.state, null, 1) });
@@ -530,6 +545,72 @@
     const zip = await PMZip.create(files);
     download("PocketMasterStudio-project.zip", zip);
     toast("ZIP downloaded (" + files.length + " files).");
+  }
+  // Native binary imports are append-only snapshots: original bytes are saved
+  // in studio_state.json, presented in the shared library, and exported losslessly.
+  async function importNativeFiles(files) {
+    if(!S.payload)throw Error("Studio has not initialized");
+    const selected=Array.from(files||[]);
+    if(!selected.length)return;
+    const options={
+      catalog:window.PMPRSTAssets.catalog,fxNative:window.PMPRSTAssets.fxNative,
+      voidConfig:namConfig()
+    };
+    let entries=(S.payload.prst_imports||[]).slice();
+    let added=0,duplicates=0;
+    for(const file of selected) {
+      if(!/\.prst$/i.test(file.name))throw Error("Choose .prst files only: "+file.name);
+      const raw=new Uint8Array(await file.arrayBuffer());
+      const record=Native().record(raw,file.name,options); // validates CRC and recognized active selectors
+      const result=Native().add(entries,record);
+      entries=result.records;
+      if(result.added)added++;else duplicates++;
+    }
+    if(!added){toast("All "+duplicates+" native presets already imported.");return}
+    const trial={...S.payload,prst_imports:entries};
+    regen(trial); // validate all and verify current collections without touching state.
+    S.payload=trial;
+    markDirty(true);rebuild();refreshNativeEditor();
+    toast("Imported "+added+" native PRST preset"+(added===1?"":"s")+" into library.");
+  }
+  function renderNativeImports(){
+    const host=$("#nativePrstList");if(!host)return;
+    const imports=S.payload?.prst_imports||[];
+    host.innerHTML=imports.length
+      ?imports.map((p,i)=>'<div class="slotrow"><span class="sl">'+(i+1)+'</span><span class="lbl">'+
+        escH(p.filename||"Native PRST")+' <span class="mut">· '+escH(p.id)+
+        ((p.warnings||[]).length?' · Read-only / '+(p.warnings||[]).length+' decoding note(s)':' · Read-only')+'</span></span>'+
+        '<button class="mini" data-native-download="'+i+'" type="button">⬇ Original</button>'+
+        '<button class="mini" data-native-remove="'+i+'" type="button">Remove</button></div>').join("")
+      :'<p class="mut">No native PRST files imported yet.</p>';
+  }
+  function refreshNativeEditor(){
+    // The embedded PocketEdit library is serialized into its iframe at mount.
+    // Refresh the iframe ONLY after changing native library membership, not on
+    // routine preset edits; a live pedal connection may need to be re-opened.
+    const view=$("#view-editor"),entry=MAIN.find(x=>x.id==="editor");
+    if(!view||!mounted.editor||!entry)return;
+    view.replaceChildren();
+    mountEditor(view,entry);
+  }
+  function removeNative(index){
+    const existing=S.payload.prst_imports||[],removed=existing[index];if(!removed)return;
+    if(!confirm("Remove "+removed.filename+" from library? Original local .prst file is not deleted."))return;
+    const retained=existing.filter((_,i)=>i!==index);
+    const trial={...S.payload,prst_imports:retained};
+    // Imported artist batch names are ordinal chunks of 50. Update references
+    // after removal so later imported collection members never move silently.
+    const oldGroup=Object.fromEntries(existing.map((r,i)=>[r.id,"PRST Imports "+String(Math.floor(i/50)+1).padStart(3,"0")]));
+    const newGroup=Object.fromEntries(retained.map((r,i)=>[r.id,"PRST Imports "+String(Math.floor(i/50)+1).padStart(3,"0")]));
+    if(trial.collections)trial.collections=trial.collections.map(d=>({
+      ...d,refs:d.refs.flatMap(ref=>{
+        const id=ref[1]?.startsWith("prst_")?ref[1].slice(5):null;
+        if(!id||ref[0]!==oldGroup[id])return [ref];
+        if(!newGroup[id])return []; // removed record
+        return [[newGroup[id],ref[1],ref[2]]];
+      })
+    }));
+    regen(trial);S.payload=trial;markDirty(true);rebuild();refreshNativeEditor();
   }
   async function importProject(file) {
     try {
@@ -549,6 +630,7 @@
       src.mld = src.mld || S.payload.mld; src.factory = src.factory || S.payload.factory; src.prompt = src.prompt || S.payload.prompt;
       src.readme = src.readme || S.payload.readme; src.docs = (src.docs && src.docs.length) ? src.docs : S.payload.docs; src.factory_overrides = src.factory_overrides || {}; src.nam_overrides = src.nam_overrides || {};
       src.collections = src.collections || null;
+      src.prst_imports = src.prst_imports || [];
       src.void_nam = Policy.normalize(src.void_nam || namConfig(), ampNames());
       src.changelog = src.changelog || S.payload.changelog || null;
       if (!src.config || !src.data) throw new Error("Incomplete project (missing config or data).");
@@ -788,6 +870,20 @@
     $("#exportZip").addEventListener("click", () => exportZip().catch((e) => alert("ZIP error: " + e.message)));
     $("#importBtn").addEventListener("click", () => $("#importFile").click());
     $("#importFile").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) importProject(f); e.target.value = ""; });
+    $("#importNativeBtn").addEventListener("click",()=>$("#importNativeFile").click());
+    $("#importNativeFile").addEventListener("change",async e=>{
+      const files=Array.from(e.target.files||[]);e.target.value="";
+      try{await importNativeFiles(files)}catch(err){alert("PRST import blocked: "+err.message)}
+    });
+    $("#nativePrstList").addEventListener("click",e=>{
+      const rm=e.target.closest("[data-native-remove]");
+      if(rm){try{removeNative(Number(rm.dataset.nativeRemove))}catch(err){alert(err.message)}return}
+      const down=e.target.closest("[data-native-download]");
+      if(down){
+        const item=S.payload.prst_imports?.[Number(down.dataset.nativeDownload)];
+        if(item)download(item.filename||"preset.prst",new Blob([Native().fromBase64(item.rawBase64)],{type:"application/octet-stream"}));
+      }
+    });
     document.addEventListener("click", (e) => {
       const ov = e.target.closest("button[data-ov]");
       if (ov) { S.payload = PMEdit.removeOverride(S.payload, ov.dataset.ov, ov.dataset.ovw); markDirty(true); rebuild(); return; }
@@ -813,6 +909,7 @@
       S.payload = await inflate(S.origBlob);
       if (!S.payload.factory_overrides) S.payload.factory_overrides = {};
       if (!S.payload.nam_overrides) S.payload.nam_overrides = {};
+      if (!Array.isArray(S.payload.prst_imports)) S.payload.prst_imports = [];
       S.payload.void_nam=Policy.defaults();
       // A previously granted project-directory handle can be reused; a new
       // permission prompt always requires the user to click Connect.
@@ -824,7 +921,7 @@
       rebuild();
       markDirty(false);
     } catch (e) { $("#stats").innerHTML = '<span class="err">ERROR: ' + escH(e.message) + "</span>"; }
-    window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, sourcePayload, saveConfig, applyNAM, connectFolder };
+    window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, importNativeFiles, sourcePayload, saveConfig, applyNAM, connectFolder };
   }
   window.addEventListener("DOMContentLoaded", boot);
 })();
