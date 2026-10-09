@@ -89,7 +89,19 @@ function collect(doc,donor,options) {
   const selected=options.select===undefined?all:all.filter(x=>x.presetName===options.select);
   requireThat(selected.length && (options.select===undefined || selected.length===1),'--select must identify exactly one preset');
   requireThat(options.overrideName===undefined || selected.length===1,'--name only allowed with one preset');
-  return selected.map((preset,index)=>({index,sourceName:preset.presetName,...convert(preset,donor,options)}));
+  return selected.map((preset,index)=>({index,sourceName:preset.presetName,...convert(preset,options.donorForPreset ? options.donorForPreset(preset) : donor,options)}));
+}
+
+// Stock and Clone reference are separate authentic SONICLINK exports. In a mixed
+// batch, choose a donor for EACH preset, never a single synthetic Clone-ON donor.
+function selectDonor(preset,{stock,clone,custom}={}) {
+  const useClone=preset.ampMode==='Clone';
+  const donor=custom||(useClone?clone:stock);
+  requireThat(donor,'No '+(useClone?'Clone':'Modeled')+' PRST reference available');
+  const state=slots.inspect(donor);
+  if(!custom)requireThat(state.cloneEnabled===useClone,
+    'Bundled '+(useClone?'Clone':'Modeled')+' reference has wrong amp mode');
+  return donor;
 }
 function parseArgs(args){
   const result={};let input;
@@ -109,22 +121,25 @@ function parseArgs(args){
 }
 function main(argv){
   const args=parseArgs(argv);
-  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nDonor .prst is optional: bundled genuine SONICLINK stock reference is used by default.\nRequires explicit NAM slots for Clone presets. Donorless Clone output is experimental until hardware-tested. Outputs never overwrite files.');return;}
+  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nDonor .prst is optional: genuine SONICLINK Modeled/Clone references are selected per preset.\nRequires explicit NAM slots for Clone presets. Generated output still needs SONICLINK import/readback testing. Outputs never overwrite files.');return;}
   const base=path.resolve(__dirname,'..');
   const catalog=JSON.parse(fs.readFileSync(path.join(base,'catalog/effects.json'),'utf8'));
   const fxNative=JSON.parse(fs.readFileSync(path.join(base,'catalog/fx_native.json'),'utf8'));
   const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):undefined;
-  const donorPath=args.donor||path.join(base,'templates/pocket_master_reference.prst');
-  const template=fs.readFileSync(donorPath);
-  const templateInfo=slots.inspect(template); // reject unknown/damaged input
   const doc=JSON.parse(fs.readFileSync(args.input,'utf8'));
-  const selected=unpack(doc).filter(p=>args.select===undefined||p.presetName===args.select);
-  const hasClone=selected.some(p=>p.ampMode==='Clone');
-  // Clone mode/selector have paired SONICLINK evidence. Other opaque bytes come from the reference.
-  // For automatic output this is an experimental candidate, not a hardware-accepted Clone donor.
-  const donor=hasClone&&!templateInfo.cloneEnabled?slots.edit(template,{enabled:true}):template;
-  if(!args.donor)console.error('NOTICE: Using bundled SONICLINK reference'+(hasClone?' with inferred Clone-ON mode; test on hardware before accepting':'')+'.');
-  const items=collect(doc,donor,{catalog,fxNative,namSlots,select:args.select,overrideName:args.overrideName});
+  const references=args.donor
+    ? {custom:fs.readFileSync(args.donor)}
+    : {
+        stock:fs.readFileSync(path.join(base,'templates/pocket_master_reference.prst')),
+        clone:fs.readFileSync(path.join(base,'templates/pocket_master_clone_reference.prst'))
+      };
+  // Validate both bundled references (and user-supplied donors) before writing anything.
+  if(references.stock)requireThat(!slots.inspect(references.stock).cloneEnabled,'Invalid stock reference');
+  if(references.clone)requireThat(slots.inspect(references.clone).cloneEnabled,'Invalid Clone-ON reference');
+  if(references.custom)slots.inspect(references.custom);
+  const items=collect(doc,null,{catalog,fxNative,namSlots,select:args.select,
+    overrideName:args.overrideName,donorForPreset:p=>selectDonor(p,references)});
+  if(!args.donor)console.error('NOTICE: Using genuine bundled Modeled/Clone SONICLINK references per preset; verify import/readback and sound on the pedal.');
   requireThat(!args.output || items.length===1,'Multiple presets require --out-dir');
   const files=items.map((p,i)=>args.output?args.output:path.join(args.outDir,
     String(i+1).padStart(3,'0')+'_'+p.changes.name.replace(/[^a-zA-Z0-9_-]/g,'_')+'.prst'));
@@ -139,5 +154,5 @@ function main(argv){
     for(const w of items[i].warnings)console.error('  NOTICE: '+w);
   }
 }
-module.exports=Object.freeze({checkMap,unpack,convert,collect,parseArgs,main});
+module.exports=Object.freeze({checkMap,unpack,convert,collect,selectDonor,parseArgs,main});
 if(require.main===module){try{main(process.argv.slice(2));}catch(e){console.error('Conversion failed: '+e.message);process.exitCode=1;}}

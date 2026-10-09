@@ -7,6 +7,7 @@ const slots=require('../tools/prst_clone_slots.js');
 const writer=require('../tools/native_prst_patch.js');
 const repo=path.resolve(__dirname,'..');
 const donor=fs.readFileSync(path.join(repo,'templates/pocket_master_reference.prst'));
+const realCloneDonor=fs.readFileSync(path.join(repo,'templates/pocket_master_clone_reference.prst'));
 const catalog=JSON.parse(fs.readFileSync(path.join(repo,'catalog/effects.json')));
 const fxNative=JSON.parse(fs.readFileSync(path.join(repo,'catalog/fx_native.json')));
 const namSlots={'AC30 May':1,JCM800:2,Plexi:3,TwinCln:4,SoloSLO:5};
@@ -106,7 +107,7 @@ test('CLI donorless defaults to bundled reference for Modeled and Clone',()=>{
   const modelBytes=fs.readFileSync(modeled);
   assert.equal(modelBytes.length,515);
   assert.equal(slots.inspect(modelBytes).cloneEnabled,false);
-  assert.match(result.stderr,/Using bundled SONICLINK reference/);
+  assert.match(result.stderr,/genuine bundled Modeled\/Clone SONICLINK references/);
   const input=path.join(tmp,'clone.json'),mapped=path.join(tmp,'slots.json'),clone=path.join(tmp,'clone.prst');
   fs.writeFileSync(input,JSON.stringify(a));
   fs.writeFileSync(mapped,JSON.stringify(namSlots));
@@ -116,17 +117,55 @@ test('CLI donorless defaults to bundled reference for Modeled and Clone',()=>{
   assert.equal(cloned.length,515);
   assert.equal(slots.inspect(cloned).cloneEnabled,true);
   assert.equal(slots.inspect(cloned).cloneSlot,2);
-  assert.match(result2.stderr,/inferred Clone-ON mode/);
+  assert.match(result2.stderr,/genuine bundled Modeled\/Clone SONICLINK references/);
  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });
-test('embedded browser donor matches bundled SONICLINK reference; inferred Clone selector works',()=>{
+test('both standalone browser references are exactly the authentic fixture files',()=>{
  const html=fs.readFileSync(path.join(repo,'PocketMasterStudio.html'),'utf8');
- const match=html.match(/"templateBase64":"([A-Za-z0-9+/=]+)"/);
- assert.ok(match,'standalone HTML must embed reference PRST bytes');
- const bytes=Buffer.from(match[1],'base64');
- assert.deepEqual(bytes,donor);
- const transformed=slots.edit(bytes,{enabled:true});
- const result=convert.convert(a,transformed,opts);
- assert.equal(slots.inspect(result.bytes).cloneEnabled,true);
- assert.equal(slots.inspect(result.bytes).cloneSlot,2);
+ for(const [key,fixture,clone] of [['templateBase64',donor,false],['cloneTemplateBase64',realCloneDonor,true]]){
+  const match=html.match(new RegExp('"'+key+'":"([A-Za-z0-9+/=]+)"'));
+  assert.ok(match,'standalone HTML missing '+key);
+  const embedded=Buffer.from(match[1],'base64');
+  assert.deepEqual(embedded,fixture);
+  assert.equal(slots.inspect(embedded).cloneEnabled,clone);
+ }
+});
+test('genuine Clone-ON reference reproduces all five authentic slot CRCs',()=>{
+ assert.equal(realCloneDonor.length,515);
+ assert.equal(slots.inspect(realCloneDonor).cloneEnabled,true);
+ assert.equal(slots.inspect(realCloneDonor).cloneSlot,1);
+ for(let slot=1;slot<=5;slot++){
+  const patched=slots.edit(realCloneDonor,{slot});
+  assert.equal(slots.inspect(patched).cloneSlot,slot);
+  assert.equal(patched[20],[0xFB,0xC0,0x8D,0xB6,0x17][slot-1]);
+  for(let i=0;i<515;i++){
+   if(i!==20&&i!==175)assert.equal(patched[i],realCloneDonor[i],'unexpected offset '+i);
+  }
+ }
+});
+test('default donor selection is mode-specific and does not rewrite original references',()=>{
+ const stockSelected=convert.selectDonor({ampMode:'Normal'},{stock:donor,clone:realCloneDonor});
+ const cloneSelected=convert.selectDonor(a,{stock:donor,clone:realCloneDonor});
+ assert.deepEqual(stockSelected,donor);
+ assert.deepEqual(cloneSelected,realCloneDonor);
+ assert.throws(()=>convert.selectDonor(a,{stock:donor,clone:donor}),/wrong amp mode/);
+ assert.throws(()=>convert.selectDonor({ampMode:'Normal'},{stock:realCloneDonor,clone:realCloneDonor}),/wrong amp mode/);
+});
+test('donorless mixed batch uses actual Modeled and Clone references separately',()=>{
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'prst-mixed-'));
+ try{
+  const cli=path.join(repo,'tools/sonicmaster_to_prst.js');
+  const modeled=JSON.parse(fs.readFileSync(path.join(repo,'json/AC-DC.json'),'utf8')).presets[0];
+  const input=path.join(tmp,'mixed.json'),map=path.join(tmp,'map.json'),dir=path.join(tmp,'output');
+  fs.writeFileSync(input,JSON.stringify({type:'PocketMasterBatch',version:'1.0',presets:[modeled,a]}));
+  fs.writeFileSync(map,JSON.stringify(namSlots));
+  const result=spawnSync(process.execPath,[cli,input,'--nam-slots',map,'--out-dir',dir],{encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
+  const files=fs.readdirSync(dir).sort();
+  assert.equal(files.length,2);
+  assert.equal(slots.inspect(fs.readFileSync(path.join(dir,files[0]))).cloneEnabled,false);
+  const output=slots.inspect(fs.readFileSync(path.join(dir,files[1])));
+  assert.equal(output.cloneEnabled,true);
+  assert.equal(output.cloneSlot,2);
+ }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });

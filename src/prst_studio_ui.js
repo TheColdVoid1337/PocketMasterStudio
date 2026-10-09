@@ -17,7 +17,7 @@
       '<label for="prst-preset">Preset(s)</label><select id="prst-preset"></select>',
       '<label for="prst-donor">Custom donor .prst (optional)</label>',
       '<input type="file" accept=".prst" id="prst-donor">',
-      '<p class="mut">Leave empty to use the bundled authentic SONICLINK reference. Clone/NAM is derived by applying verified Clone-mode bits to that reference; this is experimental until tested on your pedal. For best compatibility, optionally load a Clone-ON export from the same pedal/firmware.</p>',
+      '<p class="mut">Leave empty to use two bundled genuine SONICLINK references: a normal AMP preset and a separate real Clone-ON export. Mixed batches pick the appropriate reference for each preset. Custom donor is optional, ideally exported by your firmware.</p>',
       '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
       '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
       '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. IR may be bypassed while Clone is on—amp-only NAM may need an external cab simulator.</p>',
@@ -79,18 +79,20 @@
         if (!chosen.length || chosen.some((p) => !p)) throw Error("No presets selected.");
         const donorFile = $("prst-donor").files[0];
         const automatic = !donorFile;
-        if (automatic && typeof asset.templateBase64 !== "string")
-          throw Error("Bundled SONICLINK PRST reference is missing from this Studio build.");
-        const source = automatic
-          ? Uint8Array.from(atob(asset.templateBase64), (ch) => ch.charCodeAt(0))
-          : new Uint8Array(await donorFile.arrayBuffer());
-        const sourceInfo = window.PRSTCloneSlots.inspect(source); // validate real or bundled reference
+        if (automatic && (typeof asset.templateBase64 !== "string" || typeof asset.cloneTemplateBase64 !== "string"))
+          throw Error("Bundled Modeled/Clone SONICLINK PRST references are missing from this Studio build.");
+        const decode = (b64) => Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+        const references = automatic ? {
+          stock: decode(asset.templateBase64),
+          clone: decode(asset.cloneTemplateBase64)
+        } : {custom: new Uint8Array(await donorFile.arrayBuffer())};
+        if (automatic) {
+          if (window.PRSTCloneSlots.inspect(references.stock).cloneEnabled)
+            throw Error("Bundled Modeled reference has Clone ON.");
+          if (!window.PRSTCloneSlots.inspect(references.clone).cloneEnabled)
+            throw Error("Bundled Clone reference has Clone OFF.");
+        } else window.PRSTCloneSlots.inspect(references.custom);
         const hasClone = chosen.some((p) => p.ampMode === "Clone");
-        // Clone selector + mode mask were established from paired genuine SONICLINK exports.
-        // Using them with the bundled stock donor is a candidate, not hardware acceptance.
-        const donor = hasClone && !sourceInfo.cloneEnabled
-          ? window.PRSTCloneSlots.edit(source, {enabled:true})
-          : source;
         let namSlots;
         if (hasClone) {
           try { namSlots = JSON.parse($("prst-slots").value); }
@@ -98,7 +100,7 @@
           window.PRSTConvert.checkMap(namSlots);
         }
         // Convert and verify ALL results before offering any download.
-        const result = chosen.map((p) => window.PRSTConvert.convert(p, donor, {
+        const result = chosen.map((p) => window.PRSTConvert.convert(p, window.PRSTConvert.selectDonor(p, references), {
           catalog: asset.catalog, fxNative: asset.fxNative, namSlots
         }));
         for (const r of result) {
@@ -114,9 +116,9 @@
           }));
           download(safeName(batch.artist || "presets") + "_" + mode.value + "_native.zip", await window.PMZip.create(entries));
         }
-        status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. Import/readback/listening in SONICLINK still required." +
-          (automatic ? " Used bundled PRST reference." : " Used your custom donor.") +
-          (hasClone ? " Clone files are experimental until hardware-checked; NAM captures are not embedded, and onboard IR may be bypassed." : "");
+        status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. SONICLINK import/readback/listening still required." +
+          (automatic ? " Used authentic built-in Modeled/Clone references as appropriate." : " Used your custom donor.") +
+          (hasClone ? " Generated Clone files require hardware verification; NAM captures are not embedded, and onboard IR may be bypassed." : "");
       } catch (e) {
         status.textContent = "Export blocked: " + (e && e.message || String(e));
       } finally { button.disabled = false; }
