@@ -101,7 +101,8 @@ test('new and legacy PRST records are placed in the Imported collection without 
   assert.equal(updated.collections[0].collection,'Favorites');
   assert.equal(withImportedCollection(updated),updated,'migration must be idempotent');
   const files={...bridge.asBatches(records,opts)};
-  const compilation=Build.buildCompilations(files,{collections:updated.collections.filter(c=>c.collection==='Imported')});
+  // Runtime rebuild uses skipMissing: true for partially filled user collections.
+  const compilation=Build.buildCompilations(files,{collections:updated.collections.filter(c=>c.collection==='Imported'),skipMissing:true});
   assert.deepEqual(compilation[imported.file].presets.map(p=>p.nativeImport.id),records.map(r=>r.id));
   assert.deepEqual(Buffer.from(compilation[imported.file].presets[0].nativeImport.rawBase64,'base64'),normal);
 });
