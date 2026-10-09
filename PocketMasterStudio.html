@@ -3983,15 +3983,26 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     $("#menuBtn").classList.toggle("conn", c);
   }
   function activate(id) {
-    activeMain = id;
     const t = MAIN.find((x) => x.id === id) || MAIN[0];
-    $$(".maintab, .mitem").forEach((b) => b.classList.toggle("on", b.dataset.main === id));
+    // A failed first mount must never mark the view as initialized: otherwise
+    // it appears only after visiting another tab, with dead click handlers.
+    if (!mounted[t.id]) {
+      try {
+        mount(t.id);
+        mounted[t.id] = true;
+      } catch (e) {
+        $("#view-" + t.id)?.remove();
+        console.error("Failed to initialize " + t.label, e);
+        toast("Could not open " + t.label + ": " + (e?.message || String(e)));
+        return;
+      }
+    }
+    activeMain = t.id;
+    $$(".maintab, .mitem").forEach((b) => b.classList.toggle("on", b.dataset.main === t.id));
     $("#menuBtnLabel").innerHTML = tabHtml(t);
-    if (!mounted[id]) mount(id);
-    $$("#views .view").forEach((v) => v.classList.toggle("active", v.id === "view-" + id));
+    $$("#views .view").forEach((v) => v.classList.toggle("active", v.id === "view-" + t.id));
   }
   function mount(id) {
-    mounted[id] = true;
     const t = MAIN.find((x) => x.id === id);
     const view = el("section", { class: "view", id: "view-" + id });
     $("#views").appendChild(view);
@@ -4024,7 +4035,7 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
         '</div>'
       ].join("");
       const choosePane = (which) => {
-        $("[data-prst-pane]", view).forEach((button) => {
+        $$("[data-prst-pane]", view).forEach((button) => {
           const active = button.dataset.prstPane === which;
           button.classList.toggle("on", active);
           button.setAttribute("aria-selected", String(active));
@@ -4033,7 +4044,7 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
           view.querySelector("#prst-pane-" + pane).hidden = pane !== which;
         }
       };
-      $("[data-prst-pane]", view).forEach((button) =>
+      $$("[data-prst-pane]", view).forEach((button) =>
         button.addEventListener("click", () => choosePane(button.dataset.prstPane)));
       const nativeFile = view.querySelector("#importNativeFile");
       view.querySelector("#importNativeBtn").addEventListener("click", () => nativeFile.click());
