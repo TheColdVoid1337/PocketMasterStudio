@@ -95,3 +95,38 @@ test('preserves genuine donor BPM when source omits presetBpm; edits only when g
  assert.equal(new DataView(c.buffer).getUint32(105,true),144);
  assert.throws(()=>convert.convert({...a,presetBpm:999},modified,opts),/invalid presetBpm/);
 });
+
+test('CLI donorless defaults to bundled reference for Modeled and Clone',()=>{
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'prst-no-donor-'));
+ try{
+  const cli=path.join(repo,'tools/sonicmaster_to_prst.js');
+  const modeled=path.join(tmp,'modeled.prst');
+  const result=spawnSync(process.execPath,[cli,path.join(repo,'json/AC-DC.json'),'--select','BackBlck R','-o',modeled],{encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
+  const modelBytes=fs.readFileSync(modeled);
+  assert.equal(modelBytes.length,515);
+  assert.equal(slots.inspect(modelBytes).cloneEnabled,false);
+  assert.match(result.stderr,/Using bundled SONICLINK reference/);
+  const input=path.join(tmp,'clone.json'),mapped=path.join(tmp,'slots.json'),clone=path.join(tmp,'clone.prst');
+  fs.writeFileSync(input,JSON.stringify(a));
+  fs.writeFileSync(mapped,JSON.stringify(namSlots));
+  const result2=spawnSync(process.execPath,[cli,input,'--nam-slots',mapped,'-o',clone],{encoding:'utf8'});
+  assert.equal(result2.status,0,result2.stderr);
+  const cloned=fs.readFileSync(clone);
+  assert.equal(cloned.length,515);
+  assert.equal(slots.inspect(cloned).cloneEnabled,true);
+  assert.equal(slots.inspect(cloned).cloneSlot,2);
+  assert.match(result2.stderr,/inferred Clone-ON mode/);
+ }finally{fs.rmSync(tmp,{recursive:true,force:true});}
+});
+test('embedded browser donor matches bundled SONICLINK reference; inferred Clone selector works',()=>{
+ const html=fs.readFileSync(path.join(repo,'PocketMasterStudio.html'),'utf8');
+ const match=html.match(/"templateBase64":"([A-Za-z0-9+/=]+)"/);
+ assert.ok(match,'standalone HTML must embed reference PRST bytes');
+ const bytes=Buffer.from(match[1],'base64');
+ assert.deepEqual(bytes,donor);
+ const transformed=slots.edit(bytes,{enabled:true});
+ const result=convert.convert(a,transformed,opts);
+ assert.equal(slots.inspect(result.bytes).cloneEnabled,true);
+ assert.equal(slots.inspect(result.bytes).cloneSlot,2);
+});

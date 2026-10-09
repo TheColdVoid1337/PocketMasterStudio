@@ -15,9 +15,9 @@
       '<select id="prst-mode"><option value="modeled">Modeled</option><option value="clone">Clone/NAM</option><option value="mixed">Mixed</option></select>',
       '<label for="prst-artist">Artist / pack</label><select id="prst-artist"></select>',
       '<label for="prst-preset">Preset(s)</label><select id="prst-preset"></select>',
-      '<label for="prst-donor">Donor .prst exported from SONICLINK (same pedal/firmware)</label>',
+      '<label for="prst-donor">Custom donor .prst (optional)</label>',
       '<input type="file" accept=".prst" id="prst-donor">',
-      '<p class="mut">Clone output REQUIRES a genuine Clone-ON donor. The bundled stock template is only for stock/model CLI use.</p>',
+      '<p class="mut">Leave empty to use the bundled authentic SONICLINK reference. Clone/NAM is derived by applying verified Clone-mode bits to that reference; this is experimental until tested on your pedal. For best compatibility, optionally load a Clone-ON export from the same pedal/firmware.</p>',
       '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
       '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
       '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. IR may be bypassed while Clone is on—amp-only NAM may need an external cab simulator.</p>',
@@ -71,19 +71,26 @@
     async function exportNative() {
       const button = $("prst-export");
       button.disabled = true;
-      status.textContent = "Validating source and donor…";
+      status.textContent = "Validating source and PRST template…";
       try {
         const map = mapNow(); if (!map) throw Error("Studio data is not ready.");
         const batch = map[artist.value]; if (!batch) throw Error("Choose an artist.");
         const chosen = preset.value === "all" ? batch.presets : [batch.presets[Number(preset.value)]];
         if (!chosen.length || chosen.some((p) => !p)) throw Error("No presets selected.");
         const donorFile = $("prst-donor").files[0];
-        if (!donorFile) throw Error("Select a genuine donor .prst file exported by SONICLINK.");
-        const donor = new Uint8Array(await donorFile.arrayBuffer());
-        const donorInfo = window.PRSTCloneSlots.inspect(donor); // checks magic/length/CRC/layout
+        const automatic = !donorFile;
+        if (automatic && typeof asset.templateBase64 !== "string")
+          throw Error("Bundled SONICLINK PRST reference is missing from this Studio build.");
+        const source = automatic
+          ? Uint8Array.from(atob(asset.templateBase64), (ch) => ch.charCodeAt(0))
+          : new Uint8Array(await donorFile.arrayBuffer());
+        const sourceInfo = window.PRSTCloneSlots.inspect(source); // validate real or bundled reference
         const hasClone = chosen.some((p) => p.ampMode === "Clone");
-        if (hasClone && !donorInfo.cloneEnabled)
-          throw Error("This batch includes Clone presets. Export a genuine Clone-ON donor from the pedal.");
+        // Clone selector + mode mask were established from paired genuine SONICLINK exports.
+        // Using them with the bundled stock donor is a candidate, not hardware acceptance.
+        const donor = hasClone && !sourceInfo.cloneEnabled
+          ? window.PRSTCloneSlots.edit(source, {enabled:true})
+          : source;
         let namSlots;
         if (hasClone) {
           try { namSlots = JSON.parse($("prst-slots").value); }
@@ -108,7 +115,8 @@
           download(safeName(batch.artist || "presets") + "_" + mode.value + "_native.zip", await window.PMZip.create(entries));
         }
         status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. Import/readback/listening in SONICLINK still required." +
-          (hasClone ? " Clone capture files are NOT embedded. Built-in IR may be bypassed in Clone mode." : "");
+          (automatic ? " Used bundled PRST reference." : " Used your custom donor.") +
+          (hasClone ? " Clone files are experimental until hardware-checked; NAM captures are not embedded, and onboard IR may be bypassed." : "");
       } catch (e) {
         status.textContent = "Export blocked: " + (e && e.message || String(e));
       } finally { button.disabled = false; }

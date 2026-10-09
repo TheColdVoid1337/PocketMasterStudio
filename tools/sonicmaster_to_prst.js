@@ -104,18 +104,26 @@ function parseArgs(args){
     } else if(arg.startsWith('-'))throw Error('Unknown option '+arg);
     else { requireThat(input===undefined,'Only one input file allowed');input=arg; }
   }
-  requireThat(input && result.donor && !!result.output!==!!result.outDir,'Specify INPUT, --donor, and exactly one of -o / --out-dir');
+  requireThat(input && (!!result.output !== !!result.outDir),'Specify INPUT and exactly one of -o / --out-dir');
   result.input=input;return result;
 }
 function main(argv){
   const args=parseArgs(argv);
-  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nRequires explicit NAM slots for Clone presets. All outputs are local and will not overwrite files.');return;}
+  if(args.help){console.log('Usage: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --out-dir OUTPUT_DIR\n   or: node tools/sonicmaster_to_prst.js INPUT.json --donor TEMPLATE.prst --nam-slots NAM_SLOTS.json --select "Preset" -o OUTPUT.prst\nDonor .prst is optional: bundled genuine SONICLINK stock reference is used by default.\nRequires explicit NAM slots for Clone presets. Donorless Clone output is experimental until hardware-tested. Outputs never overwrite files.');return;}
   const base=path.resolve(__dirname,'..');
   const catalog=JSON.parse(fs.readFileSync(path.join(base,'catalog/effects.json'),'utf8'));
   const fxNative=JSON.parse(fs.readFileSync(path.join(base,'catalog/fx_native.json'),'utf8'));
   const namSlots=args.namSlots?JSON.parse(fs.readFileSync(args.namSlots,'utf8')):undefined;
-  const donor=fs.readFileSync(args.donor);slots.inspect(donor); // refuse damaged donor
+  const donorPath=args.donor||path.join(base,'templates/pocket_master_reference.prst');
+  const template=fs.readFileSync(donorPath);
+  const templateInfo=slots.inspect(template); // reject unknown/damaged input
   const doc=JSON.parse(fs.readFileSync(args.input,'utf8'));
+  const selected=unpack(doc).filter(p=>args.select===undefined||p.presetName===args.select);
+  const hasClone=selected.some(p=>p.ampMode==='Clone');
+  // Clone mode/selector have paired SONICLINK evidence. Other opaque bytes come from the reference.
+  // For automatic output this is an experimental candidate, not a hardware-accepted Clone donor.
+  const donor=hasClone&&!templateInfo.cloneEnabled?slots.edit(template,{enabled:true}):template;
+  if(!args.donor)console.error('NOTICE: Using bundled SONICLINK reference'+(hasClone?' with inferred Clone-ON mode; test on hardware before accepting':'')+'.');
   const items=collect(doc,donor,{catalog,fxNative,namSlots,select:args.select,overrideName:args.overrideName});
   requireThat(!args.output || items.length===1,'Multiple presets require --out-dir');
   const files=items.map((p,i)=>args.output?args.output:path.join(args.outDir,

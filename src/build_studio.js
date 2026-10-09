@@ -124,7 +124,8 @@ const prstScripts = [
   "window.PMPRSTAssets = " + JSON.stringify({
     catalog: rdj(path.join(ROOT, "catalog/effects.json")),
     fxNative: rdj(path.join(ROOT, "catalog/fx_native.json")),
-    defaultSlots: rdj(path.join(ROOT, "config/nam_slots.owner.example.json"))
+    defaultSlots: rdj(path.join(ROOT, "config/nam_slots.owner.example.json")),
+    templateBase64: fs.readFileSync(path.join(ROOT, "templates/pocket_master_reference.prst")).toString("base64")
   }) + ";"
 ].map((s) => "<script>\n" + inlineSafe(s) + "\n</script>").join("\n");
 const prstUi = inlineSafe(rd(path.join(HERE, "prst_studio_ui.js")));

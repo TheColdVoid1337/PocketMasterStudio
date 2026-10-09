@@ -6,11 +6,11 @@ This fork vendors the JavaScript native-preset converter from [PRST Lab](https:/
 
 1. Open `PocketMasterStudio.html` in Chrome/Edge and go to **Studio → Overview**.
 2. In **Native SONICLINK .prst export**, choose Modeled, Clone/NAM or Mixed; select an artist and one preset or All (ZIP).
-3. Upload a genuine .prst donor exported from your pedal. **Clone-containing selections require Clone-ON donor**. Confirm that the physical NAM slot map matches your installed captures.
+3. By default, **do not upload any donor**. Studio uses the bundled genuine SONICLINK stock reference. If this export contains Clone/NAM presets, Studio turns on the Clone-mode bit using the paired-export mapping from PRST Lab (experimental until tested with your pedal). Optionally load a donor from the same firmware/device in the **Custom donor .prst** field. Confirm the physical NAM slot map matches your installed captures.
 4. Click **Export .prst / ZIP**. All conversions and CRC checks occur locally; a failed conversion blocks the download (no partial ZIP).
 5. Import via SONICLINK and check readback and sound. Binary software validation alone is not hardware acceptance.
 
-The browser bundle uses the **same PRST Lab JavaScript converter and catalogs** as the CLI. The module is included by `src/build_studio.js` and its UI lives in `src/prst_studio_ui.js`. To rebuild after changing the source, run `node src/build_studio.js` (this also updates Studio's generated documentation/changelog, as in upstream).
+The browser bundle embeds the exact 515-byte reference from `templates/pocket_master_reference.prst` as Base64. The user does not need to upload a donor. The bundle uses the **same PRST Lab JavaScript converter and catalogs** as the CLI. The module is included by `src/build_studio.js` and its UI lives in `src/prst_studio_ui.js`. To rebuild after changing the source, run `node src/build_studio.js` (this also updates Studio's generated documentation/changelog, as in upstream).
 
 ## Run from the repository root
 
@@ -20,23 +20,24 @@ Node.js 18+; no npm install needed:
 node --test tests/test_sonicmaster_to_prst.cjs
 node tests/test_prst_clone_slots.cjs
 
-# A modeled preset with the bundled stock donor:
+# A modeled preset: no donor needed
 node tools/sonicmaster_to_prst.js json/AC-DC.json \\
-  --donor templates/pocket_master_reference.prst \\
   --select 'BackBlck R' -o BackBlck_R.prst
 
-# Clone batch with a genuine Clone-ON donor exported from your Pocket Master:
+# Clone batch: automatically use bundled reference + inferred Clone-ON state
 node tools/sonicmaster_to_prst.js json_nam/AC-DC.json \\
-  --donor my_clone_on_export.prst \\
   --nam-slots config/nam_slots.owner.example.json \\
   --out-dir generated/AC-DC
+
+# Optional: supply a genuine Clone-ON reference from your own pedal
+# Add --donor my_clone_on_export.prst to either command.
 ```
 
 `--nam-slots` is a **device-specific** map of capture label to physical User Profile slot (1–5). Verify the installed order before use; the example map belongs to one tested pedal. A .prst selects a slot, **not a .nam file**. If a required capture is not installed in the mapped slot, results will be wrong. The converter rejects missing/duplicate slots and never silently guesses. It refuses to overwrite files.
 
 ## Safety and verification
 
-- Use an authentic donor .prst from the same firmware/pedal. The bundled stock template is good for stock/model development; **prefer an actual Clone-ON donor** for Clone/NAM output. Inferred bytes do not prove compatibility. Test import, readback and sound through SONICLINK before calling the result validated.
+- **Donorless is the default.** The included template is a genuine SONICLINK export, but it may differ from your pedal/firmware. For Clone/NAM, the program builds a Clone-ON candidate by changing the verified mode bit in that stock reference. The paired-export evidence covers the mode/slot selector, not every opaque donor field. For stronger compatibility, optionally supply your own **real Clone-ON donor**. Inferred output is not proven hardware-compatible; test import, readback and sound before accepting it.
 - FX1/FX2 four-byte selectors remain partly inferred; user IR native selectors are unsupported and rejected. A successful parser/CRC check is only an offline check.
 - The owner reports that Pocket Master **bypasses its onboard IR in Clone mode**, even when the UI allows toggling its enable flag. This importer preserves JSON IR values but **does not claim the IR actually processes Clone audio**. Amp-only NAM files need external cabinet processing; prefer full-rig NAMs when using the pedal directly.
 - This integration adds an exporter without changing the existing JSON tone-generator semantics or either original project. `PocketMasterStudio.html` in this fork includes the browser module. Code is published here at the PRST Lab owner's explicit request.
