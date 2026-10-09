@@ -6,6 +6,7 @@
 'use strict';
 const {write,MODS} = require('./native_prst_patch.js');
 const slots = require('./prst_clone_slots.js');
+const voidPolicy = require('../src/void_policy.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -52,6 +53,7 @@ function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) 
     checkMap(namSlots);
     const entry=preset.modules.Clone;
     requireThat(isObj(entry) && entry.enabled===true && typeof entry.effect==='string', name+': enabled Clone module and effect name required');
+    voidPolicy.assertFullRig(entry.effect);
     requireThat(Object.hasOwn(namSlots,entry.effect), name+': NAM "'+entry.effect+'" has no assigned slot in --nam-slots');
     changes.clone_slot=namSlots[entry.effect];
     changes.enabled.Clone=true;
@@ -68,8 +70,12 @@ function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) 
     if (clone && module==='AMP') continue; // preserve genuine donor AMP bytes and bit; real Clone exports keep bit 3 set.
     const item=preset.modules[module];
     requireThat(isObj(item) && typeof item.enabled==='boolean', name+': missing or invalid '+module+'.enabled');
-    changes.enabled[module]=item.enabled;
-    if (!item.enabled) continue;
+    // Firmware UI permits IR toggle in Clone, but the block is not audible.
+    // Always encode IR OFF for Clone, even when importing old JSON with IR ON.
+    const active = clone && module==='IR' ? false : item.enabled;
+    if (clone && module==='IR' && item.enabled) warnings.push('Void MOD: ignored inaudible Clone IR ON flag; encoding IR OFF');
+    changes.enabled[module]=active;
+    if (!active) continue;
     requireThat(typeof item.effect==='string' && isObj(item.parameters), name+': '+module+' effect and parameters required');
     // User IR 1..5: native [index, 00, 10, 0A], verified by five device exports.
     if(module!=='NR')changes.models[module]=item.effect;
@@ -80,7 +86,11 @@ function convert(preset, donor, {catalog, fxNative, namSlots, overrideName}={}) 
   const parsed=slots.inspect(output);
   const storedName=String.fromCharCode(...output.subarray(25,41)).split('\0')[0];
   requireThat(storedName===name && parsed.cloneEnabled===clone,name+': output failed validation');
-  if (clone) requireThat(parsed.cloneSlot===changes.clone_slot, name+': wrong native Clone slot');
+  if (clone) {
+    requireThat(parsed.cloneSlot===changes.clone_slot, name+': wrong native Clone slot');
+    const view = new DataView(output.buffer,output.byteOffset,output.byteLength);
+    requireThat((view.getUint32(117,true)&0x10)===0, name+': Clone IR must be disabled');
+  }
   return {bytes:output,changes,warnings};
 }
 function collect(doc,donor,options) {

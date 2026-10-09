@@ -2,6 +2,10 @@
 
 This fork vendors the JavaScript native-preset converter from [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab), source snapshot 2026-10-09. It converts the existing PocketMasterStudio v1.0 JSON preset format (single preset or `PocketMasterBatch`) into **genuine 515-byte .prst files**, with CRC-8/SMBUS and preservation of unknown donor bytes. All code lives in `tools/`, the device mappings in `catalog/`, and regression tests in `tests/`. The fork provides both a Node.js CLI **and a browser export panel** in the self-contained `PocketMasterStudio.html` under **Studio → Overview → Native SONICLINK .prst export**. It supports one preset (.prst) or all presets for an artist (ZIP) in Modeled, Clone/NAM, and Mixed sets.
 
+## Void's MOD — Clone IR and Full Rig hard rule
+
+**Authoritative fork behavior:** Pocket Master's built-in IR is DSP-inactive in Clone mode regardless of the IR ON/OFF indication shown by the firmware. Every Clone preset must reference a verified **Full Rig (amp+cab+mic)** NAM; DI, amp-head-only, preamp-only and unverified captures are blocked. Void's MOD forces `modules.IR.enabled=false` for all generated Clone JSON and native PRST export always clears IR enable bit 4. The approved capture registry is `src/void_policy.js` (currently only `AC30 May`, **VOX AC30 DRIVER**). Other NAM or Mixed candidates stay Modeled rather than being converted into invalid Clone. Legacy exported `json_nam/` and `json_mixed/` must be regenerated before direct use. See [the authoritative fork README appendix](../README.md#voids-mod--clonenam-full-rig-policy-authoritative) and [Void's MOD policy](VOID_MOD.md).
+
 ## Browser workflow
 
 1. Open `PocketMasterStudio.html` in Chrome/Edge and go to **Studio → Overview**.
@@ -39,7 +43,7 @@ node tools/sonicmaster_to_prst.js json_nam/AC-DC.json \\
 
 - **Donorless is the default.** The Normal reference is a genuine SONICLINK export; the Clone reference is an independent genuine Clone-ON export (`P17-VindSorg L.prst`) from the owner's device, preserving its opaque fields. Slot 1–5 selections were verified against five original SONICLINK exports: for the Clone source only offset 175 (slot) and offset 20 (CRC) differ; expected slot CRCs are `FB C0 8D B6 17`. This is stronger than synthesizing Clone-ON from a Normal file but still does **not** prove that newly generated combinations import and sound as intended. For another firmware, optionally provide a custom export. Test SONICLINK readback and listening.
 - FX1/FX2 four-byte selectors remain partly inferred. **User IR 1–5 selectors are now encoded** with the real SONIC LINK mapping `[n−1, 00, 10, 0A]` at offsets `155..158`; the user IR/WAV content must already be present on the pedal. Encoding a selector does **not** establish whether onboard IR runs in Clone mode. A successful parser/CRC check is only an offline check.
-- The owner reports that Pocket Master **bypasses its onboard IR in Clone mode**, even when the UI allows toggling its enable flag. This importer preserves JSON IR values but **does not claim the IR actually processes Clone audio**. Amp-only NAM files need external cabinet processing; prefer full-rig NAMs when using the pedal directly.
+- The Pocket Master **bypasses onboard IR DSP in Clone mode** even if the firmware displays a toggle. This fork enforces **IR OFF** in generated Clone JSON and `.prst`. It refuses amp-only NAM and unverified captures, rather than suggesting the unused pedal IR will provide a cabinet.
 - This integration adds an exporter without changing the existing JSON tone-generator semantics or either original project. `PocketMasterStudio.html` in this fork includes the browser module. Code is published here at the PRST Lab owner's explicit request.
 
 ## Source provenance

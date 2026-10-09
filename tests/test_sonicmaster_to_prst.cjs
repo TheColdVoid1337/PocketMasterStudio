@@ -13,7 +13,7 @@ const donor=fs.readFileSync(path.join(repo,'templates/pocket_master_reference.pr
 const realCloneDonor=fs.readFileSync(path.join(repo,'templates/pocket_master_clone_reference.prst'));
 const catalog=JSON.parse(fs.readFileSync(path.join(repo,'catalog/effects.json')));
 const fxNative=JSON.parse(fs.readFileSync(path.join(repo,'catalog/fx_native.json')));
-const namSlots={'AC30 May':1,JCM800:2,Plexi:3,TwinCln:4,SoloSLO:5};
+const namSlots={'AC30 May':2}; // physical slot map is device-local; only this capture is Full Rig verified
 const chain=['NR','FX1','DRV','AMP','IR','EQ','FX2','DLY','RVB'];
 const fx=(effect,parameters,enabled=true)=>({effect,parameters,enabled});
 const a={version:'1.0',presetName:'TESTCLONE',ampMode:'Clone',presetVolume:100,
@@ -21,7 +21,7 @@ const a={version:'1.0',presetName:'TESTCLONE',ampMode:'Clone',presetVolume:100,
  DRV:fx('Scream',{Gain:40,Tone:70,Vol:50}),IR:fx('BritGN 4x12',{Vol:85}),
  EQ:fx('GT EQ 1',{'125Hz':0,'400Hz':2,'800Hz':6,'1.6kHz':7,'4kHz':-3,Vol:100}),
  FX2:fx('Phaser',{Rate:0.5}),DLY:fx('Analog',{Mix:19,Time:400,'F.Back':32}),
- RVB:fx('Room',{Mix:10,Decay:40}),Clone:fx('JCM800',{Gain:50,Vol:100,Bass:50,Middle:50,Treble:50})},signalChain:chain};
+ RVB:fx('Room',{Mix:10,Decay:40}),Clone:fx('AC30 May',{Gain:50,Vol:100,Bass:50,Middle:50,Treble:50})},signalChain:chain};
 const opts={catalog,fxNative,namSlots};
 // Standalone source fixture: same test suite runs in PRST-Lab and in the Studio fork.
 const globalModeled={...a,presetName:'TESTNORMAL',ampMode:'Normal',modules:{...a.modules,
@@ -45,6 +45,7 @@ test('preserves original template, names, output levels and exact DSP values',()
  assert.equal(v.getFloat32(183+6*32,true),0.5);
  assert.equal(v.getFloat32(183+8*32+4*2,true),40);
  assert.equal(bytes[139+9*4],1);
+ assert.equal(decoded(bytes).mask&0x10,0,'Clone built-in IR must be OFF');
 });
 test('requires explicit correct slot map and refuses duplicate names for same slot',()=>{
  assert.throws(()=>convert.convert(a,donor,{...opts,namSlots:{}}),/no assigned slot/);
@@ -60,12 +61,12 @@ test('malformed presets and invalid parameter values are blocked',()=>{
  const p4=structuredClone(a);p4.modules.AMP=fx('Brit 800',{});
  assert.throws(()=>convert.convert(p4,donor,opts),/must not include AMP/);
  const p5=structuredClone(a);p5.modules.Clone.effect='JCM900';
- assert.throws(()=>convert.convert(p5,donor,opts),/no assigned slot/);
+ assert.throws(()=>convert.convert(p5,donor,opts),/not an approved full-rig capture/);
 });
 test('batch length and selection, rejects ambiguous select',()=>{
- const b={type:'PocketMasterBatch',version:'1.0',presets:[a,{...a,presetName:'SECOND',modules:{...a.modules,Clone:{...a.modules.Clone,effect:'Plexi'}}}]};
+ const b={type:'PocketMasterBatch',version:'1.0',presets:[a,{...a,presetName:'SECOND'}]};
  const c=convert.collect(b,donor,opts);
- assert.equal(c.length,2);assert.equal(slots.inspect(c[0].bytes).cloneSlot,2);assert.equal(slots.inspect(c[1].bytes).cloneSlot,3);
+ assert.equal(c.length,2);assert.equal(slots.inspect(c[0].bytes).cloneSlot,2);assert.equal(slots.inspect(c[1].bytes).cloneSlot,2);
  assert.equal(convert.collect(b,donor,{...opts,select:'SECOND'}).length,1);
  assert.throws(()=>convert.collect(b,donor,{...opts,select:'missing'}),/exactly one/);
 });
@@ -176,15 +177,30 @@ test('donorless mixed batch uses actual Modeled and Clone references separately'
  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });
 
-test('User IR 1..5 selector encoding from authenticated SONIC LINK exports',()=>{
+test('User IR 1..5 remains supported only when MODELED',()=>{
  for(let slot=1;slot<=5;slot++){
-  const p=structuredClone(a);p.modules.IR.effect='User IR '+slot;
-  const {bytes}=convert.convert(p,realCloneDonor,opts);
+  const p=structuredClone(globalModeled);p.modules.IR.effect='User IR '+slot;
+  const {bytes}=convert.convert(p,donor,opts);
   assert.deepEqual([...bytes.subarray(155,159)],[slot-1,0,0x10,0x0A]);
   assert.equal(slots.crc8(bytes.subarray(21)),bytes[20]);
-  const stock=structuredClone(p);stock.modules.IR.effect='BritGN 4x12';
-  const back=convert.convert(stock,bytes,opts).bytes;
-  assert.deepEqual([...back.subarray(155,159)],[0x22,0,0,0x0A]);
+  assert.notEqual(decoded(bytes).mask&0x10,0);
+ }
+});
+test('Clone IR OFF is enforced even for older JSON that says ON or User IR',()=>{
+ const original=structuredClone(a);
+ for(const model of ['BritGN 4x12','User IR 1']){
+  const source=structuredClone(a);source.modules.IR.effect=model;
+  source.modules.IR.enabled=true;
+  const {bytes,warnings}=convert.convert(source,realCloneDonor,opts);
+  assert.equal(decoded(bytes).mask&0x10,0,'IR on despite Clone');
+  assert.ok(warnings.some(x=>x.includes('ignored inaudible Clone IR ON')));
+  assert.equal(source.modules.IR.enabled,true,'source should not be mutated');
+ }
+});
+test('amp-only and unverified NAM are refused, including otherwise valid slot mappings',()=>{
+ for(const effect of ['JCM800','Plexi','TwinCln','SoloSLO','Unverified']){
+  const p=structuredClone(a);p.modules.Clone.effect=effect;
+  assert.throws(()=>convert.convert(p,realCloneDonor,{...opts,namSlots:{[effect]:3}}),/not an approved full-rig/);
  }
 });
 

@@ -52,7 +52,17 @@
       if (d) d.md = S.payload.readme;
     } catch (e) {}
   }
+  // Legacy imported projects and older embedded payloads must display the
+  // authoritative fork appendix without rewriting the upstream README text.
+  function ensureVoidReadme() {
+    const appendix = window.PMVoidModReadme;
+    if (!S.payload || !appendix || (S.payload.readme || "").includes("## Void's MOD")) return;
+    S.payload.readme = (S.payload.readme || "").trimEnd() + "\n\n---\n\n" + appendix;
+    const doc = (S.payload.docs || []).find((d) => d.id === "readme");
+    if (doc) doc.md = S.payload.readme;
+  }
   function rebuild() {
+    ensureVoidReadme();
     const t0 = performance.now();
     S.built = regen(S.payload);
     syncReadmeStats();

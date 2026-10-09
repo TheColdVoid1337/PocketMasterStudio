@@ -23,6 +23,23 @@ test('distributed HTML embeds the current PRST Lab JS bridge, not a stale build'
   assert.ok(html.includes('User IR 1..5: native'), 'native User IR support absent from HTML');
 });
 
+test('Void MOD policy is embedded before the live PMBuild module', () => {
+  const find=(token) => scripts.findIndex(text => text.includes(token));
+  const policyAt=find('// Void\'s MOD — hard runtime policy');
+  const buildAt=find('// pmbuild.js — in-browser/Node port');
+  assert.ok(policyAt>=0 && buildAt>policyAt,'missing policy or wrong script order');
+  const policySource=fs.readFileSync(path.join(root,'src/void_policy.js'),'utf8');
+  const builderSource=fs.readFileSync(path.join(root,'src/pmbuild.js'),'utf8');
+  assert.ok(scripts[policyAt].includes(policySource),'outdated embedded Void policy');
+  assert.ok(scripts[buildAt].includes(builderSource),'outdated embedded PMBuild');
+  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+  assert.ok(scripts.some(x=>x.includes(app)),'outdated embedded Studio controller');
+  const appendixScript=scripts.find(x=>x.includes('window.PMVoidModReadme = '));
+  assert.ok(appendixScript,'Void MOD README not bundled into older payload support');
+  const appendix=fs.readFileSync(path.join(root,'docs/VOID_MOD.md'),'utf8');
+  assert.ok(appendixScript.includes(JSON.stringify(appendix)));
+});
+
 test('distributed HTML embeds exact authentic Normal and Clone-ON donor bytes', () => {
   const assetJs = scripts.find(text => text.includes('window.PMPRSTAssets = '));
   assert.ok(assetJs, 'missing embedded PRST assets');

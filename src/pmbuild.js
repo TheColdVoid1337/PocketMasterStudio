@@ -2,11 +2,12 @@
 // Pure logic (no fs): give it parsed inputs, get back an in-memory file map.
 // Phase 1: gen_songs.py port (buildSongs).
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.PMBuild = factory();
-})(typeof self !== "undefined" ? self : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./void_policy.js"));
+  else root.PMBuild = factory(root.PMVoidPolicy);
+})(typeof self !== "undefined" ? self : this, function (VoidPolicy) {
   "use strict";
 
+  if (!VoidPolicy || typeof VoidPolicy.enforceClone !== "function") throw Error("Void MOD policy module missing");
   const CHAIN = ["NR", "FX1", "DRV", "AMP", "IR", "EQ", "FX2", "DLY", "RVB"];
   const TODAY = "2026-08-18";        // gen_songs.py TODAY
   const COMP_TODAY = "2026-08-19";   // gen_compilations.py TODAY
@@ -152,6 +153,8 @@
       preset.presetVolume = "presetVolume" in ov ? ov.presetVolume : preset.presetVolume;
       preset.modules = clone(ov.modules);
     }
+    // Enforce even manual/factory overrides, not only automatic NAM generation.
+    VoidPolicy.enforceClone(preset);
     return preset;
   }
 
@@ -456,9 +459,9 @@
     "Eng 120": "SoloSLO", "Eng Power": "SoloSLO",
     "Bog XT": "SoloSLO", "Flyman B1+": "SoloSLO",
   };
-  const NAM_FULLRIG = new Set(["AC30 May", "JCM800"]);
-  // The distinct NAM captures every Clone/NAM preset is mapped onto (for the README headline).
-  const NAM_CAPTURES = [...new Set(Object.values(AMP_TO_NAM))];
+  // Void's MOD: only specific amp+cab NAM capture(s) are allowed.
+  // JCM800/Plexi/TwinCln/SoloSLO links in the upstream README are amp-head only.
+  const NAM_CAPTURES = Object.keys(VoidPolicy.FULL_RIG_CAPTURES);
 
   // ===================== Mixed set =====================
   // For the "Mixed" variant we keep the modeled amp UNLESS the modeled amp is the same
@@ -473,7 +476,8 @@
     "Brit 800",                // Marshall JCM800 → JCM800
     "Sol 100 LD", "Sol 100 OD",// Soldano SLO (lead / od) → SoloSLO
   ]);
-  const mixedUsesClone = (effect) => MIXED_CLONE.has(effect);
+  const mixedUsesClone = (effect) => MIXED_CLONE.has(effect) &&
+    VoidPolicy.isFullRig(AMP_TO_NAM[effect]);
 
   // pred (optional): given the modeled amp's effect name, return true to convert to a clone,
   // false to keep the preset modeled as-is (used by the Mixed set). Omitted → always convert.
@@ -487,25 +491,36 @@
     const pn = p.presetName;
     const ov = overrides[`${art}|${pn}`] || overrides[`${art}|${sng}`];
     if (ov) {
-      p.ampMode = "ampMode" in ov ? ov.ampMode : "Clone";
+      const mode = "ampMode" in ov ? ov.ampMode : "Clone";
+      const effect = ov.modules && ov.modules.Clone && ov.modules.Clone.effect;
+      if (mode === "Clone" && !VoidPolicy.isFullRig(effect)) {
+        // Fail-safe: never output an amp-only Clone. Ignore unsafe legacy
+        // Clone overrides and retain the original modeled preset.
+        unknown.add("Void MOD blocked non-full-rig override " + art + "|" + pn + " (" + effect + ")");
+        return;
+      }
+      p.ampMode = mode;
       p.presetVolume = "presetVolume" in ov ? ov.presetVolume : 100;
       p.modules = clone(ov.modules);
+      VoidPolicy.enforceClone(p);
       return;
     }
     const m = p.modules;
     if (!m || !("AMP" in m)) return;
-    const amp = m["AMP"]; delete m["AMP"];
-    let nam = AMP_TO_NAM[amp.effect];
-    if (nam == null) { unknown.add(amp.effect); nam = "JCM800"; }
+    const amp = m["AMP"];
+    const nam = AMP_TO_NAM[amp.effect];
+    if (!VoidPolicy.isFullRig(nam)) {
+      // Both NAM-safe and Mixed keep the original modeled AMP instead of
+      // silently replacing a DI capture with an arbitrary full-rig NAM.
+      unknown.add("Void MOD modeled fallback: " + amp.effect + " (unapproved NAM " + (nam || "none") + ")");
+      return;
+    }
+    delete m["AMP"];
     m["Clone"] = { enabled: true, effect: nam,
       parameters: { Gain: 50, Vol: 100, Bass: 50, Middle: 50, Treble: 50 } };
     p.ampMode = "Clone";
     p.presetVolume = 100;
-    const ir = m["IR"];
-    if (ir) {
-      if (NAM_FULLRIG.has(nam)) ir.enabled = false;
-      else { ir.enabled = true; (ir.parameters || (ir.parameters = {}))["Vol"] = 100; }
-    }
+    VoidPolicy.enforceClone(p);
     const eq = m["EQ"];
     if (eq && eq.enabled) eq.parameters["Vol"] = 100;
     else m["EQ"] = { enabled: true, effect: "GT EQ 1",
@@ -597,5 +612,5 @@
     };
   }
 
-  return { buildSongs, buildCompilations, buildNam, buildMixed, buildLibrary, defaultCollectionDefs, makeRefResolver, makeCatalog, stringify, compactStringify, TODAY, CHAIN, NAM_CAPTURES };
+  return { buildSongs, buildCompilations, buildNam, buildMixed, buildLibrary, defaultCollectionDefs, makeRefResolver, makeCatalog, stringify, compactStringify, TODAY, CHAIN, NAM_CAPTURES, VoidPolicy };
 });

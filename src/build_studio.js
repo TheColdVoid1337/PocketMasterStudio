@@ -26,6 +26,10 @@ const cut = promptMd.indexOf("\n---\n");
 const prompt = (cut >= 0 ? promptMd.slice(cut + 5) : promptMd).trim();
 
 let readme = ""; try { readme = rd(path.join(SRC, "README_STUDIO.md")); } catch (e) {}
+// This appendix is fork-only and is always appended rather than rewriting
+// historical upstream README sections.
+const voidModReadme = rd(path.join(ROOT, "docs", "VOID_MOD.md"));
+if (!readme.includes("## Void's MOD")) readme = readme.trimEnd() + "\n\n---\n\n" + voidModReadme;
 
 // Optional pre-applied overrides + custom collections shipped with the project, at the repo root
 // next to data/ (overrides default to {}, collections to null = the built-in 5).
@@ -127,7 +131,8 @@ const prstScripts = [
     defaultSlots: rdj(path.join(ROOT, "config/nam_slots.owner.example.json")),
     templateBase64: fs.readFileSync(path.join(ROOT, "templates/pocket_master_reference.prst")).toString("base64"),
     cloneTemplateBase64: fs.readFileSync(path.join(ROOT, "templates/pocket_master_clone_reference.prst")).toString("base64")
-  }) + ";"
+  }) + ";",
+  "window.PMVoidModReadme = " + JSON.stringify(voidModReadme) + ";"
 ].map((s) => "<script>\n" + inlineSafe(s) + "\n</script>").join("\n");
 const prstUi = inlineSafe(rd(path.join(HERE, "prst_studio_ui.js")));
 

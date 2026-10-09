@@ -95,6 +95,10 @@ function write(template,changes,{catalog,fxNative}={}){
    view.setFloat32(183+32*i+4*field.algId,value,true);
   }
  }
+ // Void MOD: Clone uses full-rig NAM with its own speaker. Force the
+ // hardware IR enabled-mask bit OFF regardless of donor or source JSON.
+ const cloneOn = enabled.Clone===true || (enabled.Clone===undefined && input.cloneEnabled);
+ if(cloneOn && enabled.IR===true)throw Error('Void MOD: IR cannot be enabled with Clone');
  for(const [module,flag] of Object.entries(enabled)){
   const i=MODS.indexOf(module);ok(i>=0&&typeof flag==='boolean','Invalid enable flag '+module);
   const mask=view.getUint32(117,true);
@@ -104,6 +108,7 @@ function write(template,changes,{catalog,fxNative}={}){
   ok(Array.isArray(chain)&&chain.length===10&&new Set(chain).size===10&&MODS.every(m=>chain.includes(m)),'Bad signal chain');
   for(let i=0;i<10;i++)bytes[125+i]=MODS.indexOf(chain[i]);
  }
+ if(cloneOn)view.setUint32(117,view.getUint32(117,true)&~0x10,true);
  bytes[20]=slots.crc8(bytes.subarray(21));
  slots.inspect(bytes);
  return bytes;

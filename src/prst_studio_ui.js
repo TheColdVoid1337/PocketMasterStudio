@@ -10,7 +10,7 @@
     section.innerHTML = [
       '<hr style="border:0;border-top:1px solid var(--line);margin:22px 0">',
       '<h2 style="font-size:17px;margin:6px 0">Native SONICLINK .prst export (PRST Lab)</h2>',
-      '<p class="mut">Export genuine 515-byte binary presets from Modeled, Clone/NAM or Mixed JSON. Offline conversion only; no NAM is installed on the pedal.</p>',
+      '<p class="mut">Export 515-byte binary presets. Void MOD: Clone IR is always OFF; only approved Full Rig (amp+cab) NAM is allowed. Other tones remain Modeled.</p>',
       '<label for="prst-mode">Preset set</label>',
       '<select id="prst-mode"><option value="modeled">Modeled</option><option value="clone">Clone/NAM</option><option value="mixed">Mixed</option></select>',
       '<label for="prst-artist">Artist / pack</label><select id="prst-artist"></select>',
@@ -20,7 +20,7 @@
       '<p class="mut">Leave empty to use two bundled genuine SONICLINK references: a normal AMP preset and a separate real Clone-ON export. Mixed batches pick the appropriate reference for each preset. Custom donor is optional, ideally exported by your firmware.</p>',
       '<label for="prst-slots">Installed NAM label → physical slot (1–5), JSON</label>',
       '<textarea id="prst-slots" rows="5" style="min-height:110px"></textarea>',
-      '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. IR may be bypassed while Clone is on—amp-only NAM may need an external cab simulator.</p>',
+      '<p class="mut">Verify the order on YOUR pedal. A preset selects a slot; it cannot install a NAM. Void MOD: Clone ALWAYS bypasses onboard IR DSP. Only confirmed Amp + Cab / Full Rig NAM captures are allowed. Unapproved captures are blocked; other tones stay Modeled.</p>',
       '<div class="row"><button type="button" class="primary" id="prst-export">⬇️ Export native .prst / ZIP</button></div>',
       '<div id="prst-status" class="mut" role="status" aria-live="polite"></div>'
     ].join("");
@@ -118,7 +118,7 @@
         }
         status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. SONICLINK import/readback/listening still required." +
           (automatic ? " Used authentic built-in Modeled/Clone references as appropriate." : " Used your custom donor.") +
-          (hasClone ? " Generated Clone files require hardware verification; NAM captures are not embedded, and onboard IR may be bypassed." : "");
+          (hasClone ? " Clone IR is OFF (bypassed in hardware); only approved full-rig captures are accepted. NAM captures are not embedded; verify the installed model." : "");
       } catch (e) {
         status.textContent = "Export blocked: " + (e && e.message || String(e));
       } finally { button.disabled = false; }
