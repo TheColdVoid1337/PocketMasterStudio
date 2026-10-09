@@ -49,7 +49,9 @@
     if(saved&&(saved.state||saved.nam)){
       if(S.dirty&&!confirm("Existing config found. Load saved project settings and replace unsaved changes?"))
         return;
-      applyStored(saved);rebuild();markDirty(false);toast("Loaded config/*.json");
+      applyStored(saved);
+      const organized=withImportedCollection(S.payload), migrated=organized!==S.payload;
+      S.payload=organized;rebuild();markDirty(migrated);toast("Loaded config/*.json");
     }else{
       await persistConfig();toast("Config folder connected and initialized.");
     }
@@ -68,7 +70,8 @@
     if(o.schema===Policy.SCHEMA){
       applyNAM(o);
     }else if(o.config&&o.data){
-      applyStored({state:o,nam:o.void_nam||namConfig()});changed();rebuild();
+      applyStored({state:o,nam:o.void_nam||namConfig()});
+      S.payload=withImportedCollection(S.payload);changed();rebuild();
     }else throw Error("Select nam_clone.json or studio_state.json");
   }
 
@@ -546,6 +549,35 @@
     download("PocketMasterStudio-project.zip", zip);
     toast("ZIP downloaded (" + files.length + " files).");
   }
+  // Imported is an ordinary user-visible collection; native PRST bytes remain
+  // in prst_imports and the 50-record virtual artist batches remain stable.
+  // A copy is used so a failed import never changes the live project state.
+  function withImportedCollection(payload) {
+    const records = payload.prst_imports || [];
+    if (!records.length) return payload;
+    const oldDefs = payload.collections || PMBuild.defaultCollectionDefs();
+    const existing = oldDefs.find(d => d.collection === "Imported");
+    const known = new Set((existing?.refs || []).map(ref => JSON.stringify(ref)));
+    const missing = records.map((p, i) => [
+      "PRST Imports " + String(Math.floor(i / 50) + 1).padStart(3, "0"),
+      "prst_" + p.id, "N"
+    ]).filter(ref => !known.has(JSON.stringify(ref)));
+    const targetCount = (existing?.refs?.length || 0) + missing.length;
+    if (existing && !missing.length && existing.n >= targetCount) return payload;
+    const collections = oldDefs.map(d => ({ ...d, refs: d.refs.map(ref => ref.slice()) }));
+    let imported = collections.find(d => d.collection === "Imported");
+    if (!imported) {
+      let file = "Compilation_Imported.json", suffix = 2;
+      while (collections.some(d => d.file === file))
+        file = "Compilation_Imported_" + suffix++ + ".json";
+      imported = { file, collection: "Imported", n: 50, refs: [] };
+      collections.push(imported);
+    }
+    imported.refs.push(...missing);
+    imported.n = Math.max(imported.n || 50, imported.refs.length);
+    return { ...payload, collections };
+  }
+
   // Native binary imports are append-only snapshots: original bytes are saved
   // in studio_state.json, presented in the shared library, and exported losslessly.
   async function importNativeFiles(files) {
@@ -567,11 +599,11 @@
       if(result.added)added++;else duplicates++;
     }
     if(!added){toast("All "+duplicates+" native presets already imported.");return}
-    const trial={...S.payload,prst_imports:entries};
+    const trial=withImportedCollection({...S.payload,prst_imports:entries});
     regen(trial); // validate all and verify current collections without touching state.
     S.payload=trial;
     markDirty(true);rebuild();refreshNativeEditor();
-    toast("Imported "+added+" native PRST preset"+(added===1?"":"s")+" into library.");
+    toast("Imported "+added+" native PRST preset"+(added===1?"":"s")+" into Imported collection.");
   }
   function renderNativeImports(){
     const host=$("#nativePrstList");if(!host)return;
@@ -634,7 +666,7 @@
       src.void_nam = Policy.normalize(src.void_nam || namConfig(), ampNames());
       src.changelog = src.changelog || S.payload.changelog || null;
       if (!src.config || !src.data) throw new Error("Incomplete project (missing config or data).");
-      S.payload = src; markDirty(true); rebuild(); toast("Project imported."); showTab("overview");
+      S.payload = withImportedCollection(src); markDirty(true); rebuild(); toast("Project imported."); showTab("overview");
     } catch (e) { alert("Could not import: " + e.message); }
   }
   function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; setTimeout(() => t.hidden = true, 2500); }
@@ -746,7 +778,7 @@
         '<section class="prst-pane" id="prst-pane-import" role="tabpanel">',
         '<div class="ovbox">',
         '<h2 style="font-size:17px;margin:0 0 8px">Import .prst into shared library</h2>',
-        '<p class="mut">Select one or more original SONICLINK .prst files. Validate their 515-byte structure and CRC, preserve the binary bytes, and add read-only snapshots to Listing, Table, Editor and Collections. Unknown native selectors are explicitly labeled, never guessed.</p>',
+        '<p class="mut">Select one or more original SONICLINK .prst files. Validate their 515-byte structure and CRC, preserve the binary bytes, and add read-only snapshots to the Imported collection, Listing, Table and Editor. Unknown native selectors are explicitly labeled, never guessed.</p>',
         '<div class="row"><button type="button" class="primary" id="importNativeBtn">Import .prst files…</button><input id="importNativeFile" type="file" accept=".prst" multiple hidden></div>',
         '<div id="nativePrstList" class="mut" aria-live="polite"></div>',
         '</div></section>',
@@ -976,8 +1008,8 @@
           const stored=await IO.load();applyStored(stored);
         }
       }catch(e){console.warn("Void config restore:",e)}
-      rebuild();
-      markDirty(false);
+      const organized=withImportedCollection(S.payload), migrated=organized!==S.payload;
+      S.payload=organized;rebuild();markDirty(migrated);
     } catch (e) { $("#stats").innerHTML = '<span class="err">ERROR: ' + escH(e.message) + "</span>"; }
     window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, importNativeFiles, sourcePayload, saveConfig, applyNAM, connectFolder };
   }

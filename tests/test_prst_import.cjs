@@ -80,3 +80,43 @@ test('NAM conversion never changes imported native snapshots even if mapping lat
  assert.equal(batch.presets[0].ampMode,'Normal');
  assert.equal(batch.presets[0].nativeImport.rawBase64,rec.rawBase64);
 });
+
+test('new and legacy PRST records are placed in the Imported collection without changing other collections',()=>{
+  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+  const start=app.indexOf('  function withImportedCollection(payload) {');
+  const end=app.indexOf('  // Native binary imports are append-only snapshots:',start);
+  assert.ok(start>=0&&end>start,'Native collection organizer was not found in live controller');
+  const withImportedCollection=new Function('PMBuild',app.slice(start,end)+
+    '\nreturn withImportedCollection;')(Build);
+  const records=[bridge.record(normal,'a.prst',opts),bridge.record(clone,'b.prst',opts)];
+  const manual={file:'Compilation_Owner.json',collection:'Favorites',n:50,refs:[['Pink Floyd','ComfortablyNumb','L']]};
+  const original={prst_imports:records,collections:[manual]};
+  const updated=withImportedCollection(original);
+  assert.equal(original.collections.length,1,'original project mutated before validation');
+  assert.deepEqual(original.collections[0].refs,manual.refs);
+  const imported=updated.collections.find(c=>c.collection==='Imported');
+  assert.ok(imported);
+  assert.equal(imported.file,'Compilation_Imported.json');
+  assert.deepEqual(imported.refs,records.map((r,i)=>['PRST Imports 001','prst_'+r.id,'N']));
+  assert.equal(updated.collections[0].collection,'Favorites');
+  assert.equal(withImportedCollection(updated),updated,'migration must be idempotent');
+  const files={...bridge.asBatches(records,opts)};
+  const compilation=Build.buildCompilations(files,{collections:updated.collections.filter(c=>c.collection==='Imported')});
+  assert.deepEqual(compilation[imported.file].presets.map(p=>p.nativeImport.id),records.map(r=>r.id));
+  assert.deepEqual(Buffer.from(compilation[imported.file].presets[0].nativeImport.rawBase64,'base64'),normal);
+});
+test('Imported grows to retain more than 50 archives and does not duplicate prior refs',()=>{
+  const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
+  const start=app.indexOf('  function withImportedCollection(payload) {');
+  const end=app.indexOf('  // Native binary imports are append-only snapshots:',start);
+  const organizer=new Function('PMBuild',app.slice(start,end)+'\nreturn withImportedCollection;')(Build);
+  const records=Array.from({length:52},(_,i)=>({id:String(i).padStart(8,'0')}));
+  const prior={file:'Compilation_Imported.json',collection:'Imported',n:50,
+    refs:[['PRST Imports 001','prst_00000000','N']]};
+  const payload={prst_imports:records,collections:[prior]};
+  const updated=organizer(payload),imports=updated.collections[0];
+  assert.equal(imports.refs.length,52);
+  assert.equal(imports.n,52);
+  assert.deepEqual(imports.refs[50],['PRST Imports 002','prst_00000050','N']);
+  assert.equal(organizer(updated),updated);
+});
