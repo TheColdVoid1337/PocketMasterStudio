@@ -46,5 +46,7 @@ jobs:
           git add PocketMasterStudio.html
           if ! git diff --cached --quiet; then
             git commit -m "build(nam-js): bundle compiled SonicMaster DSP and pinned offline reference DI"
+            git fetch origin feat/nam-js-only-dsp-20261010
+            git rebase origin/feat/nam-js-only-dsp-20261010
             git push origin HEAD:feat/nam-js-only-dsp-20261010
           fi
