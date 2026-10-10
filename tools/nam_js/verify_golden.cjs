@@ -12,7 +12,7 @@ const ROOT=path.join(__dirname,'../..');
 const workerPath=path.join(ROOT,'src/assets/nam_dsp_worker.js');
 const diPath=path.join(ROOT,'src/assets/nam_reference_di_44100.f32.gz');
 const namPath=path.join(ROOT,'tests/fixtures/sonicmaster_ref_input.nam');
-const goldenPath=path.join(ROOT,'tests/fixtures/sonicmaster_golden_ref.clo.b64');
+const goldenPath=path.join(ROOT,'tests/fixtures/sonicmaster_native_dsp_ref.clo.b64');
 
 const bootstrap=`
 const {parentPort,workerData}=require('node:worker_threads');
@@ -43,12 +43,13 @@ async function main(){
  if(!fs.existsSync(workerPath)||!fs.existsSync(diPath))
    throw Error('Missing bundled JS DSP/DI; compile in GitHub Actions first.');
  const input=fs.readFileSync(namPath,'utf8');
+ if(!fs.existsSync(goldenPath))throw Error('Missing pinned native DSP golden, generated from the same NAM/DI');
  const reference=Buffer.from(fs.readFileSync(goldenPath,'utf8'),'base64');
  P.validateFile(reference);
  const raw=zlib.gunzipSync(fs.readFileSync(diPath));
  if(raw.length!==12348000)throw Error('Pinned reference DI has incorrect length');
  const di=new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.length));
- console.log('DSP baseline: SonicMaster pinned golden CLO; full 5-level WaveNet+Wiener fit');
+ console.log('DSP baseline: independent native SonicMaster Rust fitting of SAME NAM/DI (not official vendor CLO)');
  const started=Date.now(),progress=[];
  const task=C.start(input,{
    workerFactory:createWorker,
@@ -80,7 +81,7 @@ async function main(){
  }
  if(progress.filter(s=>s==='probe-done').length!==5)throw Error('Not all probe levels ran');
  if(!progress.includes('fit'))throw Error('No Wiener fitting stage');
- if(different)throw Error('Numerical mismatch with SonicMaster golden ('+different+' coefficients)');
+ if(different)throw Error('Numerical mismatch against same-input SonicMaster Rust golden ('+different+' coefficients)');
  for(let i=64;i<104;i++)if(reference[i]!==generated[i])
    throw Error('DC-blocker mismatch with SonicMaster golden');
  console.log('PASS: 2180 float32 DSP coefficients, VTSI layout, CRC16 and fixed biquad; elapsed',
