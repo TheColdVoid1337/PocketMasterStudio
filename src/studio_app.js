@@ -175,8 +175,37 @@
 
   // ---- tabs ----
   function showTab(id) {
-    $$(".tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === id));
-    $$(".panel").forEach((p) => { p.hidden = p.id !== "panel-" + id; });
+    $$("#view-studio [data-tab]").forEach((b) => {
+      const active = b.dataset.tab === id;
+      b.classList.toggle("on", active);
+      b.setAttribute("aria-selected", String(active));
+    });
+    $$("#view-studio .panel").forEach((p) => { p.hidden = p.id !== "panel-" + id; });
+  }
+  function showLibraryTab(id) {
+    const t = LIBRARY.find((x) => x.id === id);
+    if (!t) return;
+    const pane = $("#library-pane-" + id);
+    if (!pane) throw Error("Missing Library pane: " + id);
+    if (id !== "overview" && !mountedLibrary.has(id)) {
+      try {
+        mountLibraryPane(id);
+        mountedLibrary.add(id);
+      } catch (e) {
+        pane.replaceChildren();
+        console.error("Failed to open Library → " + t.label, e);
+        toast("Could not open Library → " + t.label + ": " + (e?.message || String(e)));
+        return;
+      }
+    }
+    $$("[data-library-pane]", $("#view-library")).forEach((b) => {
+      const active = b.dataset.libraryPane === id;
+      b.classList.toggle("on", active);
+      b.setAttribute("aria-selected", String(active));
+    });
+    $$(".library-pane", $("#view-library")).forEach((p) => {
+      p.hidden = p.id !== "library-pane-" + id;
+    });
   }
 
   // ---- PROMPT generation ----
@@ -276,7 +305,7 @@
     markDirty(true); rebuild();
     $("#pasteBox").value = ""; $("#pasteResult").innerHTML = '<div class="ok">✓ Incorporated and regenerated. Don\'t forget to <b>Save</b>.</div>';
     $("#applyBtn").hidden = true; PENDING = null;
-    showTab("overview");
+    activate("library"); showLibraryTab("overview");
   }
 
   // ---- searchable preset picker (shared) ----
@@ -666,7 +695,7 @@
       src.void_nam = Policy.normalize(src.void_nam || namConfig(), ampNames());
       src.changelog = src.changelog || S.payload.changelog || null;
       if (!src.config || !src.data) throw new Error("Incomplete project (missing config or data).");
-      S.payload = withImportedCollection(src); markDirty(true); rebuild(); toast("Project imported."); showTab("overview");
+      S.payload = withImportedCollection(src); markDirty(true); rebuild(); toast("Project imported."); activate("library"); showLibraryTab("overview");
     } catch (e) { alert("Could not import: " + e.message); }
   }
   function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; setTimeout(() => t.hidden = true, 2500); }
@@ -674,13 +703,18 @@
   // ---- main views (Studio + embedded editor + live listings + docs) ----
   const MAIN = [
     { id: "studio", label: "Studio", icon: "🎛️", group: "" },
+    { id: "editor", label: "Editor", icon: "🎸", group: "", allow: "bluetooth *; usb *; midi *; serial *; hid *" },
+    { id: "library", label: "Library", icon: "📚", group: "" },
     { id: "nam", label: "NAM/Clone", icon: "🎚️", group: "" },
     { id: "prst", label: ".prst Lab", icon: "🧪", group: "" },
-    { id: "editor", label: "Editor", icon: "🎸", group: "", allow: "bluetooth *; usb *; midi *; serial *; hid *" },
-    { id: "index", label: "Listing", icon: "📋", group: "", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
-    { id: "full", label: "Table", icon: "🗂️", group: "", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
-    { id: "map", label: "Map", icon: "🗺️", group: "", variants: true, gen: (map) => PMMap.buildM50(map)["map_Best50.html"], printGen: (map) => PMMap.buildM50(map)["map_Best50_print.html"] },
     { id: "docs", label: "Docs", icon: "📖", group: "" },
+  ];
+  // Previous listing generators and per-view controls remain unchanged.
+  const LIBRARY = [
+    { id: "overview", label: "Overview" },
+    { id: "index", label: "Listing", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
+    { id: "full", label: "Table", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
+    { id: "map", label: "Map", variants: true, gen: (map) => PMMap.buildM50(map)["map_Best50.html"], printGen: (map) => PMMap.buildM50(map)["map_Best50_print.html"] },
   ];
   // amp-set variants shown as a radio-style selector on each listing view.
   const VARIANTS = [["modeled", "Modeled"], ["clone", "Clone/NAM"], ["mixed", "Mixed"]];
@@ -705,7 +739,8 @@
     const se = doc.scrollingElement || doc.documentElement;
     if (se) { se.scrollTop = st.scroll; requestAnimationFrame(() => { try { se.scrollTop = st.scroll; } catch (e) {} }); }
   }
-  const mounted = { studio: true };
+  const mounted = { studio: true, library: true };
+  const mountedLibrary = new Set(["overview"]);
   let activeMain = "studio";
   const tabHtml = (t) => '<span class="ic">' + t.icon + "</span>" + escH(t.label);
   function buildAppbar() {
@@ -827,6 +862,12 @@
     }
     if (id === "editor") return mountEditor(view, t);
     if (id === "docs") return mountDocs(view);
+    throw Error("Unknown main view: " + id);
+  }
+  function mountLibraryPane(id) {
+    const t = LIBRARY.find((x) => x.id === id);
+    const view = $("#library-pane-" + id);
+    if (!t?.gen || !view) throw Error("Invalid Library pane: " + id);
     const f = el("iframe", { class: "full", title: t.label });
     f.dataset.mode = "interactive";
     t._variant = t._variant || DEFAULT_VARIANT;
@@ -927,7 +968,7 @@
     sel.addEventListener("change", show); show();
   }
   function refreshMountedViews() {
-    for (const t of MAIN) if (t._render && t._f && mounted[t.id]) {
+    for (const t of LIBRARY) if (t._render && t._f && mountedLibrary.has(t.id)) {
       try { t._render(); } catch (e) {}
     }
   }
@@ -959,7 +1000,9 @@
     compat();
     buildAppbar();
     window.addEventListener("message", (ev) => { if (ev.data) editorBridge(ev.data); });
-    $$(".tab").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
+    $$("#view-studio [data-tab]").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
+    $$("#view-library [data-library-pane]").forEach((t) =>
+      t.addEventListener("click", () => showLibraryTab(t.dataset.libraryPane)));
     $("#genPrompt").addEventListener("click", buildPrompt);
     $("#copyPrompt").addEventListener("click", copyPrompt);
     $("#analyzeBtn").addEventListener("click", analyze);

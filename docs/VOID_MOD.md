@@ -97,3 +97,9 @@ All native `.prst` interactions now live in the **`.prst Lab`** item in the main
 Neither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`; the app adds missing Imported collection references without changing native records or the save format. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.
 
 Older v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.
+
+### Library navigation (Void's MOD v0.4.1 follow-up)
+
+The main navigation is now **Studio → Editor → Library → NAM/Clone → .prst Lab → Docs**. **Library** groups the existing **Overview**, **Listing**, **Table** and **Map** views under one menu. Their generators, Modeled/Clone/Mixed selectors and print modes remain unchanged. Project ZIP import/export, statistics and the Listing preview now reside under **Library → Overview**, without duplicating state.
+
+**Studio** retains AI Prompt, Paste JSON, Data and Collections. **Data** manages artists, songs and preset variants in the editable source; **Collections** manages ordered references to existing presets. Removing a collection entry is different from deleting a source preset, so these tools remain separate. This is a navigation-only change: no migration of `config/`, no rewriting of native `.prst` data.

@@ -228,6 +228,7 @@ const CSS = String.raw`
  .prst-pane .ovbox{padding:17px;border-radius:12px}
  .prst-pane #native-prst-export{border:1px solid var(--line);border-radius:12px;background:var(--card2);padding:18px}
  .prst-pane #nativePrstList{margin-top:14px}
+ .library-pane[hidden]{display:none!important}
  .view{display:none} .view.active{display:block}
  .view .tabs{position:static}
  .view iframe.full{width:100%;height:calc(100vh - 120px);border:0;border-radius:0;margin:0;background:#fff}
@@ -278,27 +279,13 @@ const BODY = String.raw`
 <section class="view active" id="view-studio">
  <div class="note">⚠️ To connect the pedal (<b>Editor</b> tab) and to save, you need <b>Chrome</b>, <b>Edge</b> or <b>Opera</b> (Chromium with Web Bluetooth), on desktop or Android. Safari/Firefox won't work.</div>
  <div class="tabs">
- <button class="tab on" data-tab="overview">Overview</button>
- <button class="tab" data-tab="prompt">AI Prompt</button>
+ <button class="tab on" data-tab="prompt" aria-selected="true">AI Prompt</button>
  <button class="tab" data-tab="paste">Paste JSON</button>
  <button class="tab" data-tab="data">Data</button>
  <button class="tab" data-tab="collections">Collections</button>
 </div>
 <div class="wrap">
- <section class="panel" id="panel-overview">
-  <div id="stats">Loading…</div>
-  <div class="row">
-   <button id="exportZip">📦 Export ZIP (full structure)</button>
-   <button id="importBtn">📥 Import project…</button>
-   <button id="dlIndex">⬇️ index.html</button>
-   <input id="importFile" type="file" accept=".zip,.json" hidden>
-  </div>
-  <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
-  <div class="sub">Preview of the generated listing:</div>
-  <iframe id="preview" title="preview"></iframe>
- </section>
-
- <section class="panel" id="panel-prompt" hidden>
+ <section class="panel" id="panel-prompt">
   <p class="mut">Fill in and generate a prompt to paste into any AI chat (ChatGPT, Claude, Gemini…). Ask it for the <b>source JSON</b> (<code>data/&lt;Artist&gt;.json</code>), then paste the result in the <b>Paste JSON</b> tab.</p>
   <label>Artist</label><input id="pArtist" placeholder="e.g. The Police">
   <label>Preset types (default: all)</label>
@@ -339,6 +326,34 @@ const BODY = String.raw`
   <div id="collBody"></div>
  </section>
  </div>
+</section>
+<section class="view" id="view-library">
+ <div class="tabs library-tabs" role="tablist" aria-label="Library views">
+  <button class="tab on" type="button" role="tab" data-library-pane="overview" aria-selected="true" aria-controls="library-pane-overview">Overview</button>
+  <button class="tab" type="button" role="tab" data-library-pane="index" aria-selected="false" aria-controls="library-pane-index">Listing</button>
+  <button class="tab" type="button" role="tab" data-library-pane="full" aria-selected="false" aria-controls="library-pane-full">Table</button>
+  <button class="tab" type="button" role="tab" data-library-pane="map" aria-selected="false" aria-controls="library-pane-map">Map</button>
+ </div>
+ <section class="library-pane" id="library-pane-overview" role="tabpanel">
+  <div class="wrap">
+ <section class="panel" id="panel-overview">
+  <div id="stats">Loading…</div>
+  <div class="row">
+   <button id="exportZip">📦 Export ZIP (full structure)</button>
+   <button id="importBtn">📥 Import project…</button>
+   <button id="dlIndex">⬇️ index.html</button>
+   <input id="importFile" type="file" accept=".zip,.json" hidden>
+  </div>
+  <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
+  <div class="sub">Preview of the generated listing:</div>
+  <iframe id="preview" title="preview"></iframe>
+ </section>
+
+  </div>
+ </section>
+ <section class="library-pane" id="library-pane-index" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-full" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-map" role="tabpanel" hidden></section>
 </section>
 </div>
 
