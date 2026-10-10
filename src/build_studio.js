@@ -111,7 +111,7 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
-const modules = ["void_policy.js", "void_config_io.js", "void_clone_protocol.js", "void_clone_transport.js", "void_clone_upload_ui.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
+const modules = ["void_policy.js", "void_config_io.js", "void_clone_protocol.js", "void_clone_transport.js", "void_nam_converter.js", "void_clone_upload_ui.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
