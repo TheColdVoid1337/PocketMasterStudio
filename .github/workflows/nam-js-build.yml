@@ -38,6 +38,18 @@ jobs:
         run: node --test tests/*.cjs
       - name: Server security tests
         run: python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+      - name: Build independent upstream Rust fitting oracle (CI-only)
+        run: cargo build --release --manifest-path tools/nam_dsp/Cargo.toml
+      - name: Produce independent native golden for EXACT same NAM and DI
+        run: |
+          tools/nam_dsp/target/release/pocketmaster_nam_dsp --reference tools/nam_dsp/data/nam_reference_di_44100.f32 < tests/fixtures/sonicmaster_ref_input.nam > /tmp/sonicmaster_native_dsp_ref.clo
+          python3 - <<'PY'
+          import base64
+          from pathlib import Path
+          inp = Path("/tmp/sonicmaster_native_dsp_ref.clo").read_bytes()
+          assert len(inp) == 8840 and inp[:4] == b"VTSI"
+          Path("tests/fixtures/sonicmaster_native_dsp_ref.clo.b64").write_text(base64.b64encode(inp).decode("ascii") + "\n")
+          PY
       - name: Full 5-level numerical golden parity using compiled JS Workers
         timeout-minutes: 12
         run: node tools/nam_js/verify_golden.cjs
@@ -46,7 +58,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f src/assets/nam_dsp_worker.js src/assets/nam_reference_di_44100.f32.gz
-          git add PocketMasterStudio.html
+          git add PocketMasterStudio.html tests/fixtures/sonicmaster_native_dsp_ref.clo.b64
           if ! git diff --cached --quiet; then
             git commit -m "build(nam-js): bundle compiled SonicMaster DSP and pinned offline reference DI"
             git fetch origin feat/nam-js-only-dsp-20261010
