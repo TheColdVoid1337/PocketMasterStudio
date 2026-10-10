@@ -6,3 +6,8 @@
 /node_modules/
 __pycache__/
 *.pyc
+
+# Rebuildable local Rust DSP, reference DI and scratch assets.
+/tools/nam_dsp/target/
+/tools/nam_dsp/data/*.f32
+/tools/nam_dsp/Cargo.lock
