@@ -154,8 +154,6 @@
     $("#stats").innerHTML = "<b>" + b.artistCount + "</b> artists · <b>" + b.total +
       "</b> presets · <b>" + Object.keys(b.jsonMap).length + "</b> json · <b>" + Object.keys(b.namMap).length +
       "</b> NAM · <b>" + nOv + "</b> overrides · <b>" + dt + " ms</b>";
-    const idx = PMHtml.buildIndex(b.mixedMap);
-    $("#preview").srcdoc = idx["index.html"];
     renderData();
     renderCollections();
     renderNativeImports();
@@ -305,7 +303,7 @@
     markDirty(true); rebuild();
     $("#pasteBox").value = ""; $("#pasteResult").innerHTML = '<div class="ok">✓ Incorporated and regenerated. Don\'t forget to <b>Save</b>.</div>';
     $("#applyBtn").hidden = true; PENDING = null;
-    activate("library"); showLibraryTab("overview");
+    activate("studio"); showTab("manage");
   }
 
   // ---- searchable preset picker (shared) ----
@@ -395,6 +393,22 @@
         '<div style="padding:4px 2px">' + songs + "</div></details>";
     }).join("");
     wrap.innerHTML = html;
+    filterSourceList($("#dataFilter")?.value || "");
+  }
+  // Filter rendered source rows in place: no data changes, no lost selections.
+  function filterSourceList(query) {
+    const term = String(query || "").trim().toLowerCase();
+    $$("#dataList details.art").forEach((artist) => {
+      const artistMatch = (artist.querySelector("summary")?.textContent || "").toLowerCase().includes(term);
+      let visible = 0;
+      $$(":scope > div > .song", artist).forEach((song) => {
+        const hit = !term || artistMatch || song.textContent.toLowerCase().includes(term);
+        song.hidden = !hit;
+        if (hit) visible++;
+      });
+      artist.hidden = !!term && !artistMatch && !visible;
+      if (term && !artist.hidden) artist.open = true;
+    });
   }
   function selectedDeletions() {
     return $$("#dataList input[data-del]:checked").map((c) => JSON.parse(c.getAttribute("data-del")));
@@ -873,7 +887,9 @@
     t._variant = t._variant || DEFAULT_VARIANT;
     const render = () => {
       const map = t.variants ? mapFor(t._variant) : S.built.jsonMap;
-      f.srcdoc = (f.dataset.mode === "print" && t.printGen) ? t.printGen(map) : t.gen(map);
+      const context = { variant: t._variant || "modeled" };
+      f.srcdoc = (f.dataset.mode === "print" && t.printGen)
+        ? t.printGen(map) : id === "index" ? t.gen(map, context) : t.gen(map);
     };
     t._render = render;
     // Re-render carrying over the current view (search/expanded/scroll); used on variant switch.
@@ -893,6 +909,19 @@
           grp.appendChild(b);
         });
         bar.appendChild(grp);
+        const note = el("span", { class: "variant-hint" });
+        const updateNote = () => {
+          note.textContent = t._variant === "modeled"
+            ? "Modeled: original amplifier settings."
+            : "NAM: only configured Full Rig amps switch to Clone; the rest stay Modeled. Mixed currently matches Clone/NAM.";
+        };
+        const priorButtons = Array.from(grp.querySelectorAll("button"));
+        for (const button of priorButtons) {
+          const originalClick = button.onclick;
+          button.onclick = () => { originalClick(); updateNote(); };
+        }
+        updateNote();
+        bar.appendChild(note);
       }
       if (t.printGen) {
         const grp2 = el("div", { class: "seg segright" });
@@ -1010,6 +1039,7 @@
     $("#saveBtn").addEventListener("click",saveApp);
     $("#dlIndex").addEventListener("click", () => S.built && download("index.html", PMHtml.buildIndex(S.built.jsonMap)["index.html"], "text/html"));
     $("#delBtn").addEventListener("click", doDelete);
+    $("#dataFilter").addEventListener("input", (e) => filterSourceList(e.target.value));
     $("#collSel").addEventListener("change", renderCollections);
     $("#collAdd").addEventListener("click", collAdd);
     $("#collNew").addEventListener("click", collNew);

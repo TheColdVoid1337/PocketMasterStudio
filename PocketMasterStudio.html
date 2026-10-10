@@ -93,6 +93,47 @@
  .prst-pane .ovbox{padding:17px;border-radius:12px}
  .prst-pane #native-prst-export{border:1px solid var(--line);border-radius:12px;background:var(--card2);padding:18px}
  .prst-pane #nativePrstList{margin-top:14px}
+ /* Dense readable list workspace */
+ #view-studio>.wrap{max-width:1400px}
+ @media(max-width:600px){
+  .manage-part .slotrow{flex-wrap:wrap}
+  .manage-part .slotrow .lbl{flex-basis:calc(100% - 34px)}
+ }
+ .manage-intro{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;margin:4px 0 12px}
+ .manage-intro h2{margin:0;font-size:17px}.manage-intro .mut{margin:0}
+ #panel-manage{max-width:1360px;margin:auto}
+ .manage-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+ .manage-part{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+ .manage-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px}
+ .manage-head h3{font-size:14px;margin:0}.manage-head .mut{font-size:11px}
+ .manage-part .field-label{margin:1px 0 3px}
+ .manage-part select,.manage-part input[type=search]{padding:7px 9px;min-height:36px}
+ .manage-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:7px 0 8px}
+ .manage-toolbar button{min-height:31px;padding:5px 9px;font-size:12px;line-height:1.2}
+ .manage-list{max-height:calc(100vh - 280px);min-height:240px;overflow:auto;scrollbar-gutter:stable}
+ #dataList details.art{margin:0 0 4px;padding:0 7px;border-radius:7px}
+ #dataList details.art summary{padding:4px 0}
+ #dataList details.art .song{padding:2px 0}
+ #dataList .songhead{gap:3px}
+ #dataList .chk{padding:2px 0;font-size:12px;line-height:1.3}
+ #dataList .chk.sub{padding-left:19px;font-size:11.5px}
+ #dataList .chk input{width:15px;height:15px}
+ .manage-part .slotrow{padding:4px 0;gap:4px;flex-wrap:nowrap}
+ .manage-part .slotrow .lbl{min-width:0;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+ .manage-part .slotrow .sl{min-width:24px;font-size:11px}
+ .manage-part .slotrow button.mini{padding:4px 6px;min-height:28px;flex-shrink:0}
+ .manage-part .slotrow .mut{font-size:11px}
+ .manage-part details.art[hidden],.manage-part .song[hidden]{display:none!important}
+ .variant-hint{font-size:11px;line-height:1.3;color:var(--mut);flex:1 1 230px}
+ .pick{padding:6px 9px;margin-bottom:3px;border-radius:7px;line-height:1.3}
+ .pick .mut{display:inline;margin-left:5px;font-size:11px}
+ .slotrow{padding:4px 2px;gap:5px}
+ .prst-pane .slotrow .lbl{font-size:12px}
+ @media(max-width:860px){
+  .manage-layout{grid-template-columns:minmax(0,1fr)}
+  .manage-list{max-height:55vh;min-height:0}
+  .manage-part{padding:9px}
+ }
  .library-pane[hidden]{display:none!important}
  .view{display:none} .view.active{display:block}
  .view .tabs{position:static}
@@ -145,8 +186,7 @@
  <div class="tabs">
  <button class="tab on" data-tab="prompt" aria-selected="true">AI Prompt</button>
  <button class="tab" data-tab="paste">Paste JSON</button>
- <button class="tab" data-tab="data">Data</button>
- <button class="tab" data-tab="collections">Collections</button>
+ <button class="tab" data-tab="manage">Manage</button>
 </div>
 <div class="wrap">
  <section class="panel" id="panel-prompt">
@@ -177,17 +217,29 @@
   <div id="pasteResult"></div>
  </section>
 
- <section class="panel" id="panel-data" hidden="">
-  <p class="mut">Embedded source (build order). Tick songs or presets and delete them; if any is used in a collection, you'll be asked what to replace it with.</p>
-  <div class="row"><button id="delBtn" class="attn">🗑️ Delete selected</button></div>
-  <div id="dataList"></div>
- </section>
-
- <section class="panel" id="panel-collections" hidden="">
-  <p class="mut">Manage collections: reorder slots (↑/↓), replace or remove them, or add a preset (searchable). If a collection is full, you choose which slot to replace. You can also create new collections or delete one.</p>
-  <label>Collection</label><select id="collSel"></select>
-  <div class="row"><button id="collAdd" class="primary">➕ Add preset (search)</button><button id="collNew">🆕 New collection</button><button id="collDelete" class="attn">🗑️ Delete collection</button></div>
-  <div id="collBody"></div>
+ <section class="panel" id="panel-manage" hidden="">
+  <div class="manage-intro">
+   <h2>Manage library</h2>
+   <p class="mut">Source data and collections share one workspace. Deleting a source preset removes it from the project; removing a collection slot only removes its reference.</p>
+  </div>
+  <div class="manage-layout">
+   <section class="manage-part manage-source" aria-labelledby="manageSourceTitle">
+    <div class="manage-head"><h3 id="manageSourceTitle">Source data</h3><span class="mut">Artists · songs · takes</span></div>
+    <input id="dataFilter" type="search" placeholder="Filter artists, songs or takes…" aria-label="Filter source data" autocomplete="off">
+    <div class="manage-toolbar"><button id="delBtn" class="mini attn">Delete selected from source</button></div>
+    <div id="dataList" class="manage-list"></div>
+   </section>
+   <section class="manage-part manage-collections" aria-labelledby="manageCollectionTitle">
+    <div class="manage-head"><h3 id="manageCollectionTitle">Collections</h3><span class="mut">Ordered preset references</span></div>
+    <label class="field-label" for="collSel">Collection</label><select id="collSel"></select>
+    <div class="manage-toolbar">
+     <button id="collAdd" class="mini primary">+ Add preset</button>
+     <button id="collNew" class="mini">New</button>
+     <button id="collDelete" class="mini attn">Delete collection</button>
+    </div>
+    <div id="collBody" class="manage-list"></div>
+   </section>
+  </div>
  </section>
  </div>
 </section>
@@ -209,8 +261,6 @@
    <input id="importFile" type="file" accept=".zip,.json" hidden="">
   </div>
   <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
-  <div class="sub">Preview of the generated listing:</div>
-  <iframe id="preview" title="preview"></iframe>
  </section>
 
   </div>
@@ -1082,7 +1132,16 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
   };
   const LEAD_KINDS = new Set(["L", "L2", "L3", "La", "Lb", "Lc", "Ld", "Lh"]);
 
-  const amp = (p) => { const mm = p.modules; const m = mm.AMP || mm.Clone; return m && m.enabled ? m.effect : "-"; };
+  // Prioritize the live NAM over an inactive native donor AMP.
+  const amp = (p) => {
+    const mm = p.modules || {};
+    const m = p.ampMode === "Clone" ? (mm.Clone || mm.AMP) : (mm.AMP || mm.Clone);
+    return m && m.enabled ? m.effect : "-";
+  };
+  const modeLabel = (p, variant) => p.ampMode === "Clone" ? "NAM" :
+    variant !== "modeled" ? "Modeled fallback" : "Modeled";
+  const modeClass = (p, variant) => p.ampMode === "Clone" ? "nam" :
+    variant !== "modeled" ? "fallback" : "modeled";
   const drive = (p) => {
     const m = p.modules;
     if (m.DRV.enabled) return DRVMAP[m.DRV.effect] || m.DRV.effect;
@@ -1126,7 +1185,8 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
     return { artistNames, data, colls };
   }
 
-  function buildIndex(folderMap) {
+  function buildIndex(folderMap, options) {
+    const variant = options?.variant || "modeled";
     const { artistNames: ORDER, data, colls } = classify(folderMap);
     const songs = {};
     for (const n of ORDER) songs[n] = songs_of(data[n]);
@@ -1187,14 +1247,15 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
       songs[n].forEach((g, si0) => {
         const [, ps] = g;
         const title = song_title(ps[0]);
-        const f = (title + " " + ps.map((p) => amp(p) + " " + drive(p)).join(" ")).toLowerCase();
+        const f = (title + " " + ps.map((p) => amp(p) + " " + drive(p) + " " + modeLabel(p, variant)).join(" ")).toLowerCase();
         let prs = "";
         for (const p of ps) {
           const tcls = is_lead(p) ? "tL" : "tR";
           prs += '<div class="pr"><span class="tag ' + tcls + '">' + esc(klabel(p)) + "</span>" +
             '<span class="slot">p' + p.slot + "</span>" +
             '<span class="nm">' + esc(p.presetName) + "</span>" +
-            '<span class="amp">' + esc(amp(p)) + "</span>" +
+            '<span class="mode mode-' + modeClass(p, variant) + '">' + esc(modeLabel(p, variant)) + "</span>" +
+          '<span class="amp">' + esc(amp(p)) + "</span>" +
             '<span class="drv">' + esc(drive(p)) + "</span></div>";
         }
         rows.push('<div class="song" data-f="' + esc(f) + '">' +
@@ -1222,25 +1283,32 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
           '<span class="slot">p' + p.slot + "</span>" +
           '<span class="nm">' + esc(song_title(p)) +
           (p.artist ? " <i>&middot; " + esc(p.artist) + "</i>" : "") + "</span>" +
+          '<span class="mode mode-' + modeClass(p, variant) + '">' + esc(modeLabel(p, variant)) + "</span>" +
           '<span class="amp">' + esc(amp(p)) + "</span>" +
           '<span class="drv">' + esc(drive(p)) + "</span></div>";
       }
       const f = (d.collection + " " + d.presets.map((p) =>
-        song_title(p) + " " + (p.artist || "") + " " + amp(p) + " " + drive(p)).join(" ")).toLowerCase();
+        song_title(p) + " " + (p.artist || "") + " " + amp(p) + " " + drive(p) + " " + modeLabel(p, variant)).join(" ")).toLowerCase();
       comp_cards.push('<details class="art comp" data-a="' + esc(d.collection.toLowerCase()) + '">' +
         '<summary><span class="anum">&#9733;</span><span class="aname">' + esc(d.collection) + "</span>" +
         '<span class="meta">' + d.count + " presets &middot; slots " + esc(d.slots || "") + "</span></summary>" +
         '<div class="songs"><div class="song" data-f="' + esc(f) + '">' + prs + "</div></div></details>");
     }
 
-    const CSS = INDEX_CSS;
+    const CSS = INDEX_CSS + INDEX_COMPACT_CSS;
     const JS = INDEX_JS;
+    const allPresets = AORDER.flatMap(n => data[n].presets);
+    const nativeCount = allPresets.filter(p => p.ampMode === "Clone").length;
+    const variantText = variant === "modeled" ? "Modeled: original amp settings." :
+      nativeCount + " NAM Full Rig · " + (allPresets.length - nativeCount) + " Modeled fallback. " +
+      "Only configured Full Rig amps are replaced. Clone/NAM and Mixed currently share the same rules.";
     const doc = '<!doctype html><html lang="en"><head>' +
       '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
       "<title>PocketMaster Presets</title><style>" + CSS + "</style></head><body>" +
       '<header><h1>&#127928; PocketMaster Presets</h1>' +
       '<div class="sub">' + ORDER.length + " artists &middot; " + tot_songs + " songs &middot; " + tot_pr +
       " presets &middot; sorted by artist / song / intensity &middot; slots up to p50</div>" +
+      '<div class="sub variant-info">' + esc(variantText) + "</div>" +
       '<div class="sub"><b>Takes</b> (letter in the preset name): ' +
       '<b style="color:var(--rit)">C</b>=clean rhythm &middot; ' +
       '<b style="color:var(--rit)">R</b>=rhythm with drive &middot; ' +
@@ -1297,6 +1365,32 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
 "footer{color:var(--mut);font-size:11.5px;text-align:center;padding:16px}\n" +
 "@media (max-height:520px){header{position:static;padding:6px 14px}h1,.sub{display:none}#q{margin-top:0}.tools{margin-top:6px}}\n";
 
+  const INDEX_COMPACT_CSS = String.raw`
+header{padding:7px 10px 6px}
+header h1{font-size:15px}
+header .sub{font-size:11px;margin-bottom:3px}
+header .variant-info{font-weight:600}
+#q{padding:7px 9px;font-size:13px;min-height:34px;margin-top:5px}
+.wrap{max-width:1160px;padding:7px 10px 38px}
+details.art{margin:4px 0;border-radius:8px}
+details.art>summary{padding:6px 9px;gap:7px}
+.anum{width:22px;min-width:22px;height:22px;border-radius:5px;font-size:10px}
+.aname{font-size:13px}.meta{font-size:11px}
+.songs{padding:0 7px 7px}.song{padding:5px 3px}
+.sn{font-size:12px;margin-bottom:2px}
+.pr{display:grid;grid-template-columns:26px 46px minmax(125px,1.4fr) minmax(72px,.65fr) minmax(100px,1fr) minmax(60px,.7fr);gap:4px 6px;align-items:center;padding:2px 0;min-height:23px}
+.pr>.tag{width:23px;height:18px;font-size:10px;border-radius:4px}
+.pr>.slot{font-size:10px;text-align:center;padding:2px}
+.pr>.nm{font-size:11.5px;overflow-wrap:anywhere}
+.pr>.amp,.pr>.drv{font-size:11px;overflow-wrap:anywhere}
+.mode{display:inline-flex;align-items:center;justify-content:center;padding:2px 4px;border:1px solid var(--line);border-radius:5px;white-space:nowrap;font-size:10px;line-height:1.2}
+.mode-nam{color:var(--rit);border-color:var(--rit);font-weight:700}
+.mode-fallback{color:var(--mut);border-style:dashed}
+.mode-modeled{color:var(--mut)}
+.secdiv{margin-top:13px;padding-top:9px}
+@media(max-width:620px){.pr{grid-template-columns:24px 42px minmax(100px,1fr) minmax(72px,.7fr);gap:3px 5px}.pr>.amp{grid-column:3}.pr>.drv{grid-column:4}.meta{font-size:10px}}
+`;
+
   const INDEX_JS = "\n" +
 "var q=document.getElementById('q'),arts=[].slice.call(document.querySelectorAll('.art'));\n" +
 "function allOpen(o){arts.forEach(function(a){if(!a.classList.contains('hide'))a.open=o;});}\n" +
@@ -1311,7 +1405,7 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
 " });\n" +
 "});\n";
 
-  return { buildIndex, esc, _helpers: { amp, drive, song_title, pkind, klabel, is_lead, songs_of, classify } };
+  return { buildIndex, esc, _helpers: { amp, modeLabel, drive, song_title, pkind, klabel, is_lead, songs_of, classify } };
 });
 
 </script>
@@ -1488,8 +1582,10 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
     Ld: ["tg-l", "SOL dt"], Lh: ["tg-l", "SOL ch"],
   };
   function preset_card(p, group_tag) {
-    const mods = p.modules || {};
-    if (!("AMP" in mods) && "Clone" in mods) mods["AMP"] = mods["Clone"];
+    const mods = { ...(p.modules || {}) };
+    // Keep map data immutable and display the live Clone/NAM, not donor AMP.
+    if (p.ampMode === "Clone" && mods.Clone) mods.AMP = mods.Clone;
+    else if (!("AMP" in mods) && "Clone" in mods) mods.AMP = mods.Clone;
     const name = p.presetName || "";
     const slot = p.slot != null ? p.slot : "";
     const vol = p.presetVolume != null ? p.presetVolume : "";
@@ -1515,7 +1611,9 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
     return `<div class="card" data-f="${esc(fstr)}">` +
       `<div class="chead">` +
       `<span class="slot">p${esc(slot)}</span>` +
-      `<span class="pname">${esc(name)}</span>${dtag_amp(amp)}${dtag}` +
+      `<span class="pname">${esc(name)}</span>` +
+      (p.ampMode === "Clone" ? '<span class="mode-flag">NAM</span>' : "") +
+      `${dtag_amp(amp)}${dtag}` +
       `<span class="vol" title="Preset volume">vol ${esc(vol)}</span>` +
       `</div>` +
       ((desc || art) ? `<div class="pdesc">` + (art ? `<b>${esc(art)}</b> &mdash; ` : "") + `${esc(desc)}</div>` : "") +
@@ -1547,8 +1645,10 @@ return Object.freeze({available,connected,location,restore,connect,load,save,STA
     return '<span class="strip">' + cells.join("") + "</span>";
   }
   function print_row(p, tag) {
-    const mods = p.modules || {};
-    if (!("AMP" in mods) && "Clone" in mods) mods["AMP"] = mods["Clone"];
+    const mods = { ...(p.modules || {}) };
+    // Keep map data immutable and display the live Clone/NAM, not donor AMP.
+    if (p.ampMode === "Clone" && mods.Clone) mods.AMP = mods.Clone;
+    else if (!("AMP" in mods) && "Clone" in mods) mods.AMP = mods.Clone;
     const name = p.presetName || "", slot = p.slot != null ? p.slot : "", vol = p.presetVolume != null ? p.presetVolume : "";
     const amp = mods.AMP || {}, drv = mods.DRV || {}, fx1 = mods.FX1 || {}, fx2 = mods.FX2 || {}, dly = mods.DLY || {}, rvb = mods.RVB || {};
     const fx = [];
@@ -1731,6 +1831,25 @@ footer{color:var(--mut);font-size:11px;text-align:center;padding:16px}
  .controls{margin-top:6px}
  .legend{display:none}
 }
+/* Dense readable Table. Expand any preset for all parameters. */
+header{padding:7px 11px 6px}
+header h1{font-size:15px}.sub{font-size:11px;margin:2px 0 4px}
+#q{padding:7px 10px;font-size:13px;min-height:34px}
+.controls{margin-top:5px;gap:5px}
+.filters .ck{padding:4px 7px;font-size:11.5px}
+.wrap{max-width:1220px;padding:7px 10px 38px}
+.legend{padding:7px;margin:6px 0}.legend h3{margin-bottom:3px}
+details.art{margin:5px 0;border-radius:8px}
+details.art>summary{padding:7px 9px;gap:6px}
+.anum{min-width:23px;height:23px;font-size:10px;border-radius:5px}
+.aname{font-size:13.5px}.meta{font-size:11px}
+.cards{padding:0 8px 7px}.card{padding:6px 3px}
+.pname{font-size:12.5px}.pdesc{font-size:11.5px;margin:3px 2px 1px}
+.chain{margin:5px 0 0}
+.mod{padding:4px 6px;min-width:56px;gap:0;border-radius:6px}
+.mod .mc{font-size:9px}.mod .me{font-size:10px}
+.mode-flag{font-size:10px;font-weight:700;padding:2px 5px;color:var(--r);border:1px solid var(--r);border-radius:5px}
+details.more{margin-top:3px}
 </style></head><body>
 <header>
  <h1>PocketMaster Presets <span class="badge">__NPRE__</span></h1>
@@ -2222,13 +2341,13 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     const info = {};
     for (const p of d.presets) {
       const m = p.modules;
-      const a = ((m.AMP || m.Clone || {}).effect) || "";
+      const a = (((p.ampMode === "Clone" && m.Clone) || m.AMP || m.Clone || {}).effect) || "";
       const drv = m.DRV.enabled ? m.DRV.effect
         : (m.FX1.enabled && m.FX1.effect === "Boost" ? "booster" : "-");
       const k = p.kind || "";
       const role = { C: "clean", R: "rhythm", H: "heavy" }[k] || "solo";
       info[p.slot] = { name: p.presetName, artist: p.artist || "",
-        song: p.description.split(":")[0], amp: a, drv, role };
+        song: p.description.split(":")[0], amp: a, drv, role, mode: p.ampMode === "Clone" ? "NAM" : "Modeled" };
     }
     return info;
   }
@@ -2278,12 +2397,12 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
         `<span class="t">${esc(r.song)}</span>` +
         `<span class="w">${esc(r.reason)}</span></div>`).join("");
       cards.push(
-        `<details class="slot" open data-f="${esc((i.artist + " " + i.song + " " + i.amp).toLowerCase())}">` +
+        `<details class="slot" data-f="${esc((i.artist + " " + i.song + " " + i.amp).toLowerCase())}">` +
         `<summary><span class="sl">p${slot}</span>` +
         `<span class="pn">${esc(i.name)}</span>` +
         `<span class="pref">${esc(i.artist)} &middot; ${esc(i.song)}</span>` +
         `<span class="amp">${esc(i.amp)}${(i.drv !== "-" && i.drv !== "") ? " + " + esc(i.drv) : ""}` +
-        ` &middot; ${esc(i.role)}</span>` +
+        ` &middot; ${esc(i.role)} &middot; ${esc(i.mode)}</span>` +
         `<span class="cnt">${songs.length}</span></summary>` +
         `<div class="songs">${rowshtml || "<i>(no matches)</i>"}</div></details>`);
     }
@@ -2357,6 +2476,17 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     .s:last-child{border-bottom:none}.s .a{width:32%;color:var(--fg)}
     .s .t{width:36%;color:var(--mut)}.s .w{flex:1;color:#6f7788;font-size:12px;font-style:italic}
     .hide{display:none}
+    /* Scan all slots at a glance; expand individual matches for song details. */
+    header{padding:7px 10px 6px}
+    h1{font-size:15px;margin:0 0 3px}.sub{font-size:11px;margin-bottom:5px}
+    #q{padding:7px 9px;font-size:13px;min-height:34px}
+    .wrap{max-width:1150px;padding:7px 10px}
+    .slot{margin:4px 0;border-radius:7px}
+    summary{padding:6px 9px;gap:5px 8px}
+    .sl{font-size:11px;padding:1px 5px}.pn{font-size:12.5px}
+    .pref,.amp,.cnt{font-size:11px}
+    .cnt{padding:1px 6px}
+    .s{padding:3px 10px;gap:7px;font-size:12px}
     @media(max-width:640px){.s{flex-direction:column;gap:1px}.s .a,.s .t{width:auto}.pref{display:none}}
     @media(max-height:520px){header{position:static;padding:6px 16px}h1,.sub{display:none}}
     `;
@@ -3450,8 +3580,6 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     $("#stats").innerHTML = "<b>" + b.artistCount + "</b> artists · <b>" + b.total +
       "</b> presets · <b>" + Object.keys(b.jsonMap).length + "</b> json · <b>" + Object.keys(b.namMap).length +
       "</b> NAM · <b>" + nOv + "</b> overrides · <b>" + dt + " ms</b>";
-    const idx = PMHtml.buildIndex(b.mixedMap);
-    $("#preview").srcdoc = idx["index.html"];
     renderData();
     renderCollections();
     renderNativeImports();
@@ -3601,7 +3729,7 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     markDirty(true); rebuild();
     $("#pasteBox").value = ""; $("#pasteResult").innerHTML = '<div class="ok">✓ Incorporated and regenerated. Don\'t forget to <b>Save</b>.</div>';
     $("#applyBtn").hidden = true; PENDING = null;
-    activate("library"); showLibraryTab("overview");
+    activate("studio"); showTab("manage");
   }
 
   // ---- searchable preset picker (shared) ----
@@ -3691,6 +3819,22 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
         '<div style="padding:4px 2px">' + songs + "</div></details>";
     }).join("");
     wrap.innerHTML = html;
+    filterSourceList($("#dataFilter")?.value || "");
+  }
+  // Filter rendered source rows in place: no data changes, no lost selections.
+  function filterSourceList(query) {
+    const term = String(query || "").trim().toLowerCase();
+    $$("#dataList details.art").forEach((artist) => {
+      const artistMatch = (artist.querySelector("summary")?.textContent || "").toLowerCase().includes(term);
+      let visible = 0;
+      $$(":scope > div > .song", artist).forEach((song) => {
+        const hit = !term || artistMatch || song.textContent.toLowerCase().includes(term);
+        song.hidden = !hit;
+        if (hit) visible++;
+      });
+      artist.hidden = !!term && !artistMatch && !visible;
+      if (term && !artist.hidden) artist.open = true;
+    });
   }
   function selectedDeletions() {
     return $$("#dataList input[data-del]:checked").map((c) => JSON.parse(c.getAttribute("data-del")));
@@ -4169,7 +4313,9 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     t._variant = t._variant || DEFAULT_VARIANT;
     const render = () => {
       const map = t.variants ? mapFor(t._variant) : S.built.jsonMap;
-      f.srcdoc = (f.dataset.mode === "print" && t.printGen) ? t.printGen(map) : t.gen(map);
+      const context = { variant: t._variant || "modeled" };
+      f.srcdoc = (f.dataset.mode === "print" && t.printGen)
+        ? t.printGen(map) : id === "index" ? t.gen(map, context) : t.gen(map);
     };
     t._render = render;
     // Re-render carrying over the current view (search/expanded/scroll); used on variant switch.
@@ -4189,6 +4335,19 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
           grp.appendChild(b);
         });
         bar.appendChild(grp);
+        const note = el("span", { class: "variant-hint" });
+        const updateNote = () => {
+          note.textContent = t._variant === "modeled"
+            ? "Modeled: original amplifier settings."
+            : "NAM: only configured Full Rig amps switch to Clone; the rest stay Modeled. Mixed currently matches Clone/NAM.";
+        };
+        const priorButtons = Array.from(grp.querySelectorAll("button"));
+        for (const button of priorButtons) {
+          const originalClick = button.onclick;
+          button.onclick = () => { originalClick(); updateNote(); };
+        }
+        updateNote();
+        bar.appendChild(note);
       }
       if (t.printGen) {
         const grp2 = el("div", { class: "seg segright" });
@@ -4306,6 +4465,7 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     $("#saveBtn").addEventListener("click",saveApp);
     $("#dlIndex").addEventListener("click", () => S.built && download("index.html", PMHtml.buildIndex(S.built.jsonMap)["index.html"], "text/html"));
     $("#delBtn").addEventListener("click", doDelete);
+    $("#dataFilter").addEventListener("input", (e) => filterSourceList(e.target.value));
     $("#collSel").addEventListener("change", renderCollections);
     $("#collAdd").addEventListener("click", collAdd);
     $("#collNew").addEventListener("click", collNew);
@@ -4893,7 +5053,7 @@ window.PRSTConvert=module.exports;})();</script>
 window.PMPRSTAssets = {"catalog":{"schema":"prst-lab-catalog-0.5","notes":"Model names, module membership and parameter limits extracted from the open-source PocketMasterStudio mld catalog (not an official Sonicake specification). Not all selector codes have been checked on hardware.","upstream":"https://github.com/sadurni/PocketMasterStudio/blob/main/src/assets/mld.json","modules":[{"name":"NR","id":0,"effectIds":[1]},{"name":"FX1","id":1,"effectIds":[101,102,103,104,105,106,107,108,109,110,111,112,113,114,115]},{"name":"DRV","id":2,"effectIds":[201,202,203,204,205,206,207,208]},{"name":"AMP","id":3,"effectIds":[301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322]},{"name":"IR","id":4,"effectIds":[401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420]},{"name":"EQ","id":5,"effectIds":[501,502,503]},{"name":"FX2","id":6,"effectIds":[101,102,103,104,116,117,118,105,106,107,108,109,110,111,112,113,114]},{"name":"DLY","id":7,"effectIds":[701,702,703,704,705,706,707,708,709]},{"name":"RVB","id":8,"effectIds":[801,802,803,804,805,806,807,808,809,810]},{"name":"Clone","id":9,"effectIds":[901,902,903,904,905]}],"effects":{"1":{"name":"Gate","parameters":[{"name":"THRE","algId":0,"default":50,"min":0,"max":100,"step":1}]},"101":{"name":"COMP 1","parameters":[{"name":"Sustain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"102":{"name":"COMP 2","parameters":[{"name":"Sustain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Attack","algId":1,"default":60,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Clip","algId":3,"default":10,"min":0,"max":100,"step":1}]},"103":{"name":"Touch Wah","parameters":[{"name":"Sense","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Range","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Q","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Mix","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Mode","algId":4,"default":0}]},"104":{"name":"Auto Wah","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Low","algId":3,"default":25,"min":0,"max":100,"step":1},{"name":"Q","algId":4,"default":70,"min":0,"max":100,"step":1},{"name":"High","algId":5,"default":60,"min":0,"max":100,"step":1}]},"105":{"name":"Boost","parameters":[{"name":"Gain","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"+3dB","algId":1,"default":1},{"name":"Bright","algId":2,"default":1}]},"106":{"name":"A-Chorus","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Tone","algId":2,"default":50,"min":0,"max":100,"step":1}]},"107":{"name":"B-Chorus","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"108":{"name":"Flanger","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"P.Delay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"F.Back","algId":3,"default":50,"min":0,"max":100,"step":1}]},"109":{"name":"Phaser","parameters":[{"name":"Rate","algId":0,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"110":{"name":"Vibe","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"111":{"name":"Vibrato","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"112":{"name":"Tremolo","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1}]},"113":{"name":"Sine Trem","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"114":{"name":"Bias Trem","parameters":[{"name":"Depth","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Rate","algId":1,"default":0.5,"min":0.1,"max":10,"step":0.1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bias","algId":4,"default":50,"min":0,"max":100,"step":1}]},"115":{"name":"AC G","parameters":[{"name":"Body","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Top","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Mode","algId":3,"default":2}]},"116":{"name":"Octave","parameters":[{"name":"Low","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"High","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1}]},"117":{"name":"Pitch","parameters":[{"name":"High","algId":0,"default":12,"min":0,"max":24,"step":1},{"name":"Low Pitch","algId":1,"default":-12,"min":-24,"max":0,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"H-Vol","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"L-Vol","algId":4,"default":50,"min":0,"max":100,"step":1}]},"118":{"name":"Detune","parameters":[{"name":"Detune","algId":0,"default":-25,"min":-50,"max":50,"step":1},{"name":"Wet","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Dry","algId":2,"default":50,"min":0,"max":100,"step":1}]},"201":{"name":"Scream","parameters":[{"name":"Gain","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":70,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"202":{"name":"Butter OD","parameters":[{"name":"Gain","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"203":{"name":"JP Dist","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"204":{"name":"Shark","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"205":{"name":"Dark Mouse","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Filter","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"206":{"name":"Grey Fuzz","parameters":[{"name":"Fuzz","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"207":{"name":"Red Fuzz","parameters":[{"name":"Fuzz","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1}]},"208":{"name":"Bass Drive","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Blend","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"301":{"name":"TWD Deluxe","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1}]},"302":{"name":"B-Man N","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"303":{"name":"Dark Twin","parameters":[{"name":"Gain","algId":0,"default":35,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":40,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":60,"min":0,"max":100,"step":1},{"name":"Bright","algId":5,"default":1}]},"304":{"name":"Voks 30N","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone Cut","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bright","algId":3,"default":0}]},"305":{"name":"Jazz 120","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Bright","algId":4,"default":0}]},"306":{"name":"Brit 45","parameters":[{"name":"Gain","algId":0,"default":25,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":65,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":45,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":65,"min":0,"max":100,"step":1}]},"307":{"name":"Brit 50JP","parameters":[{"name":"Gain 1","algId":0,"default":40,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1},{"name":"Gain 2","algId":6,"default":50,"min":0,"max":100,"step":1}]},"308":{"name":"Brit 800","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"309":{"name":"B-Man B","parameters":[{"name":"Gain","algId":0,"default":35,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"310":{"name":"Voks 30TB","parameters":[{"name":"Gain","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Tone Cut","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Char","algId":5,"default":0}]},"311":{"name":"Sol 100 OD","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"312":{"name":"Dizzy VH","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"313":{"name":"Eng 120","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"314":{"name":"Halen 51","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":6,"default":50,"min":0,"max":100,"step":1}]},"315":{"name":"Sol 100 LD","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"316":{"name":"Calif DualV","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"317":{"name":"Calif DualM","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"318":{"name":"Eng Power","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"319":{"name":"Flyman B1+","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"320":{"name":"Bog XT","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Pres","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":5,"default":50,"min":0,"max":100,"step":1}]},"321":{"name":"A BassVT","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"MidFreq","algId":3,"default":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"322":{"name":"Voks Bass","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":2,"default":50,"min":0,"max":100,"step":1}]},"401":{"name":"TWD 1x8","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"402":{"name":"TWD-P 1x10","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"403":{"name":"Viblux 1x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"404":{"name":"Voks 1x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"405":{"name":"TWD 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"406":{"name":"Double 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"407":{"name":"Star 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"408":{"name":"Jazz 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"409":{"name":"BritGN 2x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"410":{"name":"BritGN 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"411":{"name":"Bog 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"412":{"name":"Dizzy 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"413":{"name":"Halen 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"414":{"name":"Sol 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"415":{"name":"Dual 4x12","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"416":{"name":"User IR 1","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"417":{"name":"User IR 2","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"418":{"name":"User IR 3","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"419":{"name":"User IR 4","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"420":{"name":"User IR 5","parameters":[{"name":"Vol","algId":0,"default":50,"min":0,"max":100,"step":1}]},"501":{"name":"GT EQ 1","parameters":[{"name":"125Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"400Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"800Hz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"1.6kHz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"4kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"502":{"name":"GT EQ 2","parameters":[{"name":"100Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"500Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"1kHz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"3kHz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"6kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"503":{"name":"Bass EQ","parameters":[{"name":"50Hz","algId":0,"default":0,"min":-50,"max":50,"step":1},{"name":"120Hz","algId":1,"default":0,"min":-50,"max":50,"step":1},{"name":"400Hz","algId":2,"default":0,"min":-50,"max":50,"step":1},{"name":"800Hz","algId":3,"default":0,"min":-50,"max":50,"step":1},{"name":"4.5kHz","algId":4,"default":0,"min":-50,"max":50,"step":1},{"name":"Vol","algId":5,"default":50,"min":0,"max":100,"step":1}]},"701":{"name":"Pure","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"702":{"name":"Slap","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":150,"min":20,"max":300,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"703":{"name":"Warm","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"704":{"name":"Mag","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"705":{"name":"Tube","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"706":{"name":"Reverse","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":500,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"707":{"name":"Analog","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"708":{"name":"Sweep","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":1000,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1},{"name":"S-Depth","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"S-Rate","algId":4,"default":50,"min":0,"max":100,"step":1}]},"709":{"name":"Ping Pong","parameters":[{"name":"Mix","algId":0,"default":20,"min":0,"max":100,"step":1},{"name":"Time","algId":1,"default":500,"min":20,"max":500,"step":1},{"name":"F.Back","algId":2,"default":30,"min":0,"max":100,"step":1}]},"801":{"name":"Air","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":0,"min":0,"max":100,"step":1}]},"802":{"name":"Room","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"803":{"name":"Hall","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"804":{"name":"Church","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"805":{"name":"Plate 1","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1}]},"806":{"name":"Plate 2","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":50,"min":0,"max":100,"step":1}]},"807":{"name":"Spring","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"808":{"name":"Light","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"809":{"name":"Ocean","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":1,"default":50,"min":0,"max":100,"step":1}]},"810":{"name":"Dream","parameters":[{"name":"Mix","algId":0,"default":30,"min":0,"max":100,"step":1},{"name":"Decay","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Damp","algId":4,"default":0,"min":0,"max":100,"step":1},{"name":"Mod","algId":5,"default":50,"min":0,"max":100,"step":1}]},"901":{"name":"User Profile 1","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"902":{"name":"User Profile 2","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"903":{"name":"User Profile 3","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"904":{"name":"User Profile 4","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]},"905":{"name":"User Profile 5","parameters":[{"name":"Gain","algId":0,"default":50,"min":0,"max":100,"step":1},{"name":"Vol","algId":1,"default":50,"min":0,"max":100,"step":1},{"name":"Bass","algId":2,"default":50,"min":0,"max":100,"step":1},{"name":"Middle","algId":3,"default":50,"min":0,"max":100,"step":1},{"name":"Treble","algId":4,"default":50,"min":0,"max":100,"step":1}]}}},"fxNative":{"schema":"prst_lab_fx_native_v1","sources":{"signatures":"https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/effect_signatures.json","parameters":"https://github.com/sadurni/PocketMasterStudio/blob/main/src/assets/mld.json","selection_frames":"https://github.com/Skyggedans/SonicMaster/blob/master/app/assets/data/command_library.json"},"confidence":"FX signatures and device commands confirmed in source; compression into PRST 4-byte selectors inferred from verified legacy modules; hardware test of new FX selection pending","models":{"FX1":{"COMP 1":{"sonicmaster_signature":"0000000000000000","prst_selector":"00000000"},"COMP 2":{"sonicmaster_signature":"0001000000000000","prst_selector":"01000000"},"AC G":{"sonicmaster_signature":"0001000000000001","prst_selector":"01000001"},"Touch Wah":{"sonicmaster_signature":"000F000000000001","prst_selector":"0F000001"},"Auto Wah":{"sonicmaster_signature":"0105000000000001","prst_selector":"15000001"},"Boost":{"sonicmaster_signature":"010A000000000000","prst_selector":"1A000000"},"A-Chorus":{"sonicmaster_signature":"0000000000000004","prst_selector":"00000004"},"B-Chorus":{"sonicmaster_signature":"0008000000000004","prst_selector":"08000004"},"Flanger":{"sonicmaster_signature":"0101000000000004","prst_selector":"11000004"},"Phaser":{"sonicmaster_signature":"0109000000000004","prst_selector":"19000004"},"Vibe":{"sonicmaster_signature":"010F000000000004","prst_selector":"1F000004"},"Vibrato":{"sonicmaster_signature":"0105000000000004","prst_selector":"15000004"},"Tremolo":{"sonicmaster_signature":"0201000000000004","prst_selector":"21000004"},"Sine Trem":{"sonicmaster_signature":"0206000000000004","prst_selector":"26000004"},"Bias Trem":{"sonicmaster_signature":"0208000000000004","prst_selector":"28000004"}},"FX2":{"COMP 1":{"sonicmaster_signature":"0000000000000000","prst_selector":"00000000"},"COMP 2":{"sonicmaster_signature":"0001000000000000","prst_selector":"01000000"},"Touch Wah":{"sonicmaster_signature":"000F000000000001","prst_selector":"0F000001"},"Auto Wah":{"sonicmaster_signature":"0105000000000001","prst_selector":"15000001"},"Boost":{"sonicmaster_signature":"010A000000000000","prst_selector":"1A000000"},"Pitch":{"sonicmaster_signature":"0203000000000001","prst_selector":"23000001"},"Octave":{"sonicmaster_signature":"0201000000000001","prst_selector":"21000001"},"Detune":{"sonicmaster_signature":"0209000000000001","prst_selector":"29000001"},"A-Chorus":{"sonicmaster_signature":"0000000000000004","prst_selector":"00000004"},"B-Chorus":{"sonicmaster_signature":"0008000000000004","prst_selector":"08000004"},"Flanger":{"sonicmaster_signature":"0101000000000004","prst_selector":"11000004"},"Phaser":{"sonicmaster_signature":"0109000000000004","prst_selector":"19000004"},"Vibe":{"sonicmaster_signature":"010F000000000004","prst_selector":"1F000004"},"Vibrato":{"sonicmaster_signature":"0105000000000004","prst_selector":"15000004"},"Tremolo":{"sonicmaster_signature":"0201000000000004","prst_selector":"21000004"},"Sine Trem":{"sonicmaster_signature":"0206000000000004","prst_selector":"26000004"},"Bias Trem":{"sonicmaster_signature":"0208000000000004","prst_selector":"28000004"}}}},"templateBase64":"UG9ja2V0IE1hc3RlcgAAAAAAAgDT/////1BNX0ZMQUdTX09SREVSAAD/ABAAAQAEAAIAAAACAAQACkVNUQAAGAABEAQACgAAAAIQBAAIAAAAAxAEAAIAAAABABAAASAEAEYAAAACIAQAeAAAAAIAhgEBMAQAvAAAAAIwCgAAAQYCAwQFBwgJAzAoABsAAAAAAAAAIgAAAyoAAAcnAAAKNgAAAQAAAAAFAAALAQAADAAAAA8EMEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIBBAABIQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8EEAAHBCAABIQgAAAAAAAAAAAAAAAAAAAAAAAAAAAADIQQAAgkIAAEhCAAA0QgAASEIAAIJCAAAAAAAAAAAAAHBCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIEEAAKBBAABAQQAAoMAAAMjBAAAsQgAAAAAAAAAAAACgQQAASEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBBAAD6QwAA8EEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEAAAAAAACQQQAAAAAAAAAAAAAAAAAAAAAAAAAAAABIQgAASEIAAEhCAABIQgAASEIAAAAAAAAAAAAAAAADAAgAAAAAAAAAAAA=","cloneTemplateBase64":"UG9ja2V0IE1hc3RlcgAAAAAAAgD7/////1ZpbmRTb3JnIEwAAAAAAAD/ABAAAQAEAAIAAAACAAQACkVNUQAAGAABEAQACgAAAAIQBAAIAAAAAxAEAAIAAAABABAAASAEAGQAAAACIAQAeAAAAAIAhgEBMAQA7QMAAAIwCgAAAQIDBAUGBwgJAzAoABsAAAAaAAAAKwAAAzUAAAciAAAKNQAAARoAAAANAAALAAAADAAAAA8EMEABAACgQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBBAACAPwAAgD8AAMBAAAAAAAAAAAAAAAAAAAAAAAAAikIAADxCAACOQgAAAAAAAAAAAAAAAAAAAAAAAAAAAABIQgAASEIAAEhCAABIQgAASEIAAEhCAAAAAAAAAAAAAKpCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQMEAAEBAAAAgQQAAgEEAAEBAAADIQgAAAAAAAAAAAABQQQAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBBAACgQwAAsEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMEEAABhCAAAEQgAAAAAAAAAAAAAAAAAAAAAAAAAAAABIQgAASEIAAEhCAABIQgAASEIAAAAAAAAAAAAAAAADAAgAAAAAAAAAAAA="};
 </script>
 <script>
-window.PMVoidModReadme = "## Void's MOD — Clone/NAM Full Rig policy (authoritative)\n\n> This is a fork-specific override of the upstream README's §5 NAM/IR advice. The original README text above is preserved for attribution and historical reference, **but the earlier suggestion to enable the Pocket Master IR for DI/amp-head NAMs is incorrect for this hardware**.\n\n### What the pedal actually does\n\n- With **Clone enabled**, the pedal's onboard **IR DSP is bypassed**. Its firmware UI may show an IR model and allow ON/OFF, but toggling it has **no audible effect**. It cannot add a cab to an amp-only NAM.\n- Every **Clone NAM must contain the complete amp + speaker cabinet + microphone response (Full Rig / Amp + Cab)**. DI, Amp Head, preamp-only, and undocumented/unknown capture types are **not allowed** by Void's MOD. A named NAM slot is not proof of capture identity; verify the actual `.nam` installed on the pedal.\n- For every generated Clone JSON, **`modules.IR.enabled = false`**, irrespective of donor state or legacy source. Native `.prst` export likewise clears IR enable bit 4. User IR selectors remain available for **Normal/Modeled** presets only.\n\n### Current capture allowlist\n\n| NAM label | Status | Evidence / required capture |\n|---|---|---|\n| `AC30 May` | **Approved Full Rig** | [VOX AC30 TOP BOOST — @josevanje](https://www.tone3000.com/tones/vox-ac30-top-boost-42210), **VOX AC30 DRIVER** model (Amp + Cab). Other models within this pack are not automatically approved. |\n| `JCM800` | **Blocked — amp-head** | Upstream link [JCM800 2203 updated](https://www.tone3000.com/tones/marshall-jcm800-2203-updated-2534) is Amp Head, not a verified cab-inclusive NAM. |\n| `Plexi` | **Blocked — DI** | Upstream capture explicitly states *No cab*. |\n| `TwinCln` | **Blocked — amp-head** | Upstream Fender '65 Twin description specifies *head only*. |\n| `SoloSLO` | **Blocked — amp-head** | Upstream Soldano SLO100 listing is Amp Head. |\n\nThe allowlist is intentionally strict. It lives in `src/void_policy.js`; a new capture must be verified as **Amp + Cab** and registered there **after** installing the correct real NAM. Merely renaming an amp-head file to `AC30 May` does not make it a Full Rig.\n\n### How generation and export behave\n\n1. In **NAM-safe** and **Mixed** generation, presets whose source AMP does not map to an approved Full Rig stay **Modeled / Normal**. They are **not** forcibly converted to `AC30 May` or another incompatible full rig.\n2. Legacy NAM overrides pointing to a blocked DI/head capture are ignored and the original modeled preset is kept; valid Full Rig overrides have their IR forcibly disabled.\n3. Direct CLI/browser `.prst` export **rejects Clone** presets pointing to unapproved NAM labels (including old generated JSON). For a valid Clone, even an old JSON saying IR ON produces a native preset with IR OFF.\n4. The hardware can still display/toggle an inactive IR block in Clone mode. These programmatic constraints cannot change the firmware DSP path.\n5. **`json_nam/` and `json_mixed/` files from previous commits are legacy exports**, not authoritative after this policy change. Regenerate them before using direct JSON download/CLI workflows.\n\n### Rebuild and test in WSL\n\n```bash\nsource .venv/bin/activate\nnode --test tests/*.cjs\nnode src/build_studio.js\nnode src/export_tree.js\n```\n\nAfter rebuilding, open `PocketMasterStudio.html`. The original upstream README remains above; **Void's MOD takes precedence wherever the two disagree**.\n\n### Void's MOD v0.3.0 — persistent JSON configuration and NAM/Clone slots\n\nThe original PocketMaster Studio is labeled **v0.1 (assumed)** because the upstream repository does not specify a release version. This fork is **Void's MOD v0.3.0**. The interface shows both versions discreetly below the PocketMaster Studio title.\n\n**HTML is an application, not a save file.** Edits to presets, source artists, collections and overrides are saved to \\`config/studio_state.json\\`. The five user-installed NAM slots are saved to \\`config/nam_clone.json\\`. The entire \\`config/\\` directory is ignored by Git. Changes are automatically saved while the project folder is connected: no need to re-export, rewrite or replace \\`PocketMasterStudio.html\\`.\n\nTo start, open the standalone HTML in **Chrome or Edge** and choose **NAM/Clone → Connect project folder**. Select the directory containing \\`PocketMasterStudio.html\\`; the app creates \\`config/\\` inside it, asks for read/write access and loads any existing state. The browser may require reconnecting after restart, especially when opened with \\`file://\\`. Browser security prevents silent writes to arbitrary local files; without folder permission, use **Download JSON backup** and **Import JSON**. Don't mistake a downloaded file for an automatically saved one.\n\nThe **NAM/Clone** menu provides exactly **five physical User Profile slots**. For each slot choose one of all **22 official Pocket Master modeled AMP effects** (shown by the original real-world amplifier name plus device-internal code) and type the **exact NAM profile name installed on that slot**. You must explicitly check the **Full Rig (Amp + Cab + Mic)** confirmation. Slot indices, not names, are encoded in \\`.prst\\` files. A file does not upload or verify the actual NAM model; the confirmation means the user has checked the capture itself.\n\n**Clone preference is ON by default.** A generated preset uses Clone only if its modeled AMP matches an explicitly assigned/confirmed Full Rig slot. Every other amp falls back to Modeled; no generic amp-family inference or silent JCM800/AC30 substitution. Unassigned slots remain idle. Turn off \"Prefer configured NAM/Clone\" to force modeled generation without deleting the mapping. Clone always exports with IR **OFF**; the built-in IR DSP does not process Clone audio.\n\nThis v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. The original upstream README descriptions and the preceding Void's MOD research history remain above, but **this v0.3.0 section governs current runtime behavior**. The Full Rig attestation is user-supplied, not automatic acoustic verification.\n\nLocal export and CLI also read \\`config/nam_clone.json\\`, when present. \\`node src/export_tree.js\\` regenerates loose \\`json_nam/\\` and \\`json_mixed/\\` trees for a release (not required after each edit). \\`node --test tests/*.cjs\\` checks the policy, storage contract and bundle.\n\n### Void's MOD v0.4.0 — native PRST import into the shared library\n\n**Import .prst** is now available under **.prst Lab → Import .prst**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.\n\nImported presets appear as **PRST Imports 001**, **PRST Imports 002**, etc. inside the common Listing, Table, Editor library and Collections picker (50 presets per artist batch). The original 515-byte binary is stored byte-for-byte as Base64 inside the ignored local **config/studio_state.json**, with a stable fingerprint. Duplicate binaries are ignored. Each entry can be removed from the library or downloaded unchanged; project ZIP exports carry the imported archive.\n\nThe decoded models, modules and parameters are a **read-only view**. They are not guaranteed to represent every opaque native field, and imported presets must not be silently regenerated from that interpretation. The original binary is authoritative and is re-exported unchanged. Native Clone imports do not install NAM files: an installed NAM is resolved only when the physical slot has a confirmed Full Rig mapping. Otherwise the entry remains an unmapped archival Clone snapshot with a warning, not a newly generated Full Rig tone. New Clone generation still requires a configured Full Rig and always bypasses onboard IR.\n\nExisting Studio save behavior is unchanged: importing presets into a connected project updates the separate JSON state, not PocketMasterStudio.html. All selected files validate before any are added, avoiding partial imports. Without folder permission, export a JSON backup and connect/import it again in Chrome/Edge.\n\n### Void's MOD — one-click START.bat (local Chrome server)\n\nOn Windows, **double-click `START.bat`** in the project root. It locates Windows Python 3.9+ (`py -3` preferred, `python` fallback), runs `tools/studio_server.py` and opens **Google Chrome** at:\n\n`http://127.0.0.1:8765/PocketMasterStudio.html`\n\nKeep the terminal open while using Studio. **Ctrl+C** in that window stops the server. No internet, Node/npm or third-party Python packages are required; the server uses only the Python standard library. It binds to **127.0.0.1** (not the LAN). HTML caching is disabled, while private `config/`, `.git/` and project files are **not HTTP-accessible**.\n\n**Config remains external.** Use **NAM/Clone → Connect project folder** and select the project root to grant file-system access. Switching from `file://` to `http://127.0.0.1:8765` creates a different browser origin, so you may need to connect the folder again once. Existing `config/*.json` files remain intact. Saving still does NOT rewrite the HTML.\n\nIf Windows Python is missing, install it from [python.org](https://www.python.org/downloads/windows/). The WSL `.venv` does not automatically make `py` available to a Windows BAT. Alternatively, from WSL:\n\n```bash\npython3 tools/studio_server.py --no-browser\n```\n\nThen paste the localhost address into **Windows Chrome** (requires working WSL localhost forwarding). The server deliberately does not silently change ports: the stable origin preserves browser file-handle permissions. If port 8765 is already occupied, close the previous server; `--port 8766` is an optional manual override with a different origin.\n\n**One-time upgrade warning:** If a previous untracked `START.bat` shows as `?? START.bat` in Git, preserve it *before* `git pull`, e.g. `mv START.bat ../START.before_void_mod.bat` from WSL. The newly tracked launcher will then pull without an untracked-file conflict. Your old launcher remains backed up.\n\nRun server smoke checks via `python3 -m unittest discover -s tests -p 'test_studio_server.py' -v`. Native PRST tests remain `node --test tests/*.cjs`.\n\n### Void's MOD v0.4.1 — dedicated .prst Lab submenu\n\nAll native `.prst` interactions now live in the **`.prst Lab`** item in the main menu (desktop tabs and mobile menu). Open it and use its **Import .prst** / **Export .prst** sub-tabs:\n\n- **Import .prst:** select multiple SONICLINK files, inspect the saved read-only snapshots, download their original 515 bytes, or remove them from the shared library. Imported presets automatically appear in the **Imported** collection, and remain available in Listing, Table and Editor. Earlier imported records are added to this collection when existing project state is loaded; existing collections are preserved. The backing PRST Imports 001/002 artist batches remain internal library sources, not inferred artist attributions.\n- **Export .prst:** choose Modeled, Clone/NAM or Mixed; select artist and preset (or the whole pack as ZIP), optionally provide a genuine donor, and export native binaries with the existing validation and Full Rig safeguards.\n\nNeither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`; the app adds missing Imported collection references without changing native records or the save format. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.\n\nOlder v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.\n\n### Library navigation (Void's MOD v0.4.1 follow-up)\n\nThe main navigation is now **Studio → Editor → Library → NAM/Clone → .prst Lab → Docs**. **Library** groups the existing **Overview**, **Listing**, **Table** and **Map** views under one menu. Their generators, Modeled/Clone/Mixed selectors and print modes remain unchanged. Project ZIP import/export, statistics and the Listing preview now reside under **Library → Overview**, without duplicating state.\n\n**Studio** retains AI Prompt, Paste JSON, Data and Collections. **Data** manages artists, songs and preset variants in the editable source; **Collections** manages ordered references to existing presets. Removing a collection entry is different from deleting a source preset, so these tools remain separate. This is a navigation-only change: no migration of `config/`, no rewriting of native `.prst` data.\n";
+window.PMVoidModReadme = "## Void's MOD — Clone/NAM Full Rig policy (authoritative)\n\n> This is a fork-specific override of the upstream README's §5 NAM/IR advice. The original README text above is preserved for attribution and historical reference, **but the earlier suggestion to enable the Pocket Master IR for DI/amp-head NAMs is incorrect for this hardware**.\n\n### What the pedal actually does\n\n- With **Clone enabled**, the pedal's onboard **IR DSP is bypassed**. Its firmware UI may show an IR model and allow ON/OFF, but toggling it has **no audible effect**. It cannot add a cab to an amp-only NAM.\n- Every **Clone NAM must contain the complete amp + speaker cabinet + microphone response (Full Rig / Amp + Cab)**. DI, Amp Head, preamp-only, and undocumented/unknown capture types are **not allowed** by Void's MOD. A named NAM slot is not proof of capture identity; verify the actual `.nam` installed on the pedal.\n- For every generated Clone JSON, **`modules.IR.enabled = false`**, irrespective of donor state or legacy source. Native `.prst` export likewise clears IR enable bit 4. User IR selectors remain available for **Normal/Modeled** presets only.\n\n### Current capture allowlist\n\n| NAM label | Status | Evidence / required capture |\n|---|---|---|\n| `AC30 May` | **Approved Full Rig** | [VOX AC30 TOP BOOST — @josevanje](https://www.tone3000.com/tones/vox-ac30-top-boost-42210), **VOX AC30 DRIVER** model (Amp + Cab). Other models within this pack are not automatically approved. |\n| `JCM800` | **Blocked — amp-head** | Upstream link [JCM800 2203 updated](https://www.tone3000.com/tones/marshall-jcm800-2203-updated-2534) is Amp Head, not a verified cab-inclusive NAM. |\n| `Plexi` | **Blocked — DI** | Upstream capture explicitly states *No cab*. |\n| `TwinCln` | **Blocked — amp-head** | Upstream Fender '65 Twin description specifies *head only*. |\n| `SoloSLO` | **Blocked — amp-head** | Upstream Soldano SLO100 listing is Amp Head. |\n\nThe allowlist is intentionally strict. It lives in `src/void_policy.js`; a new capture must be verified as **Amp + Cab** and registered there **after** installing the correct real NAM. Merely renaming an amp-head file to `AC30 May` does not make it a Full Rig.\n\n### How generation and export behave\n\n1. In **NAM-safe** and **Mixed** generation, presets whose source AMP does not map to an approved Full Rig stay **Modeled / Normal**. They are **not** forcibly converted to `AC30 May` or another incompatible full rig.\n2. Legacy NAM overrides pointing to a blocked DI/head capture are ignored and the original modeled preset is kept; valid Full Rig overrides have their IR forcibly disabled.\n3. Direct CLI/browser `.prst` export **rejects Clone** presets pointing to unapproved NAM labels (including old generated JSON). For a valid Clone, even an old JSON saying IR ON produces a native preset with IR OFF.\n4. The hardware can still display/toggle an inactive IR block in Clone mode. These programmatic constraints cannot change the firmware DSP path.\n5. **`json_nam/` and `json_mixed/` files from previous commits are legacy exports**, not authoritative after this policy change. Regenerate them before using direct JSON download/CLI workflows.\n\n### Rebuild and test in WSL\n\n```bash\nsource .venv/bin/activate\nnode --test tests/*.cjs\nnode src/build_studio.js\nnode src/export_tree.js\n```\n\nAfter rebuilding, open `PocketMasterStudio.html`. The original upstream README remains above; **Void's MOD takes precedence wherever the two disagree**.\n\n### Void's MOD v0.3.0 — persistent JSON configuration and NAM/Clone slots\n\nThe original PocketMaster Studio is labeled **v0.1 (assumed)** because the upstream repository does not specify a release version. This fork is **Void's MOD v0.3.0**. The interface shows both versions discreetly below the PocketMaster Studio title.\n\n**HTML is an application, not a save file.** Edits to presets, source artists, collections and overrides are saved to \\`config/studio_state.json\\`. The five user-installed NAM slots are saved to \\`config/nam_clone.json\\`. The entire \\`config/\\` directory is ignored by Git. Changes are automatically saved while the project folder is connected: no need to re-export, rewrite or replace \\`PocketMasterStudio.html\\`.\n\nTo start, open the standalone HTML in **Chrome or Edge** and choose **NAM/Clone → Connect project folder**. Select the directory containing \\`PocketMasterStudio.html\\`; the app creates \\`config/\\` inside it, asks for read/write access and loads any existing state. The browser may require reconnecting after restart, especially when opened with \\`file://\\`. Browser security prevents silent writes to arbitrary local files; without folder permission, use **Download JSON backup** and **Import JSON**. Don't mistake a downloaded file for an automatically saved one.\n\nThe **NAM/Clone** menu provides exactly **five physical User Profile slots**. For each slot choose one of all **22 official Pocket Master modeled AMP effects** (shown by the original real-world amplifier name plus device-internal code) and type the **exact NAM profile name installed on that slot**. You must explicitly check the **Full Rig (Amp + Cab + Mic)** confirmation. Slot indices, not names, are encoded in \\`.prst\\` files. A file does not upload or verify the actual NAM model; the confirmation means the user has checked the capture itself.\n\n**Clone preference is ON by default.** A generated preset uses Clone only if its modeled AMP matches an explicitly assigned/confirmed Full Rig slot. Every other amp falls back to Modeled; no generic amp-family inference or silent JCM800/AC30 substitution. Unassigned slots remain idle. Turn off \"Prefer configured NAM/Clone\" to force modeled generation without deleting the mapping. Clone always exports with IR **OFF**; the built-in IR DSP does not process Clone audio.\n\nThis v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. The original upstream README descriptions and the preceding Void's MOD research history remain above, but **this v0.3.0 section governs current runtime behavior**. The Full Rig attestation is user-supplied, not automatic acoustic verification.\n\nLocal export and CLI also read \\`config/nam_clone.json\\`, when present. \\`node src/export_tree.js\\` regenerates loose \\`json_nam/\\` and \\`json_mixed/\\` trees for a release (not required after each edit). \\`node --test tests/*.cjs\\` checks the policy, storage contract and bundle.\n\n### Void's MOD v0.4.0 — native PRST import into the shared library\n\n**Import .prst** is now available under **.prst Lab → Import .prst**. Select one or multiple native SONICLINK files. The importer validates the known 515-byte format, CRC-8/SMBUS, effect sections, signal chain and active effect selectors. An unknown ACTIVE effect selector is retained with an explicit Unknown native model label and a decoding warning; the original file stays byte-exact and read-only instead of guessing its sound.\n\nImported presets appear as **PRST Imports 001**, **PRST Imports 002**, etc. inside the common Listing, Table, Editor library and Collections picker (50 presets per artist batch). The original 515-byte binary is stored byte-for-byte as Base64 inside the ignored local **config/studio_state.json**, with a stable fingerprint. Duplicate binaries are ignored. Each entry can be removed from the library or downloaded unchanged; project ZIP exports carry the imported archive.\n\nThe decoded models, modules and parameters are a **read-only view**. They are not guaranteed to represent every opaque native field, and imported presets must not be silently regenerated from that interpretation. The original binary is authoritative and is re-exported unchanged. Native Clone imports do not install NAM files: an installed NAM is resolved only when the physical slot has a confirmed Full Rig mapping. Otherwise the entry remains an unmapped archival Clone snapshot with a warning, not a newly generated Full Rig tone. New Clone generation still requires a configured Full Rig and always bypasses onboard IR.\n\nExisting Studio save behavior is unchanged: importing presets into a connected project updates the separate JSON state, not PocketMasterStudio.html. All selected files validate before any are added, avoiding partial imports. Without folder permission, export a JSON backup and connect/import it again in Chrome/Edge.\n\n### Void's MOD — one-click START.bat (local Chrome server)\n\nOn Windows, **double-click `START.bat`** in the project root. It locates Windows Python 3.9+ (`py -3` preferred, `python` fallback), runs `tools/studio_server.py` and opens **Google Chrome** at:\n\n`http://127.0.0.1:8765/PocketMasterStudio.html`\n\nKeep the terminal open while using Studio. **Ctrl+C** in that window stops the server. No internet, Node/npm or third-party Python packages are required; the server uses only the Python standard library. It binds to **127.0.0.1** (not the LAN). HTML caching is disabled, while private `config/`, `.git/` and project files are **not HTTP-accessible**.\n\n**Config remains external.** Use **NAM/Clone → Connect project folder** and select the project root to grant file-system access. Switching from `file://` to `http://127.0.0.1:8765` creates a different browser origin, so you may need to connect the folder again once. Existing `config/*.json` files remain intact. Saving still does NOT rewrite the HTML.\n\nIf Windows Python is missing, install it from [python.org](https://www.python.org/downloads/windows/). The WSL `.venv` does not automatically make `py` available to a Windows BAT. Alternatively, from WSL:\n\n```bash\npython3 tools/studio_server.py --no-browser\n```\n\nThen paste the localhost address into **Windows Chrome** (requires working WSL localhost forwarding). The server deliberately does not silently change ports: the stable origin preserves browser file-handle permissions. If port 8765 is already occupied, close the previous server; `--port 8766` is an optional manual override with a different origin.\n\n**One-time upgrade warning:** If a previous untracked `START.bat` shows as `?? START.bat` in Git, preserve it *before* `git pull`, e.g. `mv START.bat ../START.before_void_mod.bat` from WSL. The newly tracked launcher will then pull without an untracked-file conflict. Your old launcher remains backed up.\n\nRun server smoke checks via `python3 -m unittest discover -s tests -p 'test_studio_server.py' -v`. Native PRST tests remain `node --test tests/*.cjs`.\n\n### Void's MOD v0.4.1 — dedicated .prst Lab submenu\n\nAll native `.prst` interactions now live in the **`.prst Lab`** item in the main menu (desktop tabs and mobile menu). Open it and use its **Import .prst** / **Export .prst** sub-tabs:\n\n- **Import .prst:** select multiple SONICLINK files, inspect the saved read-only snapshots, download their original 515 bytes, or remove them from the shared library. Imported presets automatically appear in the **Imported** collection, and remain available in Listing, Table and Editor. Earlier imported records are added to this collection when existing project state is loaded; existing collections are preserved. The backing PRST Imports 001/002 artist batches remain internal library sources, not inferred artist attributions.\n- **Export .prst:** choose Modeled, Clone/NAM or Mixed; select artist and preset (or the whole pack as ZIP), optionally provide a genuine donor, and export native binaries with the existing validation and Full Rig safeguards.\n\nNeither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`; the app adds missing Imported collection references without changing native records or the save format. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.\n\nOlder v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.\n\n### Library navigation (Void's MOD v0.4.1 follow-up)\n\nThe main navigation is now **Studio → Editor → Library → NAM/Clone → .prst Lab → Docs**. **Library** groups the existing **Overview**, **Listing**, **Table** and **Map** views under one menu. Their generators, Modeled/Clone/Mixed selectors and print modes remain unchanged. Project ZIP import/export, statistics and the Listing preview now reside under **Library → Overview**, without duplicating state.\n\n**Studio** retains AI Prompt, Paste JSON, Data and Collections. **Data** manages artists, songs and preset variants in the editable source; **Collections** manages ordered references to existing presets. Removing a collection entry is different from deleting a source preset, so these tools remain separate. This is a navigation-only change: no migration of `config/`, no rewriting of native `.prst` data.\n\n### Compact library and unified management (Void's MOD v0.4.1 follow-up)\n\n- **Library → Overview** is now a compact project dashboard (statistics, project ZIP import/export, standalone listing HTML download). The redundant embedded Listing iframe was removed; **Library → Listing** is the sole interactive index.\n- **Studio → Manage** combines the former Data and Collections views into one responsive workspace. On larger screens, source artists/songs/takes and collection references are visible side by side; narrow screens stack the panes. Filtering only hides rendered source rows and never deletes source data or changes collection membership.\n- A source deletion is different from removing or reordering a collection reference. All existing edit operations, collection slot mappings, Imported archive records and persistence rules are unchanged.\n- **Library → Listing** now labels each preset **Modeled**, **NAM**, or **Modeled fallback**, and displays the active NAM capture name for Clone presets. Only configured and confirmed Full Rig mappings enable Clone; no NAM is guessed. **Clone/NAM and Mixed are currently identical automatic conversion modes** by policy, so the interface explicitly says when they produce the same data. Existing variant controls are retained.\n- Source/collection lists, preset picker and imported archive rows use denser readable styling. Listing, Table, and Map are compact; Table still offers all parameters, while Map entries now start collapsed (search reveals matching details). These are presentation changes and do not update the user's `config/` files.\n";
 </script>
 <script>// Native PRST export widget for the dedicated .prst Lab submenu (PRST Lab codec).
 // Deliberately uses the built-in JSON presets; never modifies or uploads to the pedal.

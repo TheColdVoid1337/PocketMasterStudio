@@ -346,13 +346,13 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     const info = {};
     for (const p of d.presets) {
       const m = p.modules;
-      const a = ((m.AMP || m.Clone || {}).effect) || "";
+      const a = (((p.ampMode === "Clone" && m.Clone) || m.AMP || m.Clone || {}).effect) || "";
       const drv = m.DRV.enabled ? m.DRV.effect
         : (m.FX1.enabled && m.FX1.effect === "Boost" ? "booster" : "-");
       const k = p.kind || "";
       const role = { C: "clean", R: "rhythm", H: "heavy" }[k] || "solo";
       info[p.slot] = { name: p.presetName, artist: p.artist || "",
-        song: p.description.split(":")[0], amp: a, drv, role };
+        song: p.description.split(":")[0], amp: a, drv, role, mode: p.ampMode === "Clone" ? "NAM" : "Modeled" };
     }
     return info;
   }
@@ -402,12 +402,12 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
         `<span class="t">${esc(r.song)}</span>` +
         `<span class="w">${esc(r.reason)}</span></div>`).join("");
       cards.push(
-        `<details class="slot" open data-f="${esc((i.artist + " " + i.song + " " + i.amp).toLowerCase())}">` +
+        `<details class="slot" data-f="${esc((i.artist + " " + i.song + " " + i.amp).toLowerCase())}">` +
         `<summary><span class="sl">p${slot}</span>` +
         `<span class="pn">${esc(i.name)}</span>` +
         `<span class="pref">${esc(i.artist)} &middot; ${esc(i.song)}</span>` +
         `<span class="amp">${esc(i.amp)}${(i.drv !== "-" && i.drv !== "") ? " + " + esc(i.drv) : ""}` +
-        ` &middot; ${esc(i.role)}</span>` +
+        ` &middot; ${esc(i.role)} &middot; ${esc(i.mode)}</span>` +
         `<span class="cnt">${songs.length}</span></summary>` +
         `<div class="songs">${rowshtml || "<i>(no matches)</i>"}</div></details>`);
     }
@@ -481,6 +481,17 @@ Michael Jackson|Beat It|38|EVH Plexi tapping solo
     .s:last-child{border-bottom:none}.s .a{width:32%;color:var(--fg)}
     .s .t{width:36%;color:var(--mut)}.s .w{flex:1;color:#6f7788;font-size:12px;font-style:italic}
     .hide{display:none}
+    /* Scan all slots at a glance; expand individual matches for song details. */
+    header{padding:7px 10px 6px}
+    h1{font-size:15px;margin:0 0 3px}.sub{font-size:11px;margin-bottom:5px}
+    #q{padding:7px 9px;font-size:13px;min-height:34px}
+    .wrap{max-width:1150px;padding:7px 10px}
+    .slot{margin:4px 0;border-radius:7px}
+    summary{padding:6px 9px;gap:5px 8px}
+    .sl{font-size:11px;padding:1px 5px}.pn{font-size:12.5px}
+    .pref,.amp,.cnt{font-size:11px}
+    .cnt{padding:1px 6px}
+    .s{padding:3px 10px;gap:7px;font-size:12px}
     @media(max-width:640px){.s{flex-direction:column;gap:1px}.s .a,.s .t{width:auto}.pref{display:none}}
     @media(max-height:520px){header{position:static;padding:6px 16px}h1,.sub{display:none}}
     `;

@@ -170,8 +170,10 @@
     Ld: ["tg-l", "SOL dt"], Lh: ["tg-l", "SOL ch"],
   };
   function preset_card(p, group_tag) {
-    const mods = p.modules || {};
-    if (!("AMP" in mods) && "Clone" in mods) mods["AMP"] = mods["Clone"];
+    const mods = { ...(p.modules || {}) };
+    // Keep map data immutable and display the live Clone/NAM, not donor AMP.
+    if (p.ampMode === "Clone" && mods.Clone) mods.AMP = mods.Clone;
+    else if (!("AMP" in mods) && "Clone" in mods) mods.AMP = mods.Clone;
     const name = p.presetName || "";
     const slot = p.slot != null ? p.slot : "";
     const vol = p.presetVolume != null ? p.presetVolume : "";
@@ -197,7 +199,9 @@
     return `<div class="card" data-f="${esc(fstr)}">` +
       `<div class="chead">` +
       `<span class="slot">p${esc(slot)}</span>` +
-      `<span class="pname">${esc(name)}</span>${dtag_amp(amp)}${dtag}` +
+      `<span class="pname">${esc(name)}</span>` +
+      (p.ampMode === "Clone" ? '<span class="mode-flag">NAM</span>' : "") +
+      `${dtag_amp(amp)}${dtag}` +
       `<span class="vol" title="Preset volume">vol ${esc(vol)}</span>` +
       `</div>` +
       ((desc || art) ? `<div class="pdesc">` + (art ? `<b>${esc(art)}</b> &mdash; ` : "") + `${esc(desc)}</div>` : "") +
@@ -229,8 +233,10 @@
     return '<span class="strip">' + cells.join("") + "</span>";
   }
   function print_row(p, tag) {
-    const mods = p.modules || {};
-    if (!("AMP" in mods) && "Clone" in mods) mods["AMP"] = mods["Clone"];
+    const mods = { ...(p.modules || {}) };
+    // Keep map data immutable and display the live Clone/NAM, not donor AMP.
+    if (p.ampMode === "Clone" && mods.Clone) mods.AMP = mods.Clone;
+    else if (!("AMP" in mods) && "Clone" in mods) mods.AMP = mods.Clone;
     const name = p.presetName || "", slot = p.slot != null ? p.slot : "", vol = p.presetVolume != null ? p.presetVolume : "";
     const amp = mods.AMP || {}, drv = mods.DRV || {}, fx1 = mods.FX1 || {}, fx2 = mods.FX2 || {}, dly = mods.DLY || {}, rvb = mods.RVB || {};
     const fx = [];
@@ -413,6 +419,25 @@ footer{color:var(--mut);font-size:11px;text-align:center;padding:16px}
  .controls{margin-top:6px}
  .legend{display:none}
 }
+/* Dense readable Table. Expand any preset for all parameters. */
+header{padding:7px 11px 6px}
+header h1{font-size:15px}.sub{font-size:11px;margin:2px 0 4px}
+#q{padding:7px 10px;font-size:13px;min-height:34px}
+.controls{margin-top:5px;gap:5px}
+.filters .ck{padding:4px 7px;font-size:11.5px}
+.wrap{max-width:1220px;padding:7px 10px 38px}
+.legend{padding:7px;margin:6px 0}.legend h3{margin-bottom:3px}
+details.art{margin:5px 0;border-radius:8px}
+details.art>summary{padding:7px 9px;gap:6px}
+.anum{min-width:23px;height:23px;font-size:10px;border-radius:5px}
+.aname{font-size:13.5px}.meta{font-size:11px}
+.cards{padding:0 8px 7px}.card{padding:6px 3px}
+.pname{font-size:12.5px}.pdesc{font-size:11.5px;margin:3px 2px 1px}
+.chain{margin:5px 0 0}
+.mod{padding:4px 6px;min-width:56px;gap:0;border-radius:6px}
+.mod .mc{font-size:9px}.mod .me{font-size:10px}
+.mode-flag{font-size:10px;font-weight:700;padding:2px 5px;color:var(--r);border:1px solid var(--r);border-radius:5px}
+details.more{margin-top:3px}
 </style></head><body>
 <header>
  <h1>PocketMaster Presets <span class="badge">__NPRE__</span></h1>

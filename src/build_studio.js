@@ -228,6 +228,47 @@ const CSS = String.raw`
  .prst-pane .ovbox{padding:17px;border-radius:12px}
  .prst-pane #native-prst-export{border:1px solid var(--line);border-radius:12px;background:var(--card2);padding:18px}
  .prst-pane #nativePrstList{margin-top:14px}
+ /* Dense readable list workspace */
+ #view-studio>.wrap{max-width:1400px}
+ @media(max-width:600px){
+  .manage-part .slotrow{flex-wrap:wrap}
+  .manage-part .slotrow .lbl{flex-basis:calc(100% - 34px)}
+ }
+ .manage-intro{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;margin:4px 0 12px}
+ .manage-intro h2{margin:0;font-size:17px}.manage-intro .mut{margin:0}
+ #panel-manage{max-width:1360px;margin:auto}
+ .manage-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+ .manage-part{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+ .manage-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px}
+ .manage-head h3{font-size:14px;margin:0}.manage-head .mut{font-size:11px}
+ .manage-part .field-label{margin:1px 0 3px}
+ .manage-part select,.manage-part input[type=search]{padding:7px 9px;min-height:36px}
+ .manage-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:7px 0 8px}
+ .manage-toolbar button{min-height:31px;padding:5px 9px;font-size:12px;line-height:1.2}
+ .manage-list{max-height:calc(100vh - 280px);min-height:240px;overflow:auto;scrollbar-gutter:stable}
+ #dataList details.art{margin:0 0 4px;padding:0 7px;border-radius:7px}
+ #dataList details.art summary{padding:4px 0}
+ #dataList details.art .song{padding:2px 0}
+ #dataList .songhead{gap:3px}
+ #dataList .chk{padding:2px 0;font-size:12px;line-height:1.3}
+ #dataList .chk.sub{padding-left:19px;font-size:11.5px}
+ #dataList .chk input{width:15px;height:15px}
+ .manage-part .slotrow{padding:4px 0;gap:4px;flex-wrap:nowrap}
+ .manage-part .slotrow .lbl{min-width:0;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+ .manage-part .slotrow .sl{min-width:24px;font-size:11px}
+ .manage-part .slotrow button.mini{padding:4px 6px;min-height:28px;flex-shrink:0}
+ .manage-part .slotrow .mut{font-size:11px}
+ .manage-part details.art[hidden],.manage-part .song[hidden]{display:none!important}
+ .variant-hint{font-size:11px;line-height:1.3;color:var(--mut);flex:1 1 230px}
+ .pick{padding:6px 9px;margin-bottom:3px;border-radius:7px;line-height:1.3}
+ .pick .mut{display:inline;margin-left:5px;font-size:11px}
+ .slotrow{padding:4px 2px;gap:5px}
+ .prst-pane .slotrow .lbl{font-size:12px}
+ @media(max-width:860px){
+  .manage-layout{grid-template-columns:minmax(0,1fr)}
+  .manage-list{max-height:55vh;min-height:0}
+  .manage-part{padding:9px}
+ }
  .library-pane[hidden]{display:none!important}
  .view{display:none} .view.active{display:block}
  .view .tabs{position:static}
@@ -281,8 +322,7 @@ const BODY = String.raw`
  <div class="tabs">
  <button class="tab on" data-tab="prompt" aria-selected="true">AI Prompt</button>
  <button class="tab" data-tab="paste">Paste JSON</button>
- <button class="tab" data-tab="data">Data</button>
- <button class="tab" data-tab="collections">Collections</button>
+ <button class="tab" data-tab="manage">Manage</button>
 </div>
 <div class="wrap">
  <section class="panel" id="panel-prompt">
@@ -313,17 +353,29 @@ const BODY = String.raw`
   <div id="pasteResult"></div>
  </section>
 
- <section class="panel" id="panel-data" hidden>
-  <p class="mut">Embedded source (build order). Tick songs or presets and delete them; if any is used in a collection, you'll be asked what to replace it with.</p>
-  <div class="row"><button id="delBtn" class="attn">🗑️ Delete selected</button></div>
-  <div id="dataList"></div>
- </section>
-
- <section class="panel" id="panel-collections" hidden>
-  <p class="mut">Manage collections: reorder slots (↑/↓), replace or remove them, or add a preset (searchable). If a collection is full, you choose which slot to replace. You can also create new collections or delete one.</p>
-  <label>Collection</label><select id="collSel"></select>
-  <div class="row"><button id="collAdd" class="primary">➕ Add preset (search)</button><button id="collNew">🆕 New collection</button><button id="collDelete" class="attn">🗑️ Delete collection</button></div>
-  <div id="collBody"></div>
+ <section class="panel" id="panel-manage" hidden>
+  <div class="manage-intro">
+   <h2>Manage library</h2>
+   <p class="mut">Source data and collections share one workspace. Deleting a source preset removes it from the project; removing a collection slot only removes its reference.</p>
+  </div>
+  <div class="manage-layout">
+   <section class="manage-part manage-source" aria-labelledby="manageSourceTitle">
+    <div class="manage-head"><h3 id="manageSourceTitle">Source data</h3><span class="mut">Artists · songs · takes</span></div>
+    <input id="dataFilter" type="search" placeholder="Filter artists, songs or takes…" aria-label="Filter source data" autocomplete="off">
+    <div class="manage-toolbar"><button id="delBtn" class="mini attn">Delete selected from source</button></div>
+    <div id="dataList" class="manage-list"></div>
+   </section>
+   <section class="manage-part manage-collections" aria-labelledby="manageCollectionTitle">
+    <div class="manage-head"><h3 id="manageCollectionTitle">Collections</h3><span class="mut">Ordered preset references</span></div>
+    <label class="field-label" for="collSel">Collection</label><select id="collSel"></select>
+    <div class="manage-toolbar">
+     <button id="collAdd" class="mini primary">+ Add preset</button>
+     <button id="collNew" class="mini">New</button>
+     <button id="collDelete" class="mini attn">Delete collection</button>
+    </div>
+    <div id="collBody" class="manage-list"></div>
+   </section>
+  </div>
  </section>
  </div>
 </section>
@@ -345,8 +397,6 @@ const BODY = String.raw`
    <input id="importFile" type="file" accept=".zip,.json" hidden>
   </div>
   <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
-  <div class="sub">Preview of the generated listing:</div>
-  <iframe id="preview" title="preview"></iframe>
  </section>
 
   </div>

@@ -19,13 +19,18 @@ test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Docs',()=
     ['overview','index','full','map']);
   const studio=html.match(/id="view-studio"([\s\S]*?)id="view-library"/)?.[1];
   assert.ok(studio);
-  for(const id of ['panel-prompt','panel-paste','panel-data','panel-collections'])
+  for(const id of ['panel-prompt','panel-paste','panel-manage'])
     assert.match(studio,new RegExp('id="'+id+'"'));
   assert.doesNotMatch(studio,/id="panel-overview"/);
+  assert.doesNotMatch(studio,/data-tab="data"|data-tab="collections"/);
+  for(const id of ['dataFilter','dataList','collSel','collBody','delBtn','collAdd']){
+    assert.match(studio,new RegExp('id="'+id+'"'));
+  }
+  assert.doesNotMatch(html,/id="preview"/);
   assert.doesNotMatch(html,/data-tab="overview"/);
   const overview=html.match(/id="library-pane-overview"([\s\S]*?)id="library-pane-index"/)?.[1];
   assert.ok(overview,'Overview not hosted under Library');
-  for(const id of ['stats','preview','exportZip','importBtn','dlIndex'])
+  for(const id of ['stats','exportZip','importBtn','dlIndex'])
     assert.match(overview,new RegExp('id="'+id+'"'));
   for(const [id,label] of [['overview','Overview'],['index','Listing'],['full','Table'],['map','Map']]){
     assert.match(html,new RegExp('data-library-pane="'+id+'"[^>]*>'+label+'</button>'));

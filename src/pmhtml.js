@@ -24,7 +24,16 @@
   };
   const LEAD_KINDS = new Set(["L", "L2", "L3", "La", "Lb", "Lc", "Ld", "Lh"]);
 
-  const amp = (p) => { const mm = p.modules; const m = mm.AMP || mm.Clone; return m && m.enabled ? m.effect : "-"; };
+  // Prioritize the live NAM over an inactive native donor AMP.
+  const amp = (p) => {
+    const mm = p.modules || {};
+    const m = p.ampMode === "Clone" ? (mm.Clone || mm.AMP) : (mm.AMP || mm.Clone);
+    return m && m.enabled ? m.effect : "-";
+  };
+  const modeLabel = (p, variant) => p.ampMode === "Clone" ? "NAM" :
+    variant !== "modeled" ? "Modeled fallback" : "Modeled";
+  const modeClass = (p, variant) => p.ampMode === "Clone" ? "nam" :
+    variant !== "modeled" ? "fallback" : "modeled";
   const drive = (p) => {
     const m = p.modules;
     if (m.DRV.enabled) return DRVMAP[m.DRV.effect] || m.DRV.effect;
@@ -68,7 +77,8 @@
     return { artistNames, data, colls };
   }
 
-  function buildIndex(folderMap) {
+  function buildIndex(folderMap, options) {
+    const variant = options?.variant || "modeled";
     const { artistNames: ORDER, data, colls } = classify(folderMap);
     const songs = {};
     for (const n of ORDER) songs[n] = songs_of(data[n]);
@@ -129,14 +139,15 @@
       songs[n].forEach((g, si0) => {
         const [, ps] = g;
         const title = song_title(ps[0]);
-        const f = (title + " " + ps.map((p) => amp(p) + " " + drive(p)).join(" ")).toLowerCase();
+        const f = (title + " " + ps.map((p) => amp(p) + " " + drive(p) + " " + modeLabel(p, variant)).join(" ")).toLowerCase();
         let prs = "";
         for (const p of ps) {
           const tcls = is_lead(p) ? "tL" : "tR";
           prs += '<div class="pr"><span class="tag ' + tcls + '">' + esc(klabel(p)) + "</span>" +
             '<span class="slot">p' + p.slot + "</span>" +
             '<span class="nm">' + esc(p.presetName) + "</span>" +
-            '<span class="amp">' + esc(amp(p)) + "</span>" +
+            '<span class="mode mode-' + modeClass(p, variant) + '">' + esc(modeLabel(p, variant)) + "</span>" +
+          '<span class="amp">' + esc(amp(p)) + "</span>" +
             '<span class="drv">' + esc(drive(p)) + "</span></div>";
         }
         rows.push('<div class="song" data-f="' + esc(f) + '">' +
@@ -164,25 +175,32 @@
           '<span class="slot">p' + p.slot + "</span>" +
           '<span class="nm">' + esc(song_title(p)) +
           (p.artist ? " <i>&middot; " + esc(p.artist) + "</i>" : "") + "</span>" +
+          '<span class="mode mode-' + modeClass(p, variant) + '">' + esc(modeLabel(p, variant)) + "</span>" +
           '<span class="amp">' + esc(amp(p)) + "</span>" +
           '<span class="drv">' + esc(drive(p)) + "</span></div>";
       }
       const f = (d.collection + " " + d.presets.map((p) =>
-        song_title(p) + " " + (p.artist || "") + " " + amp(p) + " " + drive(p)).join(" ")).toLowerCase();
+        song_title(p) + " " + (p.artist || "") + " " + amp(p) + " " + drive(p) + " " + modeLabel(p, variant)).join(" ")).toLowerCase();
       comp_cards.push('<details class="art comp" data-a="' + esc(d.collection.toLowerCase()) + '">' +
         '<summary><span class="anum">&#9733;</span><span class="aname">' + esc(d.collection) + "</span>" +
         '<span class="meta">' + d.count + " presets &middot; slots " + esc(d.slots || "") + "</span></summary>" +
         '<div class="songs"><div class="song" data-f="' + esc(f) + '">' + prs + "</div></div></details>");
     }
 
-    const CSS = INDEX_CSS;
+    const CSS = INDEX_CSS + INDEX_COMPACT_CSS;
     const JS = INDEX_JS;
+    const allPresets = AORDER.flatMap(n => data[n].presets);
+    const nativeCount = allPresets.filter(p => p.ampMode === "Clone").length;
+    const variantText = variant === "modeled" ? "Modeled: original amp settings." :
+      nativeCount + " NAM Full Rig · " + (allPresets.length - nativeCount) + " Modeled fallback. " +
+      "Only configured Full Rig amps are replaced. Clone/NAM and Mixed currently share the same rules.";
     const doc = '<!doctype html><html lang="en"><head>' +
       '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
       "<title>PocketMaster Presets</title><style>" + CSS + "</style></head><body>" +
       '<header><h1>&#127928; PocketMaster Presets</h1>' +
       '<div class="sub">' + ORDER.length + " artists &middot; " + tot_songs + " songs &middot; " + tot_pr +
       " presets &middot; sorted by artist / song / intensity &middot; slots up to p50</div>" +
+      '<div class="sub variant-info">' + esc(variantText) + "</div>" +
       '<div class="sub"><b>Takes</b> (letter in the preset name): ' +
       '<b style="color:var(--rit)">C</b>=clean rhythm &middot; ' +
       '<b style="color:var(--rit)">R</b>=rhythm with drive &middot; ' +
@@ -239,6 +257,32 @@
 "footer{color:var(--mut);font-size:11.5px;text-align:center;padding:16px}\n" +
 "@media (max-height:520px){header{position:static;padding:6px 14px}h1,.sub{display:none}#q{margin-top:0}.tools{margin-top:6px}}\n";
 
+  const INDEX_COMPACT_CSS = String.raw`
+header{padding:7px 10px 6px}
+header h1{font-size:15px}
+header .sub{font-size:11px;margin-bottom:3px}
+header .variant-info{font-weight:600}
+#q{padding:7px 9px;font-size:13px;min-height:34px;margin-top:5px}
+.wrap{max-width:1160px;padding:7px 10px 38px}
+details.art{margin:4px 0;border-radius:8px}
+details.art>summary{padding:6px 9px;gap:7px}
+.anum{width:22px;min-width:22px;height:22px;border-radius:5px;font-size:10px}
+.aname{font-size:13px}.meta{font-size:11px}
+.songs{padding:0 7px 7px}.song{padding:5px 3px}
+.sn{font-size:12px;margin-bottom:2px}
+.pr{display:grid;grid-template-columns:26px 46px minmax(125px,1.4fr) minmax(72px,.65fr) minmax(100px,1fr) minmax(60px,.7fr);gap:4px 6px;align-items:center;padding:2px 0;min-height:23px}
+.pr>.tag{width:23px;height:18px;font-size:10px;border-radius:4px}
+.pr>.slot{font-size:10px;text-align:center;padding:2px}
+.pr>.nm{font-size:11.5px;overflow-wrap:anywhere}
+.pr>.amp,.pr>.drv{font-size:11px;overflow-wrap:anywhere}
+.mode{display:inline-flex;align-items:center;justify-content:center;padding:2px 4px;border:1px solid var(--line);border-radius:5px;white-space:nowrap;font-size:10px;line-height:1.2}
+.mode-nam{color:var(--rit);border-color:var(--rit);font-weight:700}
+.mode-fallback{color:var(--mut);border-style:dashed}
+.mode-modeled{color:var(--mut)}
+.secdiv{margin-top:13px;padding-top:9px}
+@media(max-width:620px){.pr{grid-template-columns:24px 42px minmax(100px,1fr) minmax(72px,.7fr);gap:3px 5px}.pr>.amp{grid-column:3}.pr>.drv{grid-column:4}.meta{font-size:10px}}
+`;
+
   const INDEX_JS = "\n" +
 "var q=document.getElementById('q'),arts=[].slice.call(document.querySelectorAll('.art'));\n" +
 "function allOpen(o){arts.forEach(function(a){if(!a.classList.contains('hide'))a.open=o;});}\n" +
@@ -253,5 +297,5 @@
 " });\n" +
 "});\n";
 
-  return { buildIndex, esc, _helpers: { amp, drive, song_title, pkind, klabel, is_lead, songs_of, classify } };
+  return { buildIndex, esc, _helpers: { amp, modeLabel, drive, song_title, pkind, klabel, is_lead, songs_of, classify } };
 });
