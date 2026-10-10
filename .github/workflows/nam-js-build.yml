@@ -49,7 +49,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f src/assets/nam_dsp_worker.js src/assets/nam_reference_di_44100.f32.gz
-          git add PocketMasterStudio.html tests/fixtures/sonicmaster_native_dsp_ref.clo.b64
+          git add PocketMasterStudio.html README.md src/README_STUDIO.md tests/fixtures/sonicmaster_native_dsp_ref.clo.b64
           if ! git diff --cached --quiet; then
             git commit -m "build(nam-js): bundle compiled SonicMaster DSP and pinned offline reference DI"
             # The HTML builder may also update local README/changelog baselines.
