@@ -123,8 +123,8 @@ const namAssets = {
   diSha256: require("node:crypto").createHash("sha256").update(namDiPlain).digest("hex"),
 };
 if(namAssets.workerJs.length < 1000) throw Error("dart2js NAM worker not compiled");
-const namAssetsScript = "<script>\\nwindow.PMNamDSPAssets = " +
-  JSON.stringify(namAssets).replace(/</g,"\\\\u003c") + ";\\n</script>";
+const namAssetsScript = "<script>\nwindow.PMNamDSPAssets = " +
+  JSON.stringify(namAssets).replace(/</g,"\\u003c") + ";\n</script>";
 
 const modules = ["void_policy.js", "void_config_io.js", "void_clone_protocol.js", "void_clone_transport.js", "void_nam_converter.js", "void_clone_upload_ui.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
