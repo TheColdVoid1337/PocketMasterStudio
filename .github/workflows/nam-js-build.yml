@@ -49,7 +49,8 @@ jobs:
           if(assets.workerJs!==js || assets.diGzipBase64.length<100000 ||
              !html.includes('Browser NAM DSP inference/fitting in progress'))
             throw Error('Standalone DSP bundle stale or reference DI missing');
-          if(html.includes('/api/nam/convert') || html.includes('application/x-nam'))
-            throw Error('Legacy local native conversion API is still present');
+          const converter=fs.readFileSync('src/void_nam_converter.js','utf8');
+          if(converter.includes('/api/nam/convert') || converter.includes('application/x-nam'))
+            throw Error('Legacy local native conversion API is still present in runtime');
           console.log('PASS: self-contained JS DSP, reference DI and source parity');
           JS
