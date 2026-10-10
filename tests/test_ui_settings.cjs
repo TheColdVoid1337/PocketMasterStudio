@@ -24,7 +24,7 @@ test('Library owns Manage and Docs; Studio has a single integrated AI workflow',
   assert.deepEqual([...menu.matchAll(/id: "([^"]+)"/g)].map(m=>m[1]),
     ['studio','editor','library','nam','prst','settings']);
   assert.deepEqual([...sub.matchAll(/id: "([^"]+)"/g)].map(m=>m[1]),
-    ['overview','index','full','map','manage','docs']);
+    ['overview','full','map','manage','docs']);
   assert.match(app,/id === "docs"\) return mountDocs\(view\)/);
   assert.match(app,/id === "settings"\) return window\.PMVoidUI\.mountSettings\(view\)/);
   const studio=html.match(/id="view-studio"([\s\S]*?)id="view-library"/)?.[1];
