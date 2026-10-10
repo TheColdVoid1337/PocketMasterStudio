@@ -109,16 +109,27 @@
   window.addEventListener("error",e=>send("ERROR",(e.message||"Unknown")+" @ "+(e.filename||"")));
   window.addEventListener("unhandledrejection",e=>send("ERROR",text(e.reason)));
   const watch=()=>{
-   // PocketEdit's existing log panel remains intact; mirror its text additions when identifiable.
-   const ids=["logContent","logOutput","debugLog","consoleLog","logMessages","log-container","log"];
-   const node=ids.map(id=>document.getElementById(id)).find(Boolean);
+   // PocketEdit uses #logContent > .log-entry, with .log-time/.log-type/.log-message.
+   const node=document.getElementById("logContent");
    if(!node||!window.MutationObserver)return;
-   let last=node.textContent||"";
-   new MutationObserver(()=>{
-    const current=node.textContent||"";if(current===last)return;
-    const diff=current.startsWith(last)?current.slice(last.length):current;last=current;
-    if(diff.trim())send("DEBUG",diff.slice(-1800));
-   }).observe(node,{childList:true,subtree:true,characterData:true});
+   const forward=entry=>{
+    if(!entry?.classList?.contains("log-entry"))return;
+    const kind=(entry.querySelector(".log-type")?.textContent||"INFO").replace(/[\[\]]/g,"").toUpperCase();
+    const message=entry.querySelector(".log-message")?.textContent||entry.textContent||"";
+    const time=entry.querySelector(".log-time")?.textContent||"";
+    const level=/ERROR|FAIL/.test(kind)?"ERROR":/WARN/.test(kind)?"WARN":
+      /SENT|RECEIVED|RECV|SEND/.test(kind)?"DEBUG":"INFO";
+    send(level,"["+kind+"] "+(time?time+" ":"")+message);
+   };
+   // Include any startup messages emitted before the observer attached.
+   Array.from(node.querySelectorAll(".log-entry")).slice(-20).forEach(forward);
+   new MutationObserver(records=>{
+    for(const record of records)for(const added of record.addedNodes)
+      if(added.nodeType===1){
+       forward(added);
+       added.querySelectorAll?.(".log-entry").forEach(forward);
+      }
+   }).observe(node,{childList:true});
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",watch,{once:true});else watch();
   send("INFO","Editor debug bridge ready");

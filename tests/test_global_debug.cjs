@@ -34,6 +34,9 @@ test('Editor log bridge rejects messages from unrelated windows',()=>{
  assert.equal(Debug.entries.at(-1).source,'EDITOR');
  assert.equal(Debug.entries.at(-1).level,'WARN');
  assert.match(Debug.editorHook,/postMessage/);
+ assert.match(Debug.editorHook,/getElementById\("logContent"\)/);
+ assert.match(Debug.editorHook,/\.log-entry/);
+ assert.match(Debug.editorHook,/\.log-message/);
  new Function(Debug.editorHook);
 });
 
