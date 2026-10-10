@@ -1,0 +1,47 @@
+name: Build offline NAM JavaScript DSP
+on:
+  push:
+    branches: [feat/nam-js-only-dsp-20261010]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Compile self-contained SonicMaster Web Worker
+        run: dart compile js tools/nam_js/worker.dart --output=src/assets/nam_dsp_worker.js -O3
+      - name: Download pinned reference DI and compress reproducibly
+        run: |
+          python3 tools/nam_dsp/fetch_reference.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip
+          source = Path("tools/nam_dsp/data/nam_reference_di_44100.f32")
+          target = Path("src/assets/nam_reference_di_44100.f32.gz")
+          target.write_bytes(gzip.compress(source.read_bytes(), compresslevel=9, mtime=0))
+          print(f"Offline DI gzip asset: {target.stat().st_size} bytes")
+          PY
+      - name: Assemble standalone HTML
+        run: node src/build_studio.js
+      - name: JavaScript regression tests
+        run: node --test tests/*.cjs
+      - name: Server security tests
+        run: python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+      - name: Commit generated JS and offline DI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f src/assets/nam_dsp_worker.js src/assets/nam_reference_di_44100.f32.gz
+          git add PocketMasterStudio.html
+          if ! git diff --cached --quiet; then
+            git commit -m "build(nam-js): bundle compiled SonicMaster DSP and pinned offline reference DI"
+            git push origin HEAD:feat/nam-js-only-dsp-20261010
+          fi
