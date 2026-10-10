@@ -168,9 +168,7 @@ const CSS = String.raw`
  details.art{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:7px 0;padding:2px 10px}
  details.art summary{cursor:pointer;padding:8px 2px;list-style:none} details.art summary::-webkit-details-marker{display:none}
  .mut{color:var(--mut);font-size:12.5px} code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
- .savebar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;z-index:20}
- .savebar .sp{flex:1} #dirtyTag{background:var(--warn);color:#201800;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
- #toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#111;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;z-index:30}
+ #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;z-index:30}
  select[data-amb]{width:auto;display:inline-block;min-height:34px;padding:4px 8px}
  .checks{display:flex;flex-wrap:wrap;gap:8px 14px;margin:2px 0}
  .chk2{display:flex;align-items:center;gap:7px;font-size:13.5px;cursor:pointer} .chk2 input{width:18px;height:18px}
@@ -349,6 +347,8 @@ const CSS = String.raw`
  #pickList .pick{padding:5px 8px;margin-bottom:2px;min-height:0}#pickList .pick .mut{display:inline;margin-left:6px}
  .void-wrap{max-width:1050px;padding:12px 14px 85px}.void-slots{gap:9px;margin-top:9px}.void-slot{padding:11px}
  .prst-lab-wrap{padding-top:12px}.prst-lab-tabs{margin:10px 0 12px}.prst-pane .ovbox{padding:12px}
+ .status-chip[data-save-state="saving"] .status-led{background:var(--warn);box-shadow:0 0 0 2px rgba(240,180,80,.12)}
+ .status-chip[data-save-state="error"] .status-led{background:var(--err)}
  .status-strip{display:flex;align-items:center;gap:5px;margin-left:auto;flex:0 0 auto}
  button.status-chip{display:inline-flex;gap:6px;align-items:center;justify-content:center;background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--mut);font-size:10.5px;min-height:29px;padding:5px 7px;white-space:nowrap}
  .status-led{display:block;width:7px;height:7px;min-width:7px;border-radius:50%;background:var(--err);box-shadow:0 0 0 2px rgba(255,111,111,.1)}
@@ -384,9 +384,9 @@ const CSS = String.raw`
  .overview-listing iframe.full{height:calc(100vh - 270px);min-height:320px;width:100%;border:0;background:#fff}
  .overview-listing iframe.hasbar{height:calc(100vh - 315px)}
  .overview-listing .docbar{padding:6px 10px}
- .debug-fab{position:fixed;right:16px;bottom:67px;z-index:27;display:flex;gap:7px;align-items:center;border:1px solid var(--acc);border-radius:999px;background:var(--acc);color:white;box-shadow:0 4px 17px rgba(0,0,0,.28);padding:10px 15px;font-size:12px;font-weight:700;cursor:pointer;min-height:40px}
+ .debug-fab{position:fixed;right:16px;bottom:16px;z-index:27;display:flex;gap:7px;align-items:center;border:1px solid var(--acc);border-radius:999px;background:var(--acc);color:white;box-shadow:0 4px 17px rgba(0,0,0,.28);padding:10px 15px;font-size:12px;font-weight:700;cursor:pointer;min-height:40px}
  .debug-fab>span:first-child{font-size:18px;line-height:12px}
- .debug-panel{position:fixed;right:15px;bottom:119px;width:min(640px,calc(100vw - 30px));height:min(65vh,570px);z-index:28;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:13px;box-shadow:0 9px 38px rgba(0,0,0,.45);overflow:hidden}
+ .debug-panel{position:fixed;right:15px;bottom:68px;width:min(640px,calc(100vw - 30px));height:min(65vh,570px);z-index:28;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:13px;box-shadow:0 9px 38px rgba(0,0,0,.45);overflow:hidden}
  .debug-panel[hidden]{display:none!important}
  .debug-head{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid var(--line)}
  .debug-head b{font-size:14px}.debug-head .mut{font-size:11px;flex:1}
@@ -402,7 +402,7 @@ const CSS = String.raw`
  .debug-footer{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line)}
  .debug-footer button{padding:6px 8px;min-height:30px;font-size:11.5px}
  .debug-status{font-size:11px;color:var(--mut);padding:0 10px 7px;line-height:1.3}
- @media(max-width:680px){.debug-line{grid-template-columns:minmax(0,1fr)}.debug-when{font-size:10px}.debug-fab{bottom:65px;right:9px}.debug-panel{right:8px;width:calc(100vw - 16px);bottom:114px;height:min(63vh,540px)}.overview-listing iframe.full{height:65vh}}
+ @media(max-width:680px){.debug-line{grid-template-columns:minmax(0,1fr)}.debug-when{font-size:10px}.debug-fab{bottom:12px;right:9px}.debug-panel{right:8px;width:calc(100vw - 16px);bottom:64px;height:min(63vh,540px)}.overview-listing iframe.full{height:65vh}}
 `;
 
 const BODY = String.raw`
@@ -414,6 +414,7 @@ const BODY = String.raw`
  <div class="status-strip" role="group" aria-label="Connection status">
   <button type="button" id="statusServer" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Server OFFLINE</span></button>
   <button type="button" id="statusFolder" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Folder Disconnected</span></button>
+  <button type="button" id="statusSave" class="status-chip" data-state="bad" data-save-state="unconnected"><span class="status-led"></span><span class="status-text">Unsaved</span></button>
   <button type="button" id="statusBrowser" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Browser Limited</span></button>
  </div>
 </div>
@@ -514,6 +515,7 @@ const BODY = String.raw`
  <div class="debug-head"><b>Log / Debug</b><span id="globalLogCount" class="mut">0 entries</span><button id="globalLogClose" type="button" aria-label="Close log">×</button></div>
  <div class="debug-controls">
   <select id="globalLogLevel" aria-label="Filter severity"><option value="ALL">All levels</option><option value="INFO">Info</option><option value="WARN">Warnings</option><option value="ERROR">Errors</option><option value="DEBUG">Debug</option></select>
+  <select id="globalLogSource" aria-label="Filter component"><option value="ALL">All components</option><option value="EDITOR">Editor</option><option value="PRST">PRST</option><option value="CONFIG">Config</option><option value="STUDIO">Studio</option><option value="LIBRARY">Library</option><option value="NAM">NAM</option><option value="APP">App</option><option value="BUILD">Build</option><option value="CONSOLE">Console</option><option value="LOG">Log</option><option value="WINDOW">Window</option><option value="PROMISE">Promise</option></select>
   <input type="search" id="globalLogSearch" placeholder="Search events…" aria-label="Search debug entries" autocomplete="off">
   <label class="debug-follow"><input id="globalLogFollow" type="checkbox" checked> Follow</label>
  </div>
@@ -541,10 +543,7 @@ const BODY = String.raw`
   </div>
  </div>
 </div>
-<div class="savebar">
- <span id="dirtyTag" hidden>unsaved changes</span><span class="sp"></span>
- <button id="saveBtn" class="primary">💾 Save config</button>
-</div>
+
 <div id="toast" hidden></div>
 `;
 

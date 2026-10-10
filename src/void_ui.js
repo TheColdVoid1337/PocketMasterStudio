@@ -12,7 +12,7 @@
     return Object.fromEntries(Object.entries(defaults).map(([key, value]) =>
       [key, typeof saved[key] === "boolean" ? saved[key] : value]));
   }
-  let prefs = null, handlers = null, queue = [], active = null;
+  let prefs = null, handlers = null, queue = [], active = null, saveState = "unconnected", saveDetail = "";
   const $ = (id) => document.getElementById(id);
   const io = () => window.PMVoidConfigIO;
   const store = () => {
@@ -39,12 +39,28 @@
     status("statusFolder", connected, connected ? "Folder Connected" : "Folder Disconnected",
       connected ? "Folder: " + io().location() :
         "Connect the project folder to persist config/*.json without rewriting the HTML.");
+    const saveLabel = !connected ? "Unsaved" :
+      saveState === "saved" ? "Saved" :
+      saveState === "saving" ? "Saving..." :
+      saveState === "error" ? "Save Failed" : "Unsaved";
+    status("statusSave",connected && saveState==="saved",saveLabel,
+      saveDetail || (!connected ? "Connect the project folder to enable autosave." :
+        saveState==="saving" ? "Edits are queued or being written to config/*.json." :
+        saveState==="error" ? "Autosave failed. Review Log / Debug and retry in Settings." :
+        saveState==="saved" ? "Project data is saved in config/*.json." : "Unsaved project changes."));
+    const saveChip=$("statusSave");
+    if(saveChip)saveChip.dataset.saveState=connected?saveState:"unconnected";
     status("statusBrowser", browserReady(), browserReady() ? "Compatible Browser" : "Browser Limited",
       browserReady() ? "Web Bluetooth, File System Access and compression APIs detected." :
         "Required features missing; Chrome/Edge on localhost is recommended.");
     if ($("settingsFolderStatus"))
       $("settingsFolderStatus").textContent = connected ? "Connected: " + io().location() :
         "Not connected. Choose the project root (the folder containing config/).";
+  }
+  function setSaveState(state,detail=""){
+    saveState=["saved","saving","unsaved","error","unconnected"].includes(state)?state:"unsaved";
+    saveDetail=String(detail||"");
+    refresh();
   }
   function syncControls() {
     for (const [id, prop] of [["settingBrowserNotice","browserNotice"],
@@ -132,5 +148,5 @@
       catch(e) { if (e?.name !== "AbortError") alert(e?.message || String(e)); }
     });
   }
-  return Object.freeze({ readPrefs, start, refresh, mountSettings, KEY });
+  return Object.freeze({ readPrefs, start, refresh, setSaveState, mountSettings, KEY });
 });

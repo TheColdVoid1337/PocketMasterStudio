@@ -4,7 +4,8 @@
  else root.PMVoidDebug=factory();
 })(typeof self!=="undefined"?self:this,function(){
  "use strict";
- const LIMIT=1500, entries=[],started=new Date().toISOString();
+ const LIMIT=6000, entries=[],started=new Date().toISOString();
+ const noEmoji=(text)=>String(text).replace(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/gu,"").replace(/\uFE0F/g,"").trim();
  let ready=false,visible=false,editorWindow=null;
  const levels=["DEBUG","INFO","WARN","ERROR"];
  const safe=x=>{
@@ -15,7 +16,7 @@
  const $=id=>document.getElementById(id);
  function event(source,message,level="INFO"){
   const e={time:new Date().toISOString(),level:levels.includes(level)?level:"INFO",
-   source:String(source).slice(0,32),message:safe(message)};
+   source:noEmoji(String(source)).slice(0,32),message:noEmoji(safe(message))};
   entries.push(e);if(entries.length>LIMIT)entries.shift();
   render();return e;
  }
@@ -30,8 +31,8 @@
  function render(){
   if(!visible||typeof document==="undefined")return;
   const box=$("globalLogRows");if(!box)return;
-  const filter=$("globalLogLevel").value,term=$("globalLogSearch").value.toLowerCase();
-  const found=entries.filter(e=>(filter==="ALL"||e.level===filter)&&
+  const filter=$("globalLogLevel").value,origin=$("globalLogSource")?.value||"ALL",term=$("globalLogSearch").value.toLowerCase();
+  const found=entries.filter(e=>(filter==="ALL"||e.level===filter)&&(origin==="ALL"||e.source===origin)&&
    (!term||(e.message+" "+e.source).toLowerCase().includes(term)));
   const frag=document.createDocumentFragment();
   for(const e of found.slice(-500)){
@@ -89,6 +90,7 @@
   $("globalLogToggle").addEventListener("click",()=>toggle());
   $("globalLogClose").addEventListener("click",()=>toggle(false));
   $("globalLogLevel").addEventListener("change",render);
+  $("globalLogSource")?.addEventListener("change",render);
   $("globalLogSearch").addEventListener("input",render);
   $("globalLogFollow").addEventListener("change",render);
   $("globalLogClear").addEventListener("click",()=>{entries.length=0;event("LOG","Session log cleared");});

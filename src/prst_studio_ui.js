@@ -25,6 +25,7 @@
     const $ = (id) => section.querySelector("#" + id);
     const mode = $("prst-mode"), artist = $("prst-artist"), preset = $("prst-preset");
     const status = $("prst-status");
+    const log=(level,message)=>window.PMVoidDebug?.event("PRST",message,level);
     const asset = window.PMPRSTAssets;
     // Physical slot mapping is owned by NAM/Clone settings (config/nam_clone.json).
     const state = () => window.PMStudio && window.PMStudio.S;
@@ -69,11 +70,17 @@
       const button = $("prst-export");
       button.disabled = true;
       status.textContent = "Validating source and PRST template…";
+      log("INFO","Native export started: set="+mode.value+", artist file="+(artist.value||"none")+
+        ", selection="+preset.value+", donor="+($("prst-donor").files[0]?.name||"bundled references"));
       try {
         const map = mapNow(); if (!map) throw Error("Studio data is not ready.");
         const batch = map[artist.value]; if (!batch) throw Error("Choose an artist.");
         const chosen = preset.value === "all" ? batch.presets : [batch.presets[Number(preset.value)]];
         if (!chosen.length || chosen.some((p) => !p)) throw Error("No presets selected.");
+        log("INFO","Preparing "+chosen.length+" preset(s) from "+batch.artist+
+          "; NAM="+chosen.filter(p=>p.ampMode==="Clone").length+
+          ", Modeled="+chosen.filter(p=>p.ampMode!=="Clone").length+
+          ", original native snapshots="+chosen.filter(p=>Boolean(p.nativeImport)).length);
         const donorFile = $("prst-donor").files[0];
         const automatic = !donorFile;
         if (automatic && (typeof asset.templateBase64 !== "string" || typeof asset.cloneTemplateBase64 !== "string"))
@@ -94,6 +101,8 @@
         const cfg = state()?.payload?.void_nam || window.PMVoidPolicy.defaults();
         const validated = window.PMVoidPolicy.normalize(cfg,window.PMVoidPolicy.validAmpNames(asset.catalog));
         const namSlots = window.PMVoidPolicy.slotMap(validated);
+        log("DEBUG","Donor selection="+(automatic?"bundled authentic Modeled/Clone":"custom: "+donorFile.name)+
+          "; configured NAM slots="+Object.keys(namSlots).length);
         if(hasGeneratedClone && !Object.keys(namSlots).length)throw Error("Configure Full Rig NAM slots in NAM/Clone first.");
         if(hasGeneratedClone)window.PRSTConvert.checkMap(namSlots);
         // Convert and verify ALL results before offering any download.
@@ -109,24 +118,41 @@
             catalog: asset.catalog, fxNative: asset.fxNative, namSlots, voidConfig: validated
           });
         });
-        for (const r of result) {
-          const parsed = window.PRSTCloneSlots.inspect(r.bytes);
-          if (!parsed) throw Error("Invalid output");
+        for (let i=0;i<result.length;i++) {
+          const r=result[i],p=chosen[i];
+          const parsed=window.PRSTCloneSlots.inspect(r.bytes);
+          if(!parsed)throw Error("Invalid output");
+          log("DEBUG","CRC verified: "+p.presetName+"; mode="+p.ampMode+
+            "; size="+r.bytes.length+" bytes; source="+(p.nativeImport?"original archival bytes":automatic?"bundled reference":"custom donor")+
+            "; conversion notes="+(r.warnings||[]).length);
+          for(const note of (r.warnings||[]).slice(0,4))
+            log("DEBUG","  "+p.presetName+": "+String(note));
         }
+        let outputFile,outputBytes;
         if (result.length === 1) {
-          download(safeName(chosen[0].presetName) + ".prst", new Blob([result[0].bytes], {type:"application/octet-stream"}));
+          outputFile=safeName(chosen[0].presetName)+".prst";
+          outputBytes=result[0].bytes.length;
+          download(outputFile,new Blob([result[0].bytes],{type:"application/octet-stream"}));
         } else {
-          const entries = result.map((r,i) => ({
-            name: String(i+1).padStart(3,"0") + "_" + safeName(chosen[i].presetName) + ".prst",
-            data: r.bytes
+          const entries=result.map((r,i)=>({
+            name:String(i+1).padStart(3,"0")+"_"+safeName(chosen[i].presetName)+".prst",
+            data:r.bytes
           }));
-          download(safeName(batch.artist || "presets") + "_" + mode.value + "_native.zip", await window.PMZip.create(entries));
+          outputFile=safeName(batch.artist||"presets")+"_"+mode.value+"_native.zip";
+          const zipped=await window.PMZip.create(entries);
+          outputBytes=zipped.size||zipped.byteLength||0;
+          download(outputFile,zipped);
         }
+        log("INFO","Download initiated: "+outputFile+"; "+result.length+
+          " native preset(s), "+outputBytes+" bytes; CRC checked. Pedal import/readback/listening still required.");
         status.textContent = "Created " + result.length + " native 515-byte PRST candidate(s), CRC checked. SONICLINK import/readback/listening still required." +
           (automatic ? " Used authentic built-in Modeled/Clone references as appropriate." : " Used your custom donor.") +
           (hasClone ? " Generated Clone uses Full Rig and IR OFF; imported PRST snapshots are exported byte-for-byte and are not automatically Full Rig verified." : "");
       } catch (e) {
-        status.textContent = "Export blocked: " + (e && e.message || String(e));
+        const reason=e?.message||String(e);
+        status.textContent="Export blocked: "+reason;
+        log("ERROR","Native export blocked: set="+mode.value+", artist file="+(artist.value||"none")+
+          ", selection="+preset.value+"; reason="+reason);
       } finally { button.disabled = false; }
     }
     mode.addEventListener("change", refreshArtist);

@@ -12,28 +12,54 @@
   const IO = window.PMVoidConfigIO;
   const Policy = window.PMVoidPolicy;
   const Native = () => window.PMPRSTImport; // initialized by the later inlined PRST scripts
-  let saveTimer=null, revision=0, namView=null;
+  let saveTimer=null, revision=0, namView=null, saveFailed=false;
   const namConfig=()=>S.payload?.void_nam||Policy.defaults();
   const ampNames=()=>Policy.validAmpNames(window.PMPRSTAssets.catalog);
+  const logEvent = (source,message,level="INFO") => window.PMVoidDebug?.event(source,message,level);
+  function saveStatus(){
+    const state=!IO.connected()?"unconnected":saveFailed?"error":S.dirty?"saving":"saved";
+    window.PMVoidUI?.setSaveState(state);
+    return state;
+  }
   function statusIO(){
-    return IO.connected()?"Connected: "+IO.location()+(S.dirty?" · saving changes…":" · all saved"):
-      "Not connected — select the project folder to persist changes in config/*.json (HTML is never rewritten).";
+    if(!IO.connected())return "Not connected — select the project folder to persist config/*.json.";
+    return "Connected: "+IO.location()+
+      (saveFailed?" · SAVE FAILED":S.dirty?" · saving changes...":" · all saved");
   }
   async function persistConfig(){
-    if(!IO.connected())throw Error("Connect the project folder to save JSON, or download a backup");
+    if(!IO.connected()){
+      saveStatus();
+      throw Error("Connect the project folder to save JSON, or download a backup");
+    }
     const version=revision;
-    await IO.save({state:sourcePayload(),nam:Policy.normalize(namConfig(),ampNames())});
-    if(version===revision)markDirty(false);
-    if(namView)namView.status();
-    window.PMVoidUI?.refresh();
-    window.PMVoidDebug?.event("CONFIG","Saved project config/*.json");
+    logEvent("CONFIG","Writing studio_state.json and nam_clone.json; revision "+version,"DEBUG");
+    try{
+      await IO.save({state:sourcePayload(),nam:Policy.normalize(namConfig(),ampNames())});
+      if(version===revision){
+        saveFailed=false;
+        markDirty(false);
+        logEvent("CONFIG","Saved studio_state.json and nam_clone.json; revision "+version+
+          ", native imports "+(S.payload?.prst_imports?.length||0)+
+          ", collections "+(S.payload?.collections?.length||0));
+      }else{
+        logEvent("CONFIG","Revision "+version+" saved; newer revision "+revision+" awaiting save","DEBUG");
+      }
+      if(namView)namView.status();
+      saveStatus();
+    }catch(err){
+      saveFailed=true;saveStatus();
+      logEvent("CONFIG","Save failed for revision "+version+": "+(err?.message||String(err)),"ERROR");
+      throw err;
+    }
   }
-  function changed(){
-    markDirty(true);
-    if(saveTimer)clearTimeout(saveTimer);
-    if(IO.connected())saveTimer=setTimeout(()=>persistConfig().catch(e=>toast("Config save failed: "+e.message)),350);
+  function changed(){markDirty(true);}
+  function applyNAM(config){
+    S.payload.void_nam=Policy.normalize(config,ampNames());
+    changed();rebuild();
+    const configured=namConfig().slots.filter(slot=>slot.ampModel);
+    logEvent("NAM","NAM mapping updated: "+configured.length+" configured Full Rig slot(s); "+
+      configured.map((slot,i)=>"amp="+slot.ampModel).join("; ")+"; autosave queued");
   }
-  function applyNAM(config){S.payload.void_nam=Policy.normalize(config,ampNames());changed();rebuild();window.PMVoidDebug?.event("NAM","Updated NAM/Clone mapping");}
   function applyStored(loaded){
     if(!loaded)return false;
     if(loaded.state){
@@ -49,7 +75,8 @@
   async function connectFolder(){
     const saved=await IO.connect();
     window.PMVoidUI?.refresh();
-    window.PMVoidDebug?.event("CONFIG","Project folder connected");
+    saveStatus();
+    logEvent("CONFIG","Project folder connected: "+IO.location());
     if(saved&&(saved.state||saved.nam)){
       if(S.dirty&&!confirm("Existing config found. Load saved project settings and replace unsaved changes?"))
         return;
@@ -59,24 +86,31 @@
     }else{
       await persistConfig();toast("Config folder connected and initialized.");
     }
-    window.PMVoidUI?.refresh();
+    saveStatus();
   }
   async function saveConfig(){
     if(!IO.connected()){await connectFolder();return}
+    if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+    logEvent("CONFIG","Manual save requested from Settings");
     await persistConfig();toast("Saved config/*.json");
   }
   function downloadConfigBackup(){
+    logEvent("CONFIG","Downloading studio_state.json and nam_clone.json backups");
     const nam=namConfig();
     download("nam_clone.json",JSON.stringify(nam,null,2)+"\n","application/json");
     download("studio_state.json",JSON.stringify(sourcePayload(),null,2)+"\n","application/json");
   }
   async function importConfigFile(file){
+    logEvent("CONFIG","Importing configuration file: "+file.name);
     const o=JSON.parse(await file.text());
     if(o.schema===Policy.SCHEMA){
       applyNAM(o);
+      logEvent("CONFIG","Imported NAM mapping from "+file.name);
     }else if(o.config&&o.data){
       applyStored({state:o,nam:o.void_nam||namConfig()});
       S.payload=withImportedCollection(S.payload);changed();rebuild();
+      logEvent("CONFIG","Imported project source from "+file.name+"; artists="+
+        Object.keys(S.payload.data).length+", imported native PRST="+(S.payload.prst_imports||[]).length);
     }else throw Error("Select nam_clone.json or studio_state.json");
   }
 
@@ -167,14 +201,20 @@
     window.PMVoidDebug?.event("BUILD","Regenerated "+b.total+" presets across "+b.artistCount+" artists ("+dt+" ms)","DEBUG");
   }
   function markDirty(d) {
-    if(d) {revision++;if(saveTimer)clearTimeout(saveTimer);
-      if(IO.connected())saveTimer=setTimeout(()=>persistConfig().catch(e=>toast("Config save failed: "+e.message)),350);
+    S.dirty=Boolean(d);
+    if(d){
+      revision++;saveFailed=false;
+      if(saveTimer)clearTimeout(saveTimer);
+      if(IO.connected()){
+        saveTimer=setTimeout(()=>{
+          saveTimer=null;
+          persistConfig().catch(e=>toast("Config save failed: "+e.message));
+        },350);
+      }
+      logEvent("CONFIG","Changes pending: revision "+revision+
+        (IO.connected()?" (autosave scheduled)":" (folder disconnected)"),"DEBUG");
     }
-    S.dirty = d;
-    const btn = $("#saveBtn");
-    btn.textContent = d ? "💾 Save config (changes)" : "💾 Save config";
-    btn.classList.toggle("attn", d);
-    $("#dirtyTag").hidden = !d;
+    saveStatus();
   }
 
   // ---- tabs ----
@@ -423,8 +463,10 @@
   function doDelete() {
     const sel = selectedDeletions();
     if (!sel.length) { toast("Nothing selected."); return; }
+    logEvent("LIBRARY","Source deletion requested: "+sel.length+" selection(s); "+
+      sel.map(x=>x.artist+(x.slug?"/"+x.slug:"")).join(", ")); 
     const p2 = PMEdit.deleteSelections(S.payload, sel);
-    let built; try { built = regen(p2); } catch (e) { alert("Cannot: " + e.message); return; }
+    let built; try { built = regen(p2); } catch (e) { logEvent("LIBRARY","Source deletion rejected: "+e.message,"ERROR"); alert("Cannot: " + e.message); return; }
     // detect collection gaps
     PMEdit.ensureCollections(p2, PMBuild.defaultCollectionDefs());
     const gaps = PMEdit.collectionGaps(PMBuild.makeRefResolver(built.jsonMap), p2.collections);
@@ -452,6 +494,8 @@
     const j = index + dir; if (j < 0 || j >= songs.length) return;
     const t = songs[index]; songs[index] = songs[j]; songs[j] = t;
     markDirty(true); rebuild();
+    logEvent("LIBRARY","Moved song "+t.slug+" under "+artist+" from position "+(index+1)+
+      " to "+(j+1)+"; autosave queued");
   }
 
   // ---- COLLECTIONS manager ----
@@ -486,6 +530,7 @@
     const cap = parseInt(prompt("Max slots (cap)?", "50"), 10);
     S.payload.collections.push({ file, collection: nm, n: cap >= 1 ? cap : 50, refs: [] });
     markDirty(true); rebuild();
+    logEvent("LIBRARY","Created collection "+nm+"; file="+file+"; capacity="+(cap>=1?cap:50));
     $("#collSel").value = String(S.payload.collections.length - 1); renderCollections();
     toast("Collection created.");
   }
@@ -495,6 +540,8 @@
     const def = S.payload.collections[ci]; if (!def) return;
     if (!confirm('Delete the collection “' + def.collection + '”?')) return;
     S.payload.collections.splice(ci, 1);
+    logEvent("LIBRARY","Deleted collection "+def.collection+"; "+def.refs.length+
+      " reference(s) removed; source presets remain unchanged");
     $("#collSel").value = "0";
     markDirty(true); rebuild(); toast("Collection deleted.");
   }
@@ -505,14 +552,24 @@
     if (free > 0) {
       // free slots -> multi-select, capped at the number of free slots
       pickPreset("Add to “" + def.collection + "” (" + free + " free slot" + (free === 1 ? "" : "s") + ")",
-        (refs) => { def.refs.push(...refs); markDirty(true); rebuild(); renderCollections(); toast("Added " + refs.length + "."); },
+        (refs) => {
+          def.refs.push(...refs);markDirty(true);rebuild();renderCollections();
+          logEvent("LIBRARY","Added "+refs.length+" preset reference(s) to "+def.collection+
+            "; now "+def.refs.length+"/"+def.n+" slots");
+          toast("Added "+refs.length+".");
+        },
         { multi: true, max: free });
     } else {
       // full -> single pick, then ask which slot to replace (current behaviour)
       pickPreset("Replace a slot in “" + def.collection + "” (full)", (ref) => {
         const which = prompt("The collection is full (" + def.n + "). Which slot (1-" + def.n + ") do you replace?");
         const n = parseInt(which, 10);
-        if (n >= 1 && n <= def.refs.length) { def.refs[n - 1] = ref; markDirty(true); rebuild(); renderCollections(); toast("Slot " + n + " replaced."); }
+        if (n >= 1 && n <= def.refs.length) {
+          const previous=def.refs[n-1];def.refs[n-1]=ref;markDirty(true);rebuild();renderCollections();
+          logEvent("LIBRARY","Replaced "+def.collection+" slot "+n+": "+
+            previous.join("/")+" -> "+ref.join("/"));
+          toast("Slot "+n+" replaced.");
+        }
       });
     }
   }
@@ -540,7 +597,6 @@
     setTimeout(() => URL.revokeObjectURL(u), 2000);
   }
   // Unlike upstream, Save writes JSON to config/ — never another HTML.
-  async function saveApp(){try{await saveConfig()}catch(e){toast("Save failed: "+e.message)}}
   // Export the full extracted file tree (source + generated json/json_nam + listings + app + lossless source.json) as a ZIP.
   async function exportZip() {
     // A full ZIP export is a "complete export": advance the change history (stamp created/modified,
@@ -548,8 +604,9 @@
     // the last export's date; leave it (or blank) to show only changes since then, or set an earlier
     // date to aggregate everything from that date. Cancelling the prompt aborts the export.
     const defSince = ((S.payload.changelog && S.payload.changelog.lastExport) || "").slice(0, 10);
+    logEvent("LIBRARY","Project ZIP export requested; presets="+S.built.total+", artists="+S.built.artistCount);
     const answer = prompt("📦 Export ZIP — reflect changes in the README since (YYYY-MM-DD).\nLeave as-is for “since the last full export”, or set an earlier date:", defSince);
-    if (answer === null) { toast("Export cancelled."); return; }
+    if (answer === null) { logEvent("LIBRARY","Project ZIP export cancelled by user"); toast("Export cancelled."); return; }
     const since = answer.trim() || null;
     toast("Generating ZIP…");
     const now = new Date().toISOString();
@@ -597,6 +654,8 @@
     files.push({ name: "PocketMasterStudio.html", data: PRISTINE });
     const zip = await PMZip.create(files);
     download("PocketMasterStudio-project.zip", zip);
+    logEvent("LIBRARY","Project ZIP download started: PocketMasterStudio-project.zip; "+
+      files.length+" files; "+(zip?.size||zip?.byteLength||0)+" bytes; changelog updated");
     toast("ZIP downloaded (" + files.length + " files).");
   }
   // Imported is an ordinary user-visible collection; native PRST bytes remain
@@ -634,6 +693,7 @@
     if(!S.payload)throw Error("Studio has not initialized");
     const selected=Array.from(files||[]);
     if(!selected.length)return;
+    logEvent("PRST","Import started: "+selected.length+" file(s); validating 515-byte native records and CRC");
     const options={
       catalog:window.PMPRSTAssets.catalog,fxNative:window.PMPRSTAssets.fxNative,
       voidConfig:namConfig()
@@ -641,20 +701,42 @@
     let entries=(S.payload.prst_imports||[]).slice();
     let added=0,duplicates=0;
     for(const file of selected) {
-      if(!/\.prst$/i.test(file.name))throw Error("Choose .prst files only: "+file.name);
-      const raw=new Uint8Array(await file.arrayBuffer());
-      const record=Native().record(raw,file.name,options); // validates CRC and recognized active selectors
-      const result=Native().add(entries,record);
-      entries=result.records;
-      if(result.added)added++;else duplicates++;
+      try {
+        if(!/\.prst$/i.test(file.name))throw Error("Choose .prst files only: "+file.name);
+        const raw=new Uint8Array(await file.arrayBuffer());
+        logEvent("PRST","Checking "+file.name+": "+raw.byteLength+" bytes, header, CRC and selectors","DEBUG");
+        const record=Native().record(raw,file.name,options); // validates CRC and recognized active selectors
+        const result=Native().add(entries,record);
+        entries=result.records;
+        if(result.added){
+          added++;
+          logEvent("PRST","Validated "+file.name+": original "+raw.byteLength+
+            " bytes retained, id="+record.id+
+            ", decoding notes="+(record.warnings||[]).length,"INFO");
+        }else{
+          duplicates++;
+          logEvent("PRST","Skipped duplicate "+file.name+"; id="+record.id,"INFO");
+        }
+      }catch(err){
+        logEvent("PRST","Import validation failed for "+file.name+": "+(err?.message||String(err)),"ERROR");
+        throw err;
+      }
     }
-    if(!added){toast("All "+duplicates+" native presets already imported.");return}
+    if(!added){
+      logEvent("PRST","Import complete: no new records, "+duplicates+" duplicate(s)");
+      toast("All "+duplicates+" native presets already imported.");
+      return;
+    }
     const trial=withImportedCollection({...S.payload,prst_imports:entries});
-    regen(trial); // validate all and verify current collections without touching state.
+    try{regen(trial);} // validate all and verify collections before touching live state
+    catch(err){
+      logEvent("PRST","Import batch rejected during library verification: "+(err?.message||String(err)),"ERROR");
+      throw err;
+    }
     S.payload=trial;
     markDirty(true);rebuild();refreshNativeEditor();
     toast("Imported "+added+" native PRST preset"+(added===1?"":"s")+" into Imported collection.");
-    window.PMVoidDebug?.event("PRST","Imported "+added+" native PRST file(s); "+duplicates+" duplicate(s)");
+    logEvent("PRST","Import committed: "+added+" new, "+duplicates+" duplicates, "+entries.length+" total; Imported collection updated; autosave queued");
   }
   function renderNativeImports(){
     const host=$("#nativePrstList");if(!host)return;
@@ -694,6 +776,8 @@
       })
     }));
     regen(trial);S.payload=trial;markDirty(true);rebuild();refreshNativeEditor();
+    logEvent("PRST","Removed native library snapshot: "+removed.filename+
+      " (id="+removed.id+"); "+retained.length+" originals remain. Local file untouched.");
   }
   async function importProject(file) {
     try {
@@ -717,8 +801,12 @@
       src.void_nam = Policy.normalize(src.void_nam || namConfig(), ampNames());
       src.changelog = src.changelog || S.payload.changelog || null;
       if (!src.config || !src.data) throw new Error("Incomplete project (missing config or data).");
-      S.payload = withImportedCollection(src); markDirty(true); rebuild(); toast("Project imported."); activate("library"); showLibraryTab("overview");
-    } catch (e) { alert("Could not import: " + e.message); }
+      S.payload = withImportedCollection(src); markDirty(true); rebuild();
+      logEvent("LIBRARY","Project import successful: "+file.name+"; artists="+Object.keys(S.payload.data).length+
+        ", native PRST snapshots="+S.payload.prst_imports.length+
+        ", collections="+S.payload.collections.length+"; autosave queued");
+      toast("Project imported."); activate("library"); showLibraryTab("overview");
+    } catch (e) { logEvent("LIBRARY","Project import failed: "+file.name+"; "+e.message,"ERROR"); alert("Could not import: " + e.message); }
   }
   function toast(m) { window.PMVoidDebug?.event("APP",m,/fail|error|blocked|could not/i.test(m)?"WARN":"INFO"); const t = $("#toast"); t.textContent = m; t.hidden = false; setTimeout(() => t.hidden = true, 2500); }
 
@@ -863,20 +951,25 @@
         const files = Array.from(e.target.files || []);
         e.target.value = "";
         try { await importNativeFiles(files); }
-        catch (err) { alert("PRST import blocked: " + err.message); }
+        catch (err) { logEvent("PRST","Import operation aborted: "+err.message,"ERROR"); alert("PRST import blocked: " + err.message); }
       });
       view.querySelector("#nativePrstList").addEventListener("click", (e) => {
         const remove = e.target.closest("[data-native-remove]");
         if (remove) {
           try { removeNative(Number(remove.dataset.nativeRemove)); }
-          catch (err) { alert(err.message); }
+          catch (err) { logEvent("PRST","Native removal failed: "+err.message,"ERROR"); alert(err.message); }
           return;
         }
         const down = e.target.closest("[data-native-download]");
         if (down) {
           const item = S.payload.prst_imports?.[Number(down.dataset.nativeDownload)];
-          if (item) download(item.filename || "preset.prst",
-            new Blob([Native().fromBase64(item.rawBase64)], {type:"application/octet-stream"}));
+          if (item) {
+            const bytes=Native().fromBase64(item.rawBase64);
+            const filename=item.filename||"preset.prst";
+            download(filename,new Blob([bytes],{type:"application/octet-stream"}));
+            logEvent("PRST","Original native download started: "+filename+
+              " ("+bytes.byteLength+" bytes, preserved without conversion; id="+item.id+")");
+          }
         }
       });
       if (!window.PMPRSTExportUI || typeof window.PMPRSTExportUI.mount !== "function")
@@ -1052,7 +1145,6 @@
       $("#pasteResult").textContent = "";
       $("#applyBtn").hidden = true; PENDING = null;
     });
-    $("#saveBtn").addEventListener("click",saveApp);
     $("#dlIndex").addEventListener("click", () => {
       if(!S.built)return;
       const variant=LIBRARY.find(t=>t.id==="overview")?._variant||DEFAULT_VARIANT;
@@ -1065,26 +1157,47 @@
     $("#collAdd").addEventListener("click", collAdd);
     $("#collNew").addEventListener("click", collNew);
     $("#collDelete").addEventListener("click", collDelete);
-    $("#exportZip").addEventListener("click", () => exportZip().catch((e) => alert("ZIP error: " + e.message)));
+    $("#exportZip").addEventListener("click", () => exportZip().catch((e) => {logEvent("LIBRARY","ZIP export failed: "+e.message,"ERROR");alert("ZIP error: " + e.message);}));
     $("#importBtn").addEventListener("click", () => $("#importFile").click());
     $("#importFile").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) importProject(f); e.target.value = ""; });
     document.addEventListener("click", (e) => {
       const ov = e.target.closest("button[data-ov]");
-      if (ov) { S.payload = PMEdit.removeOverride(S.payload, ov.dataset.ov, ov.dataset.ovw); markDirty(true); rebuild(); return; }
+      if (ov) {
+        S.payload=PMEdit.removeOverride(S.payload,ov.dataset.ov,ov.dataset.ovw);
+        markDirty(true);rebuild();
+        logEvent("LIBRARY","Removed override "+ov.dataset.ov+" in "+ov.dataset.ovw);
+        return;
+      }
       const rep = e.target.closest("button[data-crep]");
       if (rep) { const ci = +$("#collSel").value || 0; const ri = +rep.dataset.crep;
-        pickPreset("Replace slot " + (ri + 1), (ref) => { S.payload.collections[ci].refs[ri] = ref; markDirty(true); rebuild(); }); return; }
+        pickPreset("Replace slot "+(ri+1),(ref)=>{
+          const previous=S.payload.collections[ci].refs[ri];
+          S.payload.collections[ci].refs[ri]=ref;markDirty(true);rebuild();
+          logEvent("LIBRARY","Replaced "+S.payload.collections[ci].collection+" slot "+(ri+1)+
+            ": "+previous.join("/")+" -> "+ref.join("/"));
+        }); return; }
       const rem = e.target.closest("button[data-crem]");
       if (rem) { const ci = +$("#collSel").value || 0; const ri = +rem.dataset.crem;
         if (confirm("Remove this slot from the collection? (you can substitute it instead with Replace)")) {
-          S.payload.collections[ci].refs.splice(ri, 1); markDirty(true); rebuild();
+          const group=S.payload.collections[ci];
+          const previous=group.refs.splice(ri,1)[0];markDirty(true);rebuild();
+          logEvent("LIBRARY","Removed "+group.collection+" slot "+(ri+1)+
+            " reference "+previous.join("/")+"; underlying source preset untouched");
         } return; }
       const cup = e.target.closest("button[data-cup]");
       if (cup) { const ci = +$("#collSel").value || 0, ri = +cup.dataset.cup, r = S.payload.collections[ci].refs;
-        if (ri > 0) { const t = r[ri - 1]; r[ri - 1] = r[ri]; r[ri] = t; markDirty(true); rebuild(); } return; }
+        if (ri > 0) {
+          const t=r[ri-1];r[ri-1]=r[ri];r[ri]=t;markDirty(true);rebuild();
+          logEvent("LIBRARY","Moved collection "+S.payload.collections[ci].collection+
+            " slot "+(ri+1)+" to "+ri);
+        } return; }
       const cdn = e.target.closest("button[data-cdown]");
       if (cdn) { const ci = +$("#collSel").value || 0, ri = +cdn.dataset.cdown, r = S.payload.collections[ci].refs;
-        if (ri < r.length - 1) { const t = r[ri + 1]; r[ri + 1] = r[ri]; r[ri] = t; markDirty(true); rebuild(); } return; }
+        if (ri < r.length-1) {
+          const t=r[ri+1];r[ri+1]=r[ri];r[ri]=t;markDirty(true);rebuild();
+          logEvent("LIBRARY","Moved collection "+S.payload.collections[ci].collection+
+            " slot "+(ri+1)+" to "+(ri+2));
+        } return; }
       const sup = e.target.closest("button[data-sup]"); if (sup) { moveSong(sup.dataset.sup, -1); return; }
       const sdn = e.target.closest("button[data-sdown]"); if (sdn) { moveSong(sdn.dataset.sdown, 1); return; }
     });
