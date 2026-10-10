@@ -61,6 +61,9 @@ jobs:
           git add PocketMasterStudio.html tests/fixtures/sonicmaster_native_dsp_ref.clo.b64
           if ! git diff --cached --quiet; then
             git commit -m "build(nam-js): bundle compiled SonicMaster DSP and pinned offline reference DI"
+            # The HTML builder may also update local README/changelog baselines.
+            # Keep the built artifact commit, discard only leftover unstaged CI dirt.
+            git reset --hard HEAD
             git fetch origin feat/nam-js-only-dsp-20261010
             git rebase origin/feat/nam-js-only-dsp-20261010
             git push origin HEAD:feat/nam-js-only-dsp-20261010
