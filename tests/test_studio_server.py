@@ -2,11 +2,10 @@
 
 Run: python -m unittest discover -s tests -p test_studio_server.py -v
 """
-import json
 import threading
 import unittest
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 
 from tools.studio_server import BIND_HOST, HTML, ROOT, make_server
 
@@ -45,43 +44,12 @@ class StudioServerTests(unittest.TestCase):
     def test_private_config_and_other_repo_files_are_not_exposed(self):
         for path in ("/config/studio_state.json", "/config/nam_clone.json",
                      "/.git/config", "/README.md", "/tools/studio_server.py",
-                     "/../README.md", "/%2e%2e/README.md"):
+                     "/../README.md", "/%2e%2e/README.md",
+                     "/api/nam/convert", "/api/nam/availability"):
             with self.subTest(path=path), self.assertRaises(HTTPError) as ctx:
                 self.get(path)
             self.assertEqual(ctx.exception.code, 404)
             ctx.exception.close()  # Avoid ResourceWarning from retained HTTPError response
-
-    def test_nam_availability_reports_real_local_prerequisites(self):
-        with self.get("/api/nam/availability") as response:
-            obj = json.load(response)
-            self.assertIsInstance(obj["ready"], bool)
-            self.assertIn("requirements", obj)
-            self.assertIn("Rust DSP", obj["backend"])
-
-    def test_nam_endpoint_rejects_external_origins_and_wrong_content_types(self):
-        target = self.base + "/api/nam/convert"
-        outside = Request(target, data=b"{}", headers={
-            "Origin": "https://evil.example", "Content-Type": "application/x-nam"
-        }, method="POST")
-        with self.assertRaises(HTTPError) as error:
-            urlopen(outside, timeout=3)
-        self.assertEqual(error.exception.code, 403)
-        error.exception.close()
-        wrong = Request(target, data=b"{}", headers={
-            "Content-Type": "text/plain"
-        }, method="POST")
-        with self.assertRaises(HTTPError) as error:
-            urlopen(wrong, timeout=3)
-        self.assertEqual(error.exception.code, 415)
-        error.exception.close()
-
-    def test_cancel_unknown_job_has_no_side_effects(self):
-        target = self.base + "/api/nam/cancel?job=123e4567-e89b-42d3-a456-426614174000"
-        request = Request(target, data=b"", headers={
-            "Content-Type": "application/x-nam"
-        }, method="POST")
-        with urlopen(request, timeout=3) as response:
-            self.assertFalse(json.load(response)["cancel_requested"])
 
     def test_head_serves_only_html(self):
         from urllib.request import Request
