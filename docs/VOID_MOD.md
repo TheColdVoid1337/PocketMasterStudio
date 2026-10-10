@@ -157,3 +157,23 @@ This stage adds **direct upload of verified .clo profile files** to the pedal fr
 **Hardware status:** only software, golden frame parity and mocked ACK/commit/readback tests have passed. The feature is visibly marked experimental. Do not claim hardware success until a spare User Profile has been uploaded to and read back from a physical Pocket Master / Smart Box, ideally with power-cycle persistence and listening tests. Disable/disconnect PocketEdit's own device session while using this separate transfer interface. The physical backup/restore of existing profiles is not implemented.
 
 **Files:** `src/void_clone_protocol.js`, `src/void_clone_transport.js`, `src/void_clone_upload_ui.js`; the main NAM/Clone UI mounts the upload tool below slot mapping. Current `config/nam_clone.json` and `config/studio_state.json` schemas and existing installed NAM labels are preserved.
+
+
+## NAM/Clone — local native NAM-to-CLO converter (10 October 2026, stage 2)
+
+**Implementation:** The SonicMaster MIT Rust DSP core, pinned to upstream commit `a3059ccd0570640782d36bc0f08defc4fb428cd2`, is now vendored as `tools/nam_dsp/src/generator.rs`; `tools/nam_dsp/src/main.rs` reads standard WaveNet or a supported SlimmableContainer .nam JSON on stdin and emits a full 8840-byte VTSI .clo with SonicMaster's fixed DC-block biquad and a computed CRC16/MODBUS. The local server `tools/studio_server.py` delegates inference to the native executable in a subprocess; this does not freeze the browser UI. The reference 44.1 kHz DI must be fetched once from the exact SonicMaster commit and Git-blob SHA verified. It remains a private, ignored local asset and is never served over HTTP. Rust dependencies are build-time requirements; NO vendor binary/DLL is bundled.
+
+**Setup (the same OS that launches the local Python server):**
+```sh
+python tools/nam_dsp/fetch_reference.py
+cargo build --release --manifest-path tools/nam_dsp/Cargo.toml
+```
+Windows START.bat launches Windows Python, so it requires **Windows** Cargo/Rust and the Windows native executable, unless the user starts the Python server in WSL (in which case build the Linux executable in WSL). Do not run the Windows Python server with an ELF binary or vice versa.
+
+**User flow:** Choose `.nam` in NAM/Clone → `Convert NAM to CLO` (local computation, no pedal access) → inspect the resulting VTSI/CRC16 → `Download .clo` as a local backup → choose User Profile 1–5, connect pedal, explicitly confirm destructive overwrite, then send through the **existing** packet/ACK/commit/readback transport. Imported `.clo` still skips computation. Mapping and physical upload remain independent. `Cancel conversion` sends a process kill request to the server. Do not suggest any upload has happened merely because conversion succeeded.
+
+**Safety/security:** The HTTP server remains bound to 127.0.0.1; only `/api/nam/availability`, `/api/nam/convert`, and `/api/nam/cancel` are exposed in addition to its original standalone HTML. Requests use explicit same-origin and content-type gates. NAM max size is 32 MiB; concurrent native conversions are rejected. Conversion times out at 600 seconds. Generated output must match fixed layout and CRC before being offered for download or hardware upload. A failed Rust worker, missing prerequisites, cancelled job, invalid NAM or CLO never opens the hardware transfer gate. Private config/dumps remain blocked by the HTTP server.
+
+**Verification:** `node --test tests/*.cjs`, `python -m unittest discover -s tests -p 'test_studio_server.py' -v`, `cargo test --manifest-path tools/nam_dsp/Cargo.toml`. An optional CPU-intensive numerical parity check uses the exact upstream `ref_input.nam` and `golden_ref.clo`: `python -m unittest discover -s tests -p 'test_nam_dsp_golden.py' -v` after setup. Never conflate software/golden parity with verified physical flash writes. Do not assume untested formats will render correctly.
+
+**Status:** Source-integrated and local toolchain-dependent; actual native compilation, numerical parity and Chrome/hardware validation have not yet been independently confirmed by the user. The uploader remains experimental. Integration in Editor and a pure-browser Web Worker backend remain later tasks.
