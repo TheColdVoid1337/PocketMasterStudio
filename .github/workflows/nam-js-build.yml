@@ -38,6 +38,9 @@ jobs:
         run: node --test tests/*.cjs
       - name: Server security tests
         run: python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+      - name: Full 5-level numerical golden parity using compiled JS Workers
+        timeout-minutes: 12
+        run: node tools/nam_js/verify_golden.cjs
       - name: Commit generated JS and offline DI
         run: |
           git config user.name "github-actions[bot]"
