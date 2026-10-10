@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch the exact SonicMaster reference DI once; verify Git blob SHA before use.
+"""Fetch the pinned SonicMaster DI for JS-only offline HTML builds; verify Git SHA.
 
 This 12.348 MB asset is not committed into PocketMasterStudio and never served
 from the HTML server. Network access is required only for the first download.

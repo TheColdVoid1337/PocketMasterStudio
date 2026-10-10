@@ -1,0 +1,56 @@
+name: Build offline NAM JavaScript DSP
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Compile self-contained SonicMaster Web Worker
+        run: dart compile js tools/nam_js/worker.dart --output=src/assets/nam_dsp_worker.js -O3
+      - name: Download pinned reference DI and compress reproducibly
+        run: |
+          python3 tools/nam_js/fetch_reference.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip
+          source = Path("tools/nam_js/data/nam_reference_di_44100.f32")
+          target = Path("src/assets/nam_reference_di_44100.f32.gz")
+          target.write_bytes(gzip.compress(source.read_bytes(), compresslevel=9, mtime=0))
+          print(f"Offline DI gzip asset: {target.stat().st_size} bytes")
+          PY
+      - name: Assemble standalone HTML
+        run: node src/build_studio.js
+      - name: JavaScript regression tests
+        run: node --test tests/*.cjs
+      - name: Server security tests
+        run: python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+      - name: Full 5-level numerical golden parity using compiled JS Workers
+        timeout-minutes: 12
+        run: node tools/nam_js/verify_golden.cjs
+      - name: Confirm compiled output is embedded and native DSP is absent
+        run: |
+          node - <<'JS'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('PocketMasterStudio.html','utf8');
+          const js = fs.readFileSync('src/assets/nam_dsp_worker.js','utf8');
+          const prefix = 'window.PMNamDSPAssets = ';
+          const start = html.indexOf(prefix),end=html.indexOf(';\n</script>',start);
+          if(start<0||end<0)throw Error('Standalone NAM assets script missing');
+          const assets=JSON.parse(html.slice(start+prefix.length,end));
+          if(assets.workerJs!==js || assets.diGzipBase64.length<100000 ||
+             !html.includes('Browser NAM DSP inference/fitting in progress'))
+            throw Error('Standalone DSP bundle stale or reference DI missing');
+          const converter=fs.readFileSync('src/void_nam_converter.js','utf8');
+          if(converter.includes('/api/nam/convert') || converter.includes('application/x-nam'))
+            throw Error('Legacy local native conversion API is still present in runtime');
+          console.log('PASS: self-contained JS DSP, reference DI and source parity');
+          JS

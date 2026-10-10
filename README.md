@@ -24,7 +24,7 @@ dependencies. Open the file, use it, save it.
 
 ## 🕘 Recent changes
 
-_changes since 2026-09-04_
+_since the previous full export_
 
 _Baseline established: 61 artists, 260 songs, 455 presets._
 

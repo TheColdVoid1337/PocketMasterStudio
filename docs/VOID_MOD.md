@@ -177,3 +177,60 @@ Windows START.bat launches Windows Python, so it requires **Windows** Cargo/Rust
 **Verification:** `node --test tests/*.cjs`, `python -m unittest discover -s tests -p 'test_studio_server.py' -v`, `cargo test --manifest-path tools/nam_dsp/Cargo.toml`. An optional CPU-intensive numerical parity check uses the exact upstream `ref_input.nam` and `golden_ref.clo`: `python -m unittest discover -s tests -p 'test_nam_dsp_golden.py' -v` after setup. Never conflate software/golden parity with verified physical flash writes. Do not assume untested formats will render correctly.
 
 **Status:** Source-integrated and local toolchain-dependent; actual native compilation, numerical parity and Chrome/hardware validation have not yet been independently confirmed by the user. The uploader remains experimental. Integration in Editor and a pure-browser Web Worker backend remain later tasks.
+
+
+## NAM/Clone — JS-only offline DSP is canonical (10 October 2026)
+
+**This supersedes the earlier experimental Rust-local-backend stage described immediately above.**
+The user-facing `.nam` → `.clo` conversion no longer uses Rust, Cargo, a local
+Python conversion API, binary executable, network fetch, or any vendor DLL.
+`tools/studio_server.py` again serves only `PocketMasterStudio.html` on loopback:
+the Python launcher is an optional static-page convenience, not a DSP dependency.
+
+**Production DSP:** `tools/nam_js/clo_dsp.dart` is the exact MIT SonicMaster
+pure-Dart port at commit `a3059ccd0570640782d36bc0f08defc4fb428cd2`.
+At build time, Dart compiles `tools/nam_js/worker.dart` into standard
+`src/assets/nam_dsp_worker.js`. This output is embedded in the
+standalone HTML as a Blob Web Worker; the fully pinned 12,348,000-byte
+reference DI is SHA-verified, gzip-compressed, and also embedded into the
+same HTML. No Dart SDK is needed for normal users. `tools/nam_js/fetch_reference.py`
+and Dart are **maintainer-only release-build tools**; built JS/DI are checked in.
+All five WaveNet probes and the final Wiener–Hammerstein fit run outside the UI
+thread. Default concurrency is capped at four workers.
+
+**NAM/Clone workflow:** Select supported `.nam` → Convert NAM to CLO →
+Wait for five WaveNet probe levels + fitting (progress reported in Log/Debug) →
+verify native 8840-byte VTSI/CRC16/FIR layout → optionally Download `.clo`
+for backup → separately choose physical slot, connect pedal, accept overwrite
+and trigger upload through the existing 146-frame SysEx pipeline.
+Conversion and download never send any data to the pedal; installing the
+profile does not change logical Full Rig mapping. Existing `.clo` imports
+continue without conversion.
+
+**Verification (10 Oct 2026):** GitHub Actions compiled the real Dart DSP to
+JS and ran full five-level inference plus fitting through actual JS workers
+under Node.js using a pinned WaveNet NAM and the exact reference DI.
+All **2180/2180 float32 values** (gains, 128-tap pre-FIR, 2048-tap post-FIR)
+agreed exactly with an **independent SonicMaster Rust execution on the
+identical NAM and DI** (max absolute difference = 0); the 8840-byte format,
+CRC16, and fixed DC-blocker also passed. The independent native result is
+preserved as `tests/fixtures/sonicmaster_native_dsp_ref.clo.b64`, so routine
+JS-only CI can verify parity without Rust. The original upstream
+`golden_ref.clo` is from the *vendor* converter and must not be used as
+a bit-identical golden for SonicMaster's DSP fitting; it remains a valid
+file/protocol fixture.
+
+**Local regression checks (no Rust/Cargo/Dart):**
+```sh
+node --test tests/*.cjs
+python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+node tools/nam_js/verify_golden.cjs
+```
+Normal end users need only updated `PocketMasterStudio.html` in Chrome;
+the existing START.bat may still launch the loopback page server. The JS
+worker and DI are bundled; no first-run download is needed.
+
+**Remaining:** Physical USB/BLE acceptance on a replaceable Pocket Master
+User Profile, flash persistence/readback and listening/level comparison.
+No generated clone should be labeled as verified on-device before these
+manual checks. Later Editor integration is still deferred.

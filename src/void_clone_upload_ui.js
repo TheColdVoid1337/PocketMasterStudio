@@ -12,9 +12,9 @@
    '<p class="mut">Convert a supported WaveNet <code>.nam</code> locally to native <code>.clo</code>, or load a ready <code>.clo</code>; send it to User Profile 1–5 using USB-MIDI or BLE. ',
    'This overwrites the selected profile on the pedal. It does not change the modeled-AMP mapping above. ',
    'This tool cannot back up the existing physical slot. Disconnect the Editor before using this separate hardware connection, and overwrite only a replaceable profile.</p>',
-   '<p class="mut">NAM conversion runs the SonicMaster MIT Rust DSP on the local 127.0.0.1 server. ',
-   'It requires a separately built Rust executable and verified reference DI asset. ',
-   'Conversion does not touch the pedal. You can download the converted .clo before choosing to upload.</p>',
+   '<p class="mut">NAM conversion uses the SonicMaster MIT DSP compiled to offline JavaScript Web Workers. ',
+   'The bundled reference DI is verified at build time; no Rust/Cargo or server-side computation is needed. ',
+   'Conversion never touches the pedal. You can download the converted .clo before choosing to upload.</p>',
    '<div class="clone-upload-form">',
    '<label>1. File (.clo or .nam)</label>',
    '<input id="clone-file" type="file" accept=".clo,.nam">',
@@ -99,12 +99,17 @@
    try{
     const info=await C.availability();
     if(!info.ready)throw Error((info.requirements||[]).join("; ")||"Local DSP unavailable");
-    status("Starting native WaveNet inference + Wiener-Hammerstein fitting. No pedal writes.");
-    namJob=C.start(namText);
+    status("Starting browser WaveNet inference + Wiener-Hammerstein fitting. No pedal writes.");
+    namJob=C.start(namText,{onProgress:event=>{
+      if(event.stage==="probe-done")
+        status("WaveNet probe "+event.done+"/"+event.total+" completed (level "+event.level+"). No pedal write.");
+      else if(event.stage==="fit")
+        status("WaveNet probes completed. Running Wiener–Hammerstein fit in DSP Worker.");
+    }});
     const startAt=Date.now();
     ticker=setInterval(()=>{
      if(namJob)$("clone-upload-progress").textContent=
-       "Native NAM inference/fitting in progress ("+Math.floor((Date.now()-startAt)/1000)+
+       "Browser NAM DSP inference/fitting in progress ("+Math.floor((Date.now()-startAt)/1000)+
        " s elapsed; no pedal write)";
     },2000);
     updateButtons();
@@ -124,7 +129,7 @@
   $("clone-cancel").addEventListener("click",async()=>{
    if(!namJob)return;
    const job=namJob;
-   status("Requesting local NAM conversion cancellation","WARN");
+   status("Cancelling browser NAM Workers","WARN");
    await job.cancel();
   });
   $("clone-download").addEventListener("click",()=>{

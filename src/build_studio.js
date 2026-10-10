@@ -111,6 +111,21 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
+// Fully offline NAM conversion: compiled dart2js worker and pinned DI embedded
+// into the same HTML. No runtime Rust/Python DSP server and no network requests.
+const namWorkerPath = path.join(ASSETS, "nam_dsp_worker.js");
+const namDiPath = path.join(ASSETS, "nam_reference_di_44100.f32.gz");
+const namDiPlain = zlib.gunzipSync(fs.readFileSync(namDiPath));
+if(namDiPlain.byteLength !== 12348000) throw Error("Unexpected SonicMaster reference DI size");
+const namAssets = {
+  workerJs: rd(namWorkerPath),
+  diGzipBase64: fs.readFileSync(namDiPath).toString("base64"),
+  diSha256: require("node:crypto").createHash("sha256").update(namDiPlain).digest("hex"),
+};
+if(namAssets.workerJs.length < 1000) throw Error("dart2js NAM worker not compiled");
+const namAssetsScript = "<script>\nwindow.PMNamDSPAssets = " +
+  JSON.stringify(namAssets).replace(/</g,"\\u003c") + ";\n</script>";
+
 const modules = ["void_policy.js", "void_config_io.js", "void_clone_protocol.js", "void_clone_transport.js", "void_nam_converter.js", "void_clone_upload_ui.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
@@ -570,6 +585,7 @@ const html =
 ${BODY}
 <script type="text/plain" id="pm-payload">${blob}</script>
 <script type="text/plain" id="pm-editor">${editorBlob}</script>
+${namAssetsScript}
 ${modules}
 <script>${appJs}</script>
 ${prstScripts}

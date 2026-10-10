@@ -40,7 +40,7 @@ function livePrstBranch() {
   const end = app.indexOf('    if (id === "editor") return mountEditor(view, t);', start);
   assert.ok(start >= 0 && end > start, 'Could not locate real .prst Lab mount branch');
   return new Function('id', 'view', '$', '$$', 'window', 'renderNativeImports',
-    'importNativeFiles', 'removeNative', 'Native', 'download', 'S', 'alert', 'Blob',
+    'importNativeFiles', 'removeNative', 'Native', 'download', 'S', 'alert', 'Blob', 'logEvent',
     app.slice(start, end));
 }
 
@@ -86,7 +86,7 @@ test('opening .prst Lab initializes BOTH subtabs and usable import/download/remo
     index => { removed.push(index); },
     () => ({fromBase64: () => new Uint8Array([1,2,3])}),
     (filename, bytes) => { downloads.push({filename,bytes}); },
-    {payload:{prst_imports:nativeEntries}}, m=>errors.push(m),fakeBlob);
+    {payload:{prst_imports:nativeEntries}}, m=>errors.push(m),fakeBlob,()=>{});
 
   assert.equal(exporterMounts, 1, 'real .prst exporter not mounted');
   assert.equal(listRenders, 1, 'existing native records not rendered');
