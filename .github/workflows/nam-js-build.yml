@@ -3,6 +3,8 @@ on:
   push:
     branches: [feat/nam-js-only-dsp-20261010]
   workflow_dispatch:
+  pull_request:
+    branches: [main]
 permissions:
   contents: write
 jobs:
@@ -12,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           persist-credentials: true
       - uses: dart-lang/setup-dart@v1
         with:
