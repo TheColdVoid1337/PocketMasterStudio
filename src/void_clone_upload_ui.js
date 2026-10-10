@@ -1,24 +1,27 @@
 // NAM/Clone > Direct User Profile uploader (Sonicake USB-MIDI / BLE).
-// This is the direct .clo upload stage. WaveNet .nam DSP conversion is NOT enabled.
+// Real WaveNet .nam conversion uses the local SonicMaster Rust DSP; hardware upload remains explicit.
 (function(root,factory){
   if(typeof module==="object"&&module.exports)
-    module.exports=factory(require("./void_clone_protocol.js"),require("./void_clone_transport.js"));
-  else root.PMCloneUploadUI=factory(root.PMCloneProtocol,root.PMCloneTransport);
-})(typeof self!=="undefined"?self:this,function(P,T){
+    module.exports=factory(require("./void_clone_protocol.js"),require("./void_clone_transport.js"),require("./void_nam_converter.js"));
+  else root.PMCloneUploadUI=factory(root.PMCloneProtocol,root.PMCloneTransport,root.PMNamConverter);
+})(typeof self!=="undefined"?self:this,function(P,T,C){
  "use strict";
  function mount(host){
   host.innerHTML=[
    '<section class="clone-upload-card"><h3>Direct User Profile Upload (experimental)</h3>',
-   '<p class="mut">Send a validated Sonicake <code>.clo</code> capture to User Profile 1–5 using USB-MIDI or BLE. ',
+   '<p class="mut">Convert a supported WaveNet <code>.nam</code> locally to native <code>.clo</code>, or load a ready <code>.clo</code>; send it to User Profile 1–5 using USB-MIDI or BLE. ',
    'This overwrites the selected profile on the pedal. It does not change the modeled-AMP mapping above. ',
    'This tool cannot back up the existing physical slot. Disconnect the Editor before using this separate hardware connection, and overwrite only a replaceable profile.</p>',
-   '<p class="mut">Standard <code>.nam</code> requires a computational WaveNet → .clo conversion ',
-   '(reference DI + DSP fit). This independent conversion stage is not available in PocketMasterStudio yet. ',
-   'Selecting a NAM here checks architecture only and never writes it.</p>',
+   '<p class="mut">NAM conversion runs the SonicMaster MIT Rust DSP on the local 127.0.0.1 server. ',
+   'It requires a separately built Rust executable and verified reference DI asset. ',
+   'Conversion does not touch the pedal. You can download the converted .clo before choosing to upload.</p>',
    '<div class="clone-upload-form">',
    '<label>1. File (.clo or .nam)</label>',
    '<input id="clone-file" type="file" accept=".clo,.nam">',
    '<div id="clone-file-status" class="mut" role="status">No file selected</div>',
+   '<div class="clone-actions"><button type="button" id="clone-convert" disabled>Convert NAM to CLO</button>',
+   '<button type="button" id="clone-cancel" disabled>Cancel conversion</button>',
+   '<button type="button" id="clone-download" disabled>Download .clo</button></div>',
    '<label>2. Target physical User Profile</label>',
    '<select id="clone-target">',
    ...Array.from({length:5},(_,i)=>'<option value="'+i+'">User Profile '+(i+1)+'</option>'),
@@ -39,13 +42,16 @@
   ].join("");
   const $=id=>host.querySelector("#"+id);
   const log=(msg,level="INFO")=>window.PMVoidDebug?.event("NAM",msg,level);
-  let profile=null,connection=null,busy=false;
+  let profile=null,connection=null,busy=false,namText=null,namJob=null,downloadName='';
   const status=(text,level="INFO")=>{
    $("clone-upload-progress").textContent=text;
    log(text,level);
   };
   function updateButtons(){
    $("clone-upload").disabled=busy||!profile||!connection||!$("clone-confirm").checked;
+   $("clone-convert").disabled=busy||!namText;
+   $("clone-cancel").disabled=!namJob;
+   $("clone-download").disabled=busy||!profile;
    $("clone-device-connect").disabled=busy||Boolean(connection);
    $("clone-device-disconnect").disabled=busy||!connection;
    $("clone-file").disabled=busy;
@@ -55,21 +61,26 @@
   }
   $("clone-file").addEventListener("change",async()=>{
    const file=$("clone-file").files?.[0];
-   profile=null;$("clone-confirm").checked=false;
+   profile=null;namText=null;downloadName="";$("clone-confirm").checked=false;
    if(!file){$("clone-file-status").textContent="No file selected";updateButtons();return}
    try{
     const bytes=new Uint8Array(await file.arrayBuffer());
     if(/\.nam$/i.test(file.name)){
      const content=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
-     const meta=P.validateNam(content);
+     const meta=C.inspect(content);
+     namText=content;
+     downloadName=file.name.replace(/\.nam$/i,"")+".clo";
+     const nameCandidate=file.name.replace(/\.nam$/i,"").replace(/[^\x20-\x7E]/g,"").trim()||"NAM PROFILE";
+     $("clone-upload-name").value=P.sanitizedName(nameCandidate);
      $("clone-file-status").textContent=file.name+": "+meta.architecture+
-       " ("+meta.version+"). Conversion not yet integrated; no upload available.";
-     log("NAM inspected: "+file.name+", "+meta.architecture+
-       "; requires WaveNet DSP converter before the .clo upload stage","WARN");
+       " ("+meta.version+"). Ready to convert locally; no pedal write.";
+     log("NAM inspected: "+file.name+", architecture="+meta.architecture+
+       ", version="+meta.version+"; conversion available after local DSP setup");
     }else if(/\.clo$/i.test(file.name)){
      const meta=P.validateFile(bytes);profile=bytes;
      const base=file.name.replace(/\.clo$/i,"");
      $("clone-upload-name").value=P.sanitizedName(base);
+     downloadName=file.name;
      $("clone-file-status").textContent=file.name+": "+meta.bytesLength+
        " bytes, VTSI and CRC16 verified. Ready to choose target slot.";
      log("Loaded .clo file "+file.name+": "+meta.bytesLength+
@@ -80,6 +91,52 @@
     log("Failed to inspect "+file.name+": "+e.message,"ERROR");
    }
    updateButtons();
+  });
+  $("clone-convert").addEventListener("click",async()=>{
+   if(!namText||busy)return;
+   busy=true;$("clone-confirm").checked=false;
+   let ticker=null;
+   try{
+    const info=await C.availability();
+    if(!info.ready)throw Error((info.requirements||[]).join("; ")||"Local DSP unavailable");
+    status("Starting native WaveNet inference + Wiener-Hammerstein fitting. No pedal writes.");
+    namJob=C.start(namText);
+    const startAt=Date.now();
+    ticker=setInterval(()=>{
+     if(namJob)$("clone-upload-progress").textContent=
+       "Native NAM inference/fitting in progress ("+Math.floor((Date.now()-startAt)/1000)+
+       " s elapsed; no pedal write)";
+    },2000);
+    updateButtons();
+    profile=await namJob.promise;
+    const checked=P.validateFile(profile);
+    namText=null;
+    $("clone-file-status").textContent="Converted .clo: "+checked.bytesLength+
+      " bytes, VTSI/CRC16/FIR verified. Download or explicitly upload to the pedal.";
+    status("NAM conversion complete; generated "+checked.bytesLength+
+      "-byte CLO (CRC16 verified). Physical slot has NOT been changed.");
+   }catch(e){
+    const cancelled=e?.name==="AbortError"||/cancelled/i.test(e.message);
+    status(cancelled?"NAM conversion cancelled: no pedal write":
+      "NAM conversion FAILED: "+e.message,cancelled?"WARN":"ERROR");
+   }finally{if(ticker!==null)clearInterval(ticker);namJob=null;busy=false;updateButtons()}
+  });
+  $("clone-cancel").addEventListener("click",async()=>{
+   if(!namJob)return;
+   const job=namJob;
+   status("Requesting local NAM conversion cancellation","WARN");
+   await job.cancel();
+  });
+  $("clone-download").addEventListener("click",()=>{
+   if(!profile||busy)return;
+   const bytes=P.validateFile(profile).bytes;
+   const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
+   try{
+    const a=document.createElement("a");a.href=url;
+    a.download=downloadName||"Converted_NAM.clo";
+    document.body.appendChild(a);a.click();a.remove();
+    log("CLO download initiated: "+a.download+" ("+bytes.length+" bytes); browser manages file save");
+   }finally{setTimeout(()=>URL.revokeObjectURL(url),2000)}
   });
   $("clone-confirm").addEventListener("change",updateButtons);
   $("clone-target").addEventListener("change",()=>{
@@ -136,6 +193,7 @@
   });
   updateButtons();
   return {async dispose(){
+    if(namJob)await namJob.cancel();
     if(connection){await connection.disconnect();connection=null}
   }};
  }

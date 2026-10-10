@@ -106,14 +106,14 @@ test('commit with wrong name remains explicitly unverified',async()=>{
  assert.equal(result.status,'committed-unverified');
 });
 
-test('NAM/Clone mounts standalone guarded uploader, but NAM does not pretend to be converted',()=>{
+test('NAM/Clone mounts guarded converter and explicit uploader',()=>{
  const root=path.join(__dirname,'..');
  const html=fs.readFileSync(path.join(root,'PocketMasterStudio.html'),'utf8');
  const build=fs.readFileSync(path.join(root,'src/build_studio.js'),'utf8');
  const nam=fs.readFileSync(path.join(root,'src/void_nam_ui.js'),'utf8');
  const ui=fs.readFileSync(path.join(root,'src/void_clone_upload_ui.js'),'utf8');
  for(const p of ['src/void_clone_protocol.js','src/void_clone_transport.js',
-   'src/void_clone_upload_ui.js']){
+   'src/void_nam_converter.js','src/void_clone_upload_ui.js']){
    const js=fs.readFileSync(path.join(root,p),'utf8');
    assert.ok(html.includes(js),p+' is not in the standalone HTML');
  }
@@ -122,7 +122,7 @@ test('NAM/Clone mounts standalone guarded uploader, but NAM does not pretend to 
  assert.match(nam,/id="void-clone-transfer"/);
  assert.match(ui,/id="clone-confirm"/);
  assert.match(ui,/OVERWRITE User Profile/);
- assert.match(ui,/Standard <code>\.nam<\/code> requires/);
- assert.match(ui,/Conversion not yet integrated/);
+ assert.match(ui,/id="clone-convert"/);
+ assert.match(ui,/id="clone-download"/);
  assert.doesNotMatch(ui,/\/editor\/|mountEditor\(/);
 });
