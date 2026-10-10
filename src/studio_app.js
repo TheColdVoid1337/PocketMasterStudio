@@ -26,13 +26,14 @@
     if(version===revision)markDirty(false);
     if(namView)namView.status();
     window.PMVoidUI?.refresh();
+    window.PMVoidDebug?.event("CONFIG","Saved project config/*.json");
   }
   function changed(){
     markDirty(true);
     if(saveTimer)clearTimeout(saveTimer);
     if(IO.connected())saveTimer=setTimeout(()=>persistConfig().catch(e=>toast("Config save failed: "+e.message)),350);
   }
-  function applyNAM(config){S.payload.void_nam=Policy.normalize(config,ampNames());changed();rebuild()}
+  function applyNAM(config){S.payload.void_nam=Policy.normalize(config,ampNames());changed();rebuild();window.PMVoidDebug?.event("NAM","Updated NAM/Clone mapping");}
   function applyStored(loaded){
     if(!loaded)return false;
     if(loaded.state){
@@ -48,6 +49,7 @@
   async function connectFolder(){
     const saved=await IO.connect();
     window.PMVoidUI?.refresh();
+    window.PMVoidDebug?.event("CONFIG","Project folder connected");
     if(saved&&(saved.state||saved.nam)){
       if(S.dirty&&!confirm("Existing config found. Load saved project settings and replace unsaved changes?"))
         return;
@@ -162,6 +164,7 @@
     renderNativeImports();
     refreshMountedViews();
     markDirty(S.dirty);
+    window.PMVoidDebug?.event("BUILD","Regenerated "+b.total+" presets across "+b.artistCount+" artists ("+dt+" ms)","DEBUG");
   }
   function markDirty(d) {
     if(d) {revision++;if(saveTimer)clearTimeout(saveTimer);
@@ -180,12 +183,14 @@
     if (!t) return;
     const pane = $("#library-pane-" + id);
     if (!pane) throw Error("Missing Library pane: " + id);
-    if (id !== "overview" && id !== "manage" && !mountedLibrary.has(id)) {
+    if (id !== "manage" && !mountedLibrary.has(id)) {
       try {
         mountLibraryPane(id);
         mountedLibrary.add(id);
       } catch (e) {
-        pane.replaceChildren();
+        // Preserve the Overview status/import toolbar on a failed Listing mount.
+        if(id==="overview")$("#overview-listing")?.replaceChildren();
+        else pane.replaceChildren();
         console.error("Failed to open Library → " + t.label, e);
         toast("Could not open Library → " + t.label + ": " + (e?.message || String(e)));
         return;
@@ -199,6 +204,7 @@
     $$(".library-pane", $("#view-library")).forEach((p) => {
       p.hidden = p.id !== "library-pane-" + id;
     });
+    window.PMVoidDebug?.event("LIBRARY","Opened "+t.label);
   }
 
   // ---- PROMPT generation ----
@@ -219,6 +225,7 @@
     $("#promptOut").value = body;
     $("#promptOut").hidden = false;
     $("#copyPrompt").hidden = false;
+    window.PMVoidDebug?.event("STUDIO","Generated AI tone prompt for "+artist);
   }
   async function copyPrompt() {
     try { await navigator.clipboard.writeText($("#promptOut").value); $("#copyPrompt").textContent = "✓ Copied"; setTimeout(() => $("#copyPrompt").textContent = "Copy prompt", 1500); }
@@ -231,7 +238,8 @@
     const raw = $("#pasteBox").value.trim();
     const out = $("#pasteResult"); out.innerHTML = ""; PENDING = null; $("#applyBtn").hidden = true;
     if (!raw) return;
-    let json; try { json = JSON.parse(raw); } catch (e) { out.innerHTML = '<div class="err">Invalid JSON: ' + escH(e.message) + "</div>"; return; }
+    window.PMVoidDebug?.event("STUDIO","Analyzing pasted JSON");
+    let json; try { json = JSON.parse(raw); } catch (e) { out.innerHTML = '<div class="err">Invalid JSON: ' + escH(e.message) + "</div>"; window.PMVoidDebug?.event("STUDIO","Invalid JSON: "+e.message,"WARN"); return; }
     const fmt = PMEdit.detectFormat(json);
     if (fmt === "source") {
       // Source presets are Modeled-only; strip any NAM/Clone variants (their versions are auto-generated).
@@ -295,6 +303,7 @@
       try { regen(pl); } catch (e) { alert("Invalid: " + e.message); return; }
       S.payload = pl;
     }
+    window.PMVoidDebug?.event("STUDIO","Applied "+PENDING.kind+" JSON to the library");
     markDirty(true); rebuild();
     $("#pasteBox").value = ""; $("#pasteResult").innerHTML = '<div class="ok">✓ Incorporated and regenerated. Don\'t forget to <b>Save</b>.</div>';
     $("#applyBtn").hidden = true; PENDING = null;
@@ -645,6 +654,7 @@
     S.payload=trial;
     markDirty(true);rebuild();refreshNativeEditor();
     toast("Imported "+added+" native PRST preset"+(added===1?"":"s")+" into Imported collection.");
+    window.PMVoidDebug?.event("PRST","Imported "+added+" native PRST file(s); "+duplicates+" duplicate(s)");
   }
   function renderNativeImports(){
     const host=$("#nativePrstList");if(!host)return;
@@ -710,7 +720,7 @@
       S.payload = withImportedCollection(src); markDirty(true); rebuild(); toast("Project imported."); activate("library"); showLibraryTab("overview");
     } catch (e) { alert("Could not import: " + e.message); }
   }
-  function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; setTimeout(() => t.hidden = true, 2500); }
+  function toast(m) { window.PMVoidDebug?.event("APP",m,/fail|error|blocked|could not/i.test(m)?"WARN":"INFO"); const t = $("#toast"); t.textContent = m; t.hidden = false; setTimeout(() => t.hidden = true, 2500); }
 
   // ---- main views (Studio + embedded editor + live listings + docs) ----
   const MAIN = [
@@ -723,8 +733,7 @@
   ];
   // Previous listing generators and per-view controls remain unchanged.
   const LIBRARY = [
-    { id: "overview", label: "Overview" },
-    { id: "index", label: "Listing", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
+    { id: "overview", label: "Overview", variants: true, gen: (map, options) => PMHtml.buildIndex(map, options)["index.html"] },
     { id: "full", label: "Table", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
     { id: "map", label: "Map", variants: true, gen: (map) => PMMap.buildM50(map)["map_Best50.html"], printGen: (map) => PMMap.buildM50(map)["map_Best50_print.html"] },
     { id: "manage", label: "Manage" },
@@ -754,7 +763,7 @@
     if (se) { se.scrollTop = st.scroll; requestAnimationFrame(() => { try { se.scrollTop = st.scroll; } catch (e) {} }); }
   }
   const mounted = { studio: true, library: true };
-  const mountedLibrary = new Set(["overview", "manage"]);
+  const mountedLibrary = new Set(["manage"]);
   let activeMain = "studio";
   const tabHtml = (t) => '<span class="ic">' + t.icon + "</span>" + escH(t.label);
   function buildAppbar() {
@@ -801,6 +810,8 @@
     $$(".maintab, .mitem").forEach((b) => b.classList.toggle("on", b.dataset.main === t.id));
     $("#menuBtnLabel").innerHTML = tabHtml(t);
     $$("#views .view").forEach((v) => v.classList.toggle("active", v.id === "view-" + t.id));
+    if(typeof window!=="undefined")window.PMVoidDebug?.event("NAV","Opened "+t.label);
+    if(t.id==="library"&&!mountedLibrary.has("overview"))showLibraryTab("overview");
   }
   function mount(id) {
     const t = MAIN.find((x) => x.id === id);
@@ -884,6 +895,8 @@
     if (!t || !view) throw Error("Invalid Library pane: " + id);
     if (id === "docs") return mountDocs(view);
     if (!t.gen) throw Error("Missing Library generator: " + id);
+    const target = id === "overview" ? $("#overview-listing") : view;
+    if (!target) throw Error("Overview listing host is missing");
     const f = el("iframe", { class: "full", title: t.label });
     f.dataset.mode = "interactive";
     t._variant = t._variant || DEFAULT_VARIANT;
@@ -891,7 +904,7 @@
       const map = t.variants ? mapFor(t._variant) : S.built.jsonMap;
       const context = { variant: t._variant || "modeled" };
       f.srcdoc = (f.dataset.mode === "print" && t.printGen)
-        ? t.printGen(map) : id === "index" ? t.gen(map, context) : t.gen(map);
+        ? t.printGen(map) : id === "overview" ? t.gen(map, context) : t.gen(map);
     };
     t._render = render;
     // Re-render carrying over the current view (search/expanded/scroll); used on variant switch.
@@ -933,10 +946,10 @@
         b2.onclick = () => { f.dataset.mode = "print"; b2.classList.add("on"); b1.classList.remove("on"); render(); };
         grp2.appendChild(b1); grp2.appendChild(b2); bar.appendChild(grp2);
       }
-      view.appendChild(bar);
+      target.appendChild(bar);
       f.classList.add("hasbar");
     }
-    render(); view.appendChild(f); t._f = f;
+    render(); target.appendChild(f); t._f = f;
   }
   async function mountEditor(view, t) {
     const load = el("div", { class: "loading" }, "Loading editor…"); view.appendChild(load);
@@ -946,11 +959,16 @@
       // Escape </ so a stray sequence in the data can't close the editor's <script> when it parses.
       const lib = PMBuild.compactStringify(PMBuild.buildLibrary(S.built.jsonMap, S.built.namMap, S.built.mixedMap)).replace(/<\//g, "<\\/");
       html = html.replace(/(<script id="pm-library"[^>]*>)[\s\S]*?(<\/script>)/, (m, o, c) => o + lib + c);
+      // Install Editor forwarding before its original scripts; keep Editor's own log intact.
+      const hook = window.PMVoidDebug?.editorHook;
+      if(hook)html = html.replace(/<head([^>]*)>/i, tag => tag + "<script>" + hook + "<\/script>");
+      window.PMVoidDebug?.event("EDITOR","Opening embedded PocketEdit");
       const f = el("iframe", { class: "full", title: "Editor", referrerpolicy: "no-referrer" });
       if (t.allow) f.setAttribute("allow", t.allow);
       f.addEventListener("load", () => load.remove());
-      f.src = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       view.appendChild(f); t._f = f;
+      window.PMVoidDebug?.attachEditor(f);
+      f.src = URL.createObjectURL(new Blob([html], { type: "text/html" }));
     } catch (e) { load.textContent = "Error loading the editor: " + (e && e.message || e); }
   }
   function mountDocs(view) {
@@ -1020,6 +1038,7 @@
 
   // ---- init ----
   async function boot() {
+    window.PMVoidDebug?.init();
     buildAppbar();
     window.addEventListener("message", (ev) => { if (ev.data) editorBridge(ev.data); });
     $$("#view-library [data-library-pane]").forEach((t) =>
@@ -1034,7 +1053,12 @@
       $("#applyBtn").hidden = true; PENDING = null;
     });
     $("#saveBtn").addEventListener("click",saveApp);
-    $("#dlIndex").addEventListener("click", () => S.built && download("index.html", PMHtml.buildIndex(S.built.jsonMap)["index.html"], "text/html"));
+    $("#dlIndex").addEventListener("click", () => {
+      if(!S.built)return;
+      const variant=LIBRARY.find(t=>t.id==="overview")?._variant||DEFAULT_VARIANT;
+      download("index.html",PMHtml.buildIndex(mapFor(variant),{variant})["index.html"],"text/html");
+      window.PMVoidDebug?.event("LIBRARY","Downloaded "+variant+" Overview listing");
+    });
     $("#delBtn").addEventListener("click", doDelete);
     $("#dataFilter").addEventListener("input", (e) => filterSourceList(e.target.value));
     $("#collSel").addEventListener("change", renderCollections);

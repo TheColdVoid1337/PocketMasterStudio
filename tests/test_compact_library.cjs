@@ -76,7 +76,7 @@ test('Manage combines source and collections, while the Overview duplicate is re
   assert.match(builder,/manage-layout/);
   assert.match(app,/function filterSourceList\(query\)/);
   assert.match(app,/\$\("#dataFilter"\)\.addEventListener\("input"/);
-  assert.match(app,/id === "index" \? t\.gen\(map, context\)/);
+  assert.match(app,/id === "overview" \? t\.gen\(map, context\)/);
   assert.ok(html.includes(app),'Standalone HTML has outdated controller');
   assert.ok(html.includes(JSON.stringify(docs)),'Standalone HTML has outdated docs');
 });

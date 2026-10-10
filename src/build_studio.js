@@ -111,7 +111,7 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
-const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "void_ui.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
+const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
@@ -373,6 +373,36 @@ const CSS = String.raw`
  @media(max-width:1140px){.status-strip{order:3;width:100%;justify-content:flex-end;margin-top:4px}.appbar{flex-wrap:wrap}}
  @media(max-width:860px){.studio-columns,.manage-layout{grid-template-columns:minmax(0,1fr)}.manage-list{max-height:50vh;min-height:0}}
  @media(max-width:560px){.status-strip{justify-content:center;gap:4px}button.status-chip{padding:4px 6px;font-size:10px}.manage-part .slotrow{display:flex;flex-wrap:wrap;gap:4px;padding:5px 0}.manage-part .slotrow .lbl{flex:1 1 calc(100% - 34px)}.studio-workflow,.manage-wrap{padding:10px 8px 90px}.studio-step{padding:10px}}
+
+ .overview-header{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 16px;margin-bottom:6px}
+ .overview-header h2{margin:0;font-size:17px}.overview-header #stats{font-size:12px;line-height:1.4}
+ #panel-overview{margin:8px 10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+ #panel-overview .row{margin:5px 0;gap:6px}#panel-overview .row button{padding:5px 9px;min-height:29px;font-size:12px}
+ #panel-overview .overview-zip-help{font-size:11px;color:var(--mut);margin-top:5px}
+ #panel-overview .overview-zip-help summary{cursor:pointer}
+ .overview-listing{min-width:0;padding:0}
+ .overview-listing iframe.full{height:calc(100vh - 270px);min-height:320px;width:100%;border:0;background:#fff}
+ .overview-listing iframe.hasbar{height:calc(100vh - 315px)}
+ .overview-listing .docbar{padding:6px 10px}
+ .debug-fab{position:fixed;right:16px;bottom:67px;z-index:27;display:flex;gap:7px;align-items:center;border:1px solid var(--acc);border-radius:999px;background:var(--acc);color:white;box-shadow:0 4px 17px rgba(0,0,0,.28);padding:10px 15px;font-size:12px;font-weight:700;cursor:pointer;min-height:40px}
+ .debug-fab>span:first-child{font-size:18px;line-height:12px}
+ .debug-panel{position:fixed;right:15px;bottom:119px;width:min(640px,calc(100vw - 30px));height:min(65vh,570px);z-index:28;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:13px;box-shadow:0 9px 38px rgba(0,0,0,.45);overflow:hidden}
+ .debug-panel[hidden]{display:none!important}
+ .debug-head{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid var(--line)}
+ .debug-head b{font-size:14px}.debug-head .mut{font-size:11px;flex:1}
+ .debug-head button{font-size:20px;line-height:1;border:0;background:transparent;color:var(--ink);cursor:pointer}
+ .debug-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line)}
+ .debug-controls select{width:125px;min-width:100px}.debug-controls input[type=search]{width:auto;min-width:120px;flex:1}
+ .debug-controls select,.debug-controls input[type=search]{padding:6px 7px;min-height:31px;font-size:11.5px}
+ .debug-follow{display:flex;align-items:center;gap:5px;font-size:11px;white-space:nowrap;margin:0}
+ .debug-rows{flex:1;min-height:80px;overflow:auto;padding:5px 9px;background:var(--bg);font:11px/1.45 ui-monospace,Consolas,monospace}
+ .debug-line{display:grid;grid-template-columns:170px minmax(0,1fr);gap:7px;padding:3px 4px;border-bottom:1px solid var(--line);overflow-wrap:anywhere;white-space:pre-wrap}
+ .debug-when{font-size:10px;color:var(--mut)}
+ .debug-error .debug-when{color:var(--err)}.debug-warn .debug-when{color:var(--warn)}
+ .debug-footer{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line)}
+ .debug-footer button{padding:6px 8px;min-height:30px;font-size:11.5px}
+ .debug-status{font-size:11px;color:var(--mut);padding:0 10px 7px;line-height:1.3}
+ @media(max-width:680px){.debug-line{grid-template-columns:minmax(0,1fr)}.debug-when{font-size:10px}.debug-fab{bottom:65px;right:9px}.debug-panel{right:8px;width:calc(100vw - 16px);bottom:114px;height:min(63vh,540px)}.overview-listing iframe.full{height:65vh}}
 `;
 
 const BODY = String.raw`
@@ -424,7 +454,6 @@ const BODY = String.raw`
 <section class="view" id="view-library">
  <div class="tabs library-tabs" role="tablist" aria-label="Library views">
   <button class="tab on" type="button" role="tab" data-library-pane="overview" aria-selected="true" aria-controls="library-pane-overview">Overview</button>
-  <button class="tab" type="button" role="tab" data-library-pane="index" aria-selected="false" aria-controls="library-pane-index">Listing</button>
   <button class="tab" type="button" role="tab" data-library-pane="full" aria-selected="false" aria-controls="library-pane-full">Table</button>
   <button class="tab" type="button" role="tab" data-library-pane="map" aria-selected="false" aria-controls="library-pane-map">Map</button>
   <button class="tab" type="button" role="tab" data-library-pane="manage" aria-selected="false" aria-controls="library-pane-manage">Manage</button>
@@ -433,19 +462,19 @@ const BODY = String.raw`
  <section class="library-pane" id="library-pane-overview" role="tabpanel">
   <div class="wrap">
  <section class="panel" id="panel-overview">
-  <div id="stats">Loading…</div>
+  <div class="overview-header"><h2>Overview</h2><span id="stats">Loading…</span></div>
   <div class="row">
    <button id="exportZip">📦 Export ZIP (full structure)</button>
    <button id="importBtn">📥 Import project…</button>
    <button id="dlIndex">⬇️ index.html</button>
    <input id="importFile" type="file" accept=".zip,.json" hidden>
   </div>
-  <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
+  <details class="overview-zip-help"><summary>What is included in the project ZIP?</summary><div class="sub">The ZIP contains source data, generated Modeled and NAM presets, listings, PocketMasterStudio.html, and pocketmaster.source.json. Import accepts a project ZIP or source JSON.</div></details>
  </section>
+ <div id="overview-listing" class="overview-listing" aria-label="Preset listing"></div>
 
   </div>
  </section>
- <section class="library-pane" id="library-pane-index" role="tabpanel" hidden></section>
  <section class="library-pane" id="library-pane-full" role="tabpanel" hidden></section>
  <section class="library-pane" id="library-pane-map" role="tabpanel" hidden></section>
  <section class="library-pane" id="library-pane-manage" role="tabpanel" hidden>
@@ -480,6 +509,18 @@ const BODY = String.raw`
 </section>
 </div>
 
+<button id="globalLogToggle" class="debug-fab" type="button" aria-label="Open Log / Debug" aria-expanded="false" aria-controls="globalLogPanel"><span aria-hidden="true">≡</span><span>Log / Debug</span></button>
+<section id="globalLogPanel" class="debug-panel" role="dialog" aria-label="Application Log and Debug" hidden>
+ <div class="debug-head"><b>Log / Debug</b><span id="globalLogCount" class="mut">0 entries</span><button id="globalLogClose" type="button" aria-label="Close log">×</button></div>
+ <div class="debug-controls">
+  <select id="globalLogLevel" aria-label="Filter severity"><option value="ALL">All levels</option><option value="INFO">Info</option><option value="WARN">Warnings</option><option value="ERROR">Errors</option><option value="DEBUG">Debug</option></select>
+  <input type="search" id="globalLogSearch" placeholder="Search events…" aria-label="Search debug entries" autocomplete="off">
+  <label class="debug-follow"><input id="globalLogFollow" type="checkbox" checked> Follow</label>
+ </div>
+ <div id="globalLogRows" class="debug-rows" role="log" aria-live="off"></div>
+ <div class="debug-footer"><button type="button" id="globalLogSave" class="primary">Save to logs/</button><button type="button" id="globalLogDownload">Download .log</button><button type="button" id="globalLogClear">Clear</button></div>
+ <div id="globalLogExportStatus" class="debug-status" role="status"></div>
+</section>
 <div id="startupDialog" class="startup-backdrop" hidden>
  <div class="startup-card" role="dialog" aria-modal="true" aria-labelledby="startupTitle" aria-describedby="startupBody">
   <div class="startup-head"><span class="status-led"></span><h2 id="startupTitle">Information</h2></div>

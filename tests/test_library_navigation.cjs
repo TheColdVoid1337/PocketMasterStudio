@@ -16,7 +16,7 @@ test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Settings'
   const lib=app.match(/  const LIBRARY = \[([\s\S]*?)\];/)?.[1];
   assert.ok(lib,'missing Library pane definitions');
   assert.deepEqual([...lib.matchAll(/id: "([^"]+)"/g)].map(x=>x[1]),
-    ['overview','index','full','map','manage','docs']);
+    ['overview','full','map','manage','docs']);
   const studio=html.match(/id="view-studio"([\s\S]*?)id="view-library"/)?.[1];
   assert.ok(studio);
   for(const id of ['panel-prompt','panel-paste'])
@@ -27,12 +27,13 @@ test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Settings'
     assert.match(html,new RegExp('id="'+id+'"'));
   }
   assert.doesNotMatch(html,/id="preview"/);
-  assert.doesNotMatch(html,/data-tab="overview"/);
-  const overview=html.match(/id="library-pane-overview"([\s\S]*?)id="library-pane-index"/)?.[1];
+  assert.doesNotMatch(html,/data-tab="overview"|data-library-pane="index"/);
+  assert.match(html,/id="overview-listing"/);
+  const overview=html.match(/id="library-pane-overview"([\s\S]*?)id="library-pane-full"/)?.[1];
   assert.ok(overview,'Overview not hosted under Library');
   for(const id of ['stats','exportZip','importBtn','dlIndex'])
     assert.match(overview,new RegExp('id="'+id+'"'));
-  for(const [id,label] of [['overview','Overview'],['index','Listing'],['full','Table'],['map','Map'],['manage','Manage'],['docs','Docs']]){
+  for(const [id,label] of [['overview','Overview'],['full','Table'],['map','Map'],['manage','Manage'],['docs','Docs']]){
     assert.match(html,new RegExp('data-library-pane="'+id+'"[^>]*>'+label+'</button>'));
     assert.match(html,new RegExp('id="library-pane-'+id+'"'));
   }
@@ -73,13 +74,13 @@ test('Library tabs lazily mount once, preserve views and retry failures',()=>{
   };
   const mounted=new Set(['overview']),mountCount={},errors=[];
   const show=new Function('$','$$','LIBRARY','mountedLibrary',
-    'mountLibraryPane','toast','console',
+    'mountLibraryPane','toast','console','window',
     app.slice(start,end)+'\nreturn showLibraryTab;')(
       $, $$, ['overview','index','full','map'].map(id=>({id,label:id})),
       mounted,id=>{
         mountCount[id]=(mountCount[id]||0)+1;
         if(id==='map'&&mountCount[id]===1)throw Error('temporary test failure');
-      },e=>errors.push(e),{error(){}});
+      },e=>errors.push(e),{error(){}},{PMVoidDebug:{event(){}}});
   show('index');
   assert.equal(mountCount.index,1);
   assert.equal(panes[1].hidden,false);

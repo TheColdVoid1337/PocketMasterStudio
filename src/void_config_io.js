@@ -6,7 +6,7 @@
 })(typeof self!=="undefined"?self:this,function(){
 "use strict";
 const STATE_NAME="studio_state.json",NAM_NAME="nam_clone.json",DB="pm-void-config-handles";
-let folder=null, projectName="",queue=Promise.resolve();
+let folder=null, rootFolder=null, projectName="",queue=Promise.resolve();
 const available=()=>typeof window!=="undefined"&&typeof window.showDirectoryPicker==="function";
 async function dbOpen(){
  return new Promise((resolve,reject)=>{
@@ -41,6 +41,7 @@ async function grant(handle,interactive){
 async function openFolder(handle,interactive=false){
  if(!await grant(handle,interactive))return false;
  folder=await handle.getDirectoryHandle("config",{create:true});
+ rootFolder=handle;
  projectName=handle.name||"project";
  return true;
 }
@@ -83,7 +84,22 @@ async function save(data){
  queue=queue.catch(()=>{}).then(perform);
  return queue;
 }
-const connected=()=>!!folder;
+// Explicit debug exports use the already-authorized project root.
+ // Never serve or auto-upload logs, and never overwrite an existing log file.
+ const LOG_NAME=/^PocketMasterStudio_debug_\d{8}_\d{6}_[a-z0-9]{6}\.log$/;
+ async function saveLog(filename,body){
+   if(!rootFolder||!folder)throw Error("Connect project folder first to save logs/");
+   if(!LOG_NAME.test(filename))throw Error("Invalid debug log filename");
+   if(typeof body!=="string")throw Error("Debug log must be text");
+   const dir=await rootFolder.getDirectoryHandle("logs",{create:true});
+   try{await dir.getFileHandle(filename);throw Error("Log filename already exists; export again");}
+   catch(e){if(e.name!=="NotFoundError")throw e;}
+   const file=await dir.getFileHandle(filename,{create:true});
+   const writer=await file.createWritable();
+   try{await writer.write(body);}finally{await writer.close();}
+   return "logs/"+filename;
+ }
+ const connected=()=>!!folder;
 const location=()=>connected()?projectName+"/config/":"not connected";
-return Object.freeze({available,connected,location,restore,connect,load,save,STATE_NAME,NAM_NAME});
+return Object.freeze({available,connected,location,restore,connect,load,save,saveLog,STATE_NAME,NAM_NAME});
 });

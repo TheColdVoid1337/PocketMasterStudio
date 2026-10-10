@@ -1,5 +1,7 @@
 # Local Void's MOD state: browser-owned, not part of the distributable app.
 /config/
+# Browser-exported debug logs may contain local device/preset details.
+/logs/
 /.venv/
 /node_modules/
 __pycache__/
