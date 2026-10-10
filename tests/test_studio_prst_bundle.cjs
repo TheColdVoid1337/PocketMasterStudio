@@ -43,7 +43,7 @@ test('Void MOD policy is embedded before the live PMBuild module', () => {
 });
 
 test('Void MOD v0.4.1 includes NAM tab, static app and detached config storage',()=>{
- const files=['src/void_policy.js','src/void_config_io.js','src/void_nam_ui.js','src/prst_studio_ui.js'];
+ const files=['src/void_policy.js','src/void_config_io.js','src/void_nam_ui.js','src/void_ui.js','src/prst_studio_ui.js'];
  for(const file of files){
   const code=fs.readFileSync(path.join(root,file),'utf8');
   assert.ok(scripts.some(x=>x.includes(code)),file+' is stale inside compiled HTML');

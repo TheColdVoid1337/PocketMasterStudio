@@ -8,23 +8,23 @@ const app=fs.readFileSync(path.join(root,'src/studio_app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'PocketMasterStudio.html'),'utf8');
 const builder=fs.readFileSync(path.join(root,'src/build_studio.js'),'utf8');
 
-test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Docs',()=>{
+test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Settings',()=>{
   const main=app.match(/  const MAIN = \[([\s\S]*?)\];/)?.[1];
   assert.ok(main,'missing MAIN routes');
   assert.deepEqual([...main.matchAll(/id: "([^"]+)"/g)].map(x=>x[1]),
-    ['studio','editor','library','nam','prst','docs']);
+    ['studio','editor','library','nam','prst','settings']);
   const lib=app.match(/  const LIBRARY = \[([\s\S]*?)\];/)?.[1];
   assert.ok(lib,'missing Library pane definitions');
   assert.deepEqual([...lib.matchAll(/id: "([^"]+)"/g)].map(x=>x[1]),
-    ['overview','index','full','map']);
+    ['overview','index','full','map','manage','docs']);
   const studio=html.match(/id="view-studio"([\s\S]*?)id="view-library"/)?.[1];
   assert.ok(studio);
-  for(const id of ['panel-prompt','panel-paste','panel-manage'])
+  for(const id of ['panel-prompt','panel-paste'])
     assert.match(studio,new RegExp('id="'+id+'"'));
-  assert.doesNotMatch(studio,/id="panel-overview"/);
+  assert.doesNotMatch(studio,/id="panel-overview"|id="panel-manage"/);
   assert.doesNotMatch(studio,/data-tab="data"|data-tab="collections"/);
   for(const id of ['dataFilter','dataList','collSel','collBody','delBtn','collAdd']){
-    assert.match(studio,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('id="'+id+'"'));
   }
   assert.doesNotMatch(html,/id="preview"/);
   assert.doesNotMatch(html,/data-tab="overview"/);
@@ -32,7 +32,7 @@ test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Docs',()=
   assert.ok(overview,'Overview not hosted under Library');
   for(const id of ['stats','exportZip','importBtn','dlIndex'])
     assert.match(overview,new RegExp('id="'+id+'"'));
-  for(const [id,label] of [['overview','Overview'],['index','Listing'],['full','Table'],['map','Map']]){
+  for(const [id,label] of [['overview','Overview'],['index','Listing'],['full','Table'],['map','Map'],['manage','Manage'],['docs','Docs']]){
     assert.match(html,new RegExp('data-library-pane="'+id+'"[^>]*>'+label+'</button>'));
     assert.match(html,new RegExp('id="library-pane-'+id+'"'));
   }
@@ -41,29 +41,13 @@ test('top-level menu is Studio, Editor, Library, NAM/Clone, .prst Lab, Docs',()=
   assert.match(app,/for \(const t of LIBRARY\) if \(t\._render/);
 });
 
-test('Studio tab switcher is scoped and cannot deactivate Library / PRST Lab controls',()=>{
-  const start=app.indexOf('  function showTab(id) {');
-  const end=app.indexOf('  function showLibraryTab(id) {',start);
-  assert.ok(start>=0&&end>start);
-  const studioTabs=['prompt','data'].map(tab=>({
-    dataset:{tab},active:tab==='prompt',attrs:{},
-    classList:{toggle(k,v){if(k==='on')this.active=v;}},
-    setAttribute(k,v){this.attrs[k]=v;}
-  }));
-  const studioPanels=['prompt','data'].map(id=>({id:'panel-'+id,hidden:id!=='prompt'}));
-  const unrelated={active:true};
-  const $$=selector=>{
-    if(selector==='#view-studio [data-tab]')return studioTabs;
-    if(selector==='#view-studio .panel')return studioPanels;
-    throw Error('Unexpected global query: '+selector);
-  };
-  const show=new Function('$$',app.slice(start,end)+'\nreturn showTab;')($$);
-  show('data');
-  assert.equal(studioTabs[1].classList.active,true);
-  assert.equal(studioTabs[0].classList.active,false);
-  assert.equal(studioPanels[1].hidden,false);
-  assert.equal(studioPanels[0].hidden,true);
-  assert.equal(unrelated.active,true);
+test('Studio is one page with prompt and JSON controls',()=>{
+  const studio=html.match(/id="view-studio"([\s\S]*?)id="view-library"/)?.[1];
+  assert.ok(studio);
+  for(const id of ['pArtist','pSongs','genPrompt','copyPrompt','promptOut','pasteBox','analyzeBtn','applyBtn','clearPasteBtn'])
+    assert.match(studio,new RegExp('id="'+id+'"'));
+  assert.doesNotMatch(studio,/data-tab=/);
+  assert.doesNotMatch(app,/function showTab\(/);
 });
 
 test('Library tabs lazily mount once, preserve views and retry failures',()=>{

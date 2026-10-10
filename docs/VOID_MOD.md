@@ -111,3 +111,17 @@ The main navigation is now **Studio → Editor → Library → NAM/Clone → .pr
 - A source deletion is different from removing or reordering a collection reference. All existing edit operations, collection slot mappings, Imported archive records and persistence rules are unchanged.
 - **Library → Listing** now labels each preset **Modeled**, **NAM**, or **Modeled fallback**, and displays the active NAM capture name for Clone presets. Only configured and confirmed Full Rig mappings enable Clone; no NAM is guessed. **Clone/NAM and Mixed are currently identical automatic conversion modes** by policy, so the interface explicitly says when they produce the same data. Existing variant controls are retained.
 - Source/collection lists, preset picker and imported archive rows use denser readable styling. Listing, Table, and Map are compact; Table still offers all parameters, while Map entries now start collapsed (search reveals matching details). These are presentation changes and do not update the user's `config/` files.
+
+### Navigation, startup QOL and compact lists (Void's MOD v0.4.1 UX follow-up)
+
+**Main menu:** Studio → Editor → Library → NAM/Clone → .prst Lab → Settings. **Library** now holds Overview, Listing, Table, Map, Manage, **Docs** (last). No underlying source data, collection references or native .prst snapshots are migrated or deleted.
+
+**Studio** is a single two-step AI Tone Studio: (1) describe tones and generate/copy an AI prompt; (2) paste, analyze, and explicitly apply validated source/pedal JSON. The Editor's "Export as Override" continues to send preset JSON to the same Studio paste box. The existing add/update/override validation pipeline has not changed.
+
+**Library → Manage** contains the same source data and collection editor side by side on desktop and stacked on narrower screens. All previous actions remain available. A source deletion affects project data; removing a preset from a collection only edits that collection's reference. Selectable artist and song rows now use consistent compact checkboxes; source searches do not change their data.
+
+**Settings** has preferences for startup browser information, disconnected-folder reminders, and compact/comfortable list density. These are stored only under browser-local key `pm-void-ui-v1` (per origin), not inside `config/studio_state.json`. Checking "do not show" in each startup notice disables only that type of notice; Settings can restore either. An authorized project folder can now be connected from the startup notice or Settings, not just NAM/Clone. No File System Access permission is requested until a genuine user click.
+
+The header reports **Server ONLINE/OFFLINE** (the page was served over HTTP(S), not a heartbeat), **Folder Connected/Disconnected** (actual File System Access connection state), and **Compatible Browser/Browser Limited** (the required browser APIs). Click a status indicator to open Settings. Startup notices are informational, not blockers. If the folder is unconnected, edits may be downloaded as backups but cannot be persisted until a folder is authorized.
+
+**Readability:** the app consistently constrains checkbox sizing, uses compact source and collection rows and preset picking, and preserves Listing, Table and Map details. Compact is default and can be switched to Comfortable in Settings. These are UI presentation changes, not preset processing changes.

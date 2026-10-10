@@ -111,7 +111,7 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
-const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
+const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "void_ui.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
@@ -306,6 +306,73 @@ const CSS = String.raw`
   .view iframe.full{height:calc(100vh - 86px)} iframe.hasbar{height:calc(100vh - 90px)}
   .docsview{height:calc(100vh - 86px)}
  }
+
+ /* Global checkboxes must never inherit the 100%-wide input text rule. */
+ input[type="checkbox"],input[type="radio"]{width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;min-height:16px!important;max-height:16px!important;flex:0 0 16px!important;margin:0!important;padding:0!important;accent-color:var(--acc)}
+ .chk,.chk2,.setting-line{width:auto;min-width:0;margin:0;line-height:1.3}
+ #pTypes .chk2{display:inline-flex;align-items:center;gap:6px;padding:4px 7px;border:1px solid var(--line);border-radius:6px;background:var(--card2);font-size:12px}
+ .studio-workflow{max-width:1380px;padding-top:16px}
+ .studio-heading{display:flex;align-items:baseline;gap:7px 18px;flex-wrap:wrap;margin-bottom:13px}
+ .studio-heading h2{font-size:19px;margin:0}.studio-heading p{font-size:12px;color:var(--mut);margin:0}
+ .studio-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+ .studio-step{min-width:0;padding:15px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+ .step-heading{display:flex;gap:9px;align-items:start;margin-bottom:11px}
+ .step-heading h3{margin:0;font-size:15px}.step-heading p{margin:3px 0 0;font-size:12px;color:var(--mut)}
+ .step-num{display:grid;place-items:center;flex:0 0 26px;height:26px;background:var(--acc);border-radius:7px;color:#fff;font-size:13px;font-weight:800}
+ .studio-step>label{display:block;font-size:12px;font-weight:600;margin:10px 0 4px}
+ .studio-step .chk2{margin:0}
+ .studio-step input:not([type=checkbox]),.studio-step select,.studio-step textarea{font-size:13px;padding:8px 10px}
+ .studio-step textarea{line-height:1.5;resize:vertical;min-height:80px}
+ .studio-step #pasteBox{min-height:220px;font:12px/1.5 ui-monospace,Consolas,monospace}
+ .studio-step #promptOut{min-height:170px;font:12px/1.5 ui-monospace,Consolas,monospace}
+ .studio-step .generated-caption:has(+ textarea[hidden]){display:none}
+ .studio-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 6px}
+ .studio-actions button{padding:7px 12px;min-height:36px;font-size:13px}
+ .studio-hint{padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card2);font-size:11.5px;color:var(--mut)}
+ .manage-wrap{max-width:1480px}.manage-layout{gap:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ #panel-manage{max-width:none;width:100%}
+ .manage-part{padding:9px;min-width:0;overflow:hidden}
+ .manage-list{max-height:calc(100vh - 250px);min-width:0}
+ #dataList details.art{margin:0 0 3px;padding:0 6px}
+ #dataList details.art summary{padding:4px 1px;display:flex;align-items:center;gap:5px;min-width:0}
+ #dataList summary .chk{flex:1;min-width:0;display:flex;align-items:center;gap:5px;margin:0;padding:0;white-space:normal}
+ #dataList .song{padding:3px 0}#dataList .songhead{min-width:0;gap:3px}
+ #dataList .songhead .chk{flex:1;min-width:0;margin:0;gap:5px;padding:2px 1px;font-size:11.5px;line-height:1.25}
+ #dataList .chk.sub{display:flex;gap:5px;margin:0;padding:2px 0 2px 18px;font-size:11px;line-height:1.25}
+ #dataList .songhead button.mini{padding:3px 6px;min-height:24px;flex:0 0 auto}
+ #dataList .mut{font-size:10.5px;overflow-wrap:anywhere}
+ .manage-part .slotrow{display:grid;grid-template-columns:24px minmax(0,1fr) repeat(4,max-content);align-items:center;gap:4px;padding:4px 0;min-width:0}
+ .manage-part .slotrow .lbl{min-width:0;font-size:11.5px;overflow-wrap:anywhere;line-height:1.25}
+ .manage-part .slotrow .mut{font-size:10px}
+ .manage-part .slotrow button.mini{min-height:25px;padding:3px 5px;font-size:10.5px}
+ .manage-part .manage-toolbar{gap:5px;margin:5px 0}.manage-part .manage-toolbar button{min-height:29px;padding:4px 8px}
+ #pickList .pick{padding:5px 8px;margin-bottom:2px;min-height:0}#pickList .pick .mut{display:inline;margin-left:6px}
+ .void-wrap{max-width:1050px;padding:12px 14px 85px}.void-slots{gap:9px;margin-top:9px}.void-slot{padding:11px}
+ .prst-lab-wrap{padding-top:12px}.prst-lab-tabs{margin:10px 0 12px}.prst-pane .ovbox{padding:12px}
+ .status-strip{display:flex;align-items:center;gap:5px;margin-left:auto;flex:0 0 auto}
+ button.status-chip{display:inline-flex;gap:6px;align-items:center;justify-content:center;background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--mut);font-size:10.5px;min-height:29px;padding:5px 7px;white-space:nowrap}
+ .status-led{display:block;width:7px;height:7px;min-width:7px;border-radius:50%;background:var(--err);box-shadow:0 0 0 2px rgba(255,111,111,.1)}
+ [data-state="good"]>.status-led{background:var(--ok);box-shadow:0 0 0 2px rgba(62,207,154,.12)}
+ button.status-chip:hover{border-color:var(--acc)}
+ .settings-wrap{max-width:780px;padding:18px 14px 95px}.settings-wrap h2{font-size:19px;margin:0 0 5px}
+ .settings-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px;margin:11px 0}
+ .settings-card h3{font-size:14px;margin:0 0 10px}
+ .setting-line{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;padding:7px 0}
+ .settings-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.settings-actions button{font-size:12px;padding:7px 10px;min-height:35px}
+ .startup-backdrop{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.68);display:flex;align-items:center;justify-content:center;padding:18px}
+ .startup-backdrop[hidden]{display:none!important}
+ .startup-card{width:min(100%,480px);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 16px 60px rgba(0,0,0,.42)}
+ .startup-head{display:flex;gap:9px;align-items:center}.startup-head h2{font-size:18px;margin:0}
+ .startup-card p{font-size:13px;line-height:1.55;margin:13px 0}
+ .startup-card .startup-choice{font-size:12px;color:var(--mut);margin-top:12px}
+ .startup-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+ .startup-actions button{min-height:36px;padding:7px 12px;font-size:13px}.startup-error{color:var(--err);font-weight:600}
+ html[data-density="comfortable"] .manage-part .slotrow{padding:9px 0}
+ html[data-density="comfortable"] #dataList .song{padding:9px 0}
+ html[data-density="comfortable"] #pickList .pick{padding:11px 12px}
+ @media(max-width:1140px){.status-strip{order:3;width:100%;justify-content:flex-end;margin-top:4px}.appbar{flex-wrap:wrap}}
+ @media(max-width:860px){.studio-columns,.manage-layout{grid-template-columns:minmax(0,1fr)}.manage-list{max-height:50vh;min-height:0}}
+ @media(max-width:560px){.status-strip{justify-content:center;gap:4px}button.status-chip{padding:4px 6px;font-size:10px}.manage-part .slotrow{display:flex;flex-wrap:wrap;gap:4px;padding:5px 0}.manage-part .slotrow .lbl{flex:1 1 calc(100% - 34px)}.studio-workflow,.manage-wrap{padding:10px 8px 90px}.studio-step{padding:10px}}
 `;
 
 const BODY = String.raw`
@@ -314,46 +381,76 @@ const BODY = String.raw`
  <div class="maintabs" id="maintabs"></div>
  <button class="menuBtn" id="menuBtn" aria-expanded="false" aria-haspopup="true"><span id="menuBtnLabel"></span><span class="caret">▾</span></button>
  <div class="menu" id="menu"></div>
+ <div class="status-strip" role="group" aria-label="Connection status">
+  <button type="button" id="statusServer" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Server OFFLINE</span></button>
+  <button type="button" id="statusFolder" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Folder Disconnected</span></button>
+  <button type="button" id="statusBrowser" class="status-chip" data-state="bad"><span class="status-led"></span><span class="status-text">Browser Limited</span></button>
+ </div>
 </div>
-<div id="compat" class="warn" hidden></div>
 <div id="views">
 <section class="view active" id="view-studio">
- <div class="note">⚠️ To connect the pedal (<b>Editor</b> tab) and to save, you need <b>Chrome</b>, <b>Edge</b> or <b>Opera</b> (Chromium with Web Bluetooth), on desktop or Android. Safari/Firefox won't work.</div>
- <div class="tabs">
- <button class="tab on" data-tab="prompt" aria-selected="true">AI Prompt</button>
- <button class="tab" data-tab="paste">Paste JSON</button>
- <button class="tab" data-tab="manage">Manage</button>
-</div>
-<div class="wrap">
- <section class="panel" id="panel-prompt">
-  <p class="mut">Fill in and generate a prompt to paste into any AI chat (ChatGPT, Claude, Gemini…). Ask it for the <b>source JSON</b> (<code>data/&lt;Artist&gt;.json</code>), then paste the result in the <b>Paste JSON</b> tab.</p>
-  <label>Artist</label><input id="pArtist" placeholder="e.g. The Police">
-  <label>Preset types (default: all)</label>
-  <div class="checks" id="pTypes">
-   <label class="chk2"><input type="checkbox" value="soft/clean rhythm" checked> Soft/clean rhythm</label>
-   <label class="chk2"><input type="checkbox" value="heavy rhythm" checked> Heavy rhythm</label>
-   <label class="chk2"><input type="checkbox" value="soft/melodic solo" checked> Soft solo</label>
-   <label class="chk2"><input type="checkbox" value="loud/shred solo" checked> Loud solo</label>
+ <div class="wrap studio-workflow">
+  <div class="studio-heading"><h2>AI Tone Studio</h2><p>Generate a prompt, request a JSON preset from your AI assistant, then validate and import the response into your library.</p></div>
+  <div class="studio-columns">
+   <section class="studio-step" id="panel-prompt" aria-labelledby="studioStepOne">
+    <div class="step-heading"><span class="step-num">1</span><div><h3 id="studioStepOne">Create a tone prompt</h3><p>Describe an artist, songs and the kinds of guitar tones you want.</p></div></div>
+    <label for="pArtist">Artist</label><input id="pArtist" placeholder="e.g. The Police" autocomplete="off">
+    <label>Preset types</label>
+    <div class="checks" id="pTypes">
+      <label class="chk2"><input type="checkbox" value="soft/clean rhythm" checked> Clean rhythm</label>
+      <label class="chk2"><input type="checkbox" value="heavy rhythm" checked> Heavy rhythm</label>
+      <label class="chk2"><input type="checkbox" value="soft/melodic solo" checked> Soft solo</label>
+      <label class="chk2"><input type="checkbox" value="loud/shred solo" checked> Loud solo</label>
+    </div>
+    <label for="pSongs">Songs, references and tone details</label>
+    <textarea id="pSongs" rows="4" placeholder="e.g. Message in a Bottle clean riff; Walking on the Moon lead…"></textarea>
+    <label for="pFmt">Requested result</label>
+    <select id="pFmt"><option value="app source data JSON">Project source JSON (recommended)</option><option value="complete pedal JSON">Pedal preset JSON</option><option value="both">Both formats</option></select>
+    <div class="studio-actions"><button id="genPrompt" class="primary">Generate prompt</button><button id="copyPrompt" hidden>Copy prompt</button></div>
+    <label class="generated-caption" for="promptOut">Generated prompt — send this to your AI assistant</label>
+    <textarea id="promptOut" rows="9" readonly hidden></textarea>
+   </section>
+   <section class="studio-step" id="panel-paste" aria-labelledby="studioStepTwo">
+    <div class="step-heading"><span class="step-num">2</span><div><h3 id="studioStepTwo">Import the JSON response</h3><p>Paste the AI-generated JSON here. Review the analysis before you apply any changes.</p></div></div>
+    <div class="studio-hint">Supports <b>artist source JSON</b> (adds/updates artists) and <b>pedal preset JSON</b> (definitive override). Invalid data is rejected.</div>
+    <label for="pasteBox">JSON to validate</label>
+    <textarea id="pasteBox" rows="13" spellcheck="false" placeholder='Paste a JSON object here, then choose "Analyze JSON".'></textarea>
+    <div class="studio-actions"><button id="analyzeBtn" class="primary">Analyze JSON</button><button id="applyBtn" class="attn" hidden>Apply to library</button><button id="clearPasteBtn">Clear</button></div>
+    <div id="pasteResult" aria-live="polite"></div>
+   </section>
   </div>
-  <label>Songs / tones you want, and any extra detail</label><textarea id="pSongs" placeholder='e.g. "the clean riff of Message in a Bottle", "the solo of Walking on the Moon"'></textarea>
-  <label>Output format</label>
-  <select id="pFmt"><option value="app source data JSON">Source JSON (recommended, to incorporate here)</option><option value="complete pedal JSON">Complete pedal JSON</option><option value="both">Both</option></select>
-  <div class="row"><button id="genPrompt" class="primary">Generate prompt</button><button id="copyPrompt" hidden>Copy prompt</button></div>
-  <textarea id="promptOut" hidden style="min-height:220px"></textarea>
+ </div>
+</section>
+<section class="view" id="view-library">
+ <div class="tabs library-tabs" role="tablist" aria-label="Library views">
+  <button class="tab on" type="button" role="tab" data-library-pane="overview" aria-selected="true" aria-controls="library-pane-overview">Overview</button>
+  <button class="tab" type="button" role="tab" data-library-pane="index" aria-selected="false" aria-controls="library-pane-index">Listing</button>
+  <button class="tab" type="button" role="tab" data-library-pane="full" aria-selected="false" aria-controls="library-pane-full">Table</button>
+  <button class="tab" type="button" role="tab" data-library-pane="map" aria-selected="false" aria-controls="library-pane-map">Map</button>
+  <button class="tab" type="button" role="tab" data-library-pane="manage" aria-selected="false" aria-controls="library-pane-manage">Manage</button>
+  <button class="tab" type="button" role="tab" data-library-pane="docs" aria-selected="false" aria-controls="library-pane-docs">Docs</button>
+ </div>
+ <section class="library-pane" id="library-pane-overview" role="tabpanel">
+  <div class="wrap">
+ <section class="panel" id="panel-overview">
+  <div id="stats">Loading…</div>
+  <div class="row">
+   <button id="exportZip">📦 Export ZIP (full structure)</button>
+   <button id="importBtn">📥 Import project…</button>
+   <button id="dlIndex">⬇️ index.html</button>
+   <input id="importFile" type="file" accept=".zip,.json" hidden>
+  </div>
+  <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
  </section>
 
- <section class="panel" id="panel-paste" hidden>
-  <p class="mut">Paste the JSON an AI returned (artist source format) <b>or</b> a preset/batch exported from the pedal. It is auto-detected:</p>
-  <ul class="mut" style="margin-top:0">
-   <li><b>Artist source</b> → creates/updates the artist and its presets.</li>
-   <li><b>Pedal export</b> → makes it <b>definitive</b> (override), matched by preset name.</li>
-  </ul>
-  <textarea id="pasteBox" placeholder="Paste the JSON here…"></textarea>
-  <div class="row"><button id="analyzeBtn" class="primary">Analyze</button><button id="applyBtn" class="attn" hidden>Incorporate and regenerate</button></div>
-  <div id="pasteResult"></div>
+  </div>
  </section>
-
- <section class="panel" id="panel-manage" hidden>
+ <section class="library-pane" id="library-pane-index" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-full" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-map" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-manage" role="tabpanel" hidden>
+  <div class="wrap manage-wrap">
+ <section class="panel" id="panel-manage">
   <div class="manage-intro">
    <h2>Manage library</h2>
    <p class="mut">Source data and collections share one workspace. Deleting a source preset removes it from the project; removing a collection slot only removes its reference.</p>
@@ -377,36 +474,21 @@ const BODY = String.raw`
    </section>
   </div>
  </section>
- </div>
-</section>
-<section class="view" id="view-library">
- <div class="tabs library-tabs" role="tablist" aria-label="Library views">
-  <button class="tab on" type="button" role="tab" data-library-pane="overview" aria-selected="true" aria-controls="library-pane-overview">Overview</button>
-  <button class="tab" type="button" role="tab" data-library-pane="index" aria-selected="false" aria-controls="library-pane-index">Listing</button>
-  <button class="tab" type="button" role="tab" data-library-pane="full" aria-selected="false" aria-controls="library-pane-full">Table</button>
-  <button class="tab" type="button" role="tab" data-library-pane="map" aria-selected="false" aria-controls="library-pane-map">Map</button>
- </div>
- <section class="library-pane" id="library-pane-overview" role="tabpanel">
-  <div class="wrap">
- <section class="panel" id="panel-overview">
-  <div id="stats">Loading…</div>
-  <div class="row">
-   <button id="exportZip">📦 Export ZIP (full structure)</button>
-   <button id="importBtn">📥 Import project…</button>
-   <button id="dlIndex">⬇️ index.html</button>
-   <input id="importFile" type="file" accept=".zip,.json" hidden>
-  </div>
-  <div class="sub">The ZIP contains <b>data/</b> (source) + <b>json/</b> and <b>json_nam/</b> (generated) + listings + <code>PocketMasterStudio.html</code> + <code>pocketmaster.source.json</code>. Import accepts that ZIP (or its <code>.source.json</code>).</div>
- </section>
-
   </div>
  </section>
- <section class="library-pane" id="library-pane-index" role="tabpanel" hidden></section>
- <section class="library-pane" id="library-pane-full" role="tabpanel" hidden></section>
- <section class="library-pane" id="library-pane-map" role="tabpanel" hidden></section>
+ <section class="library-pane" id="library-pane-docs" role="tabpanel" hidden></section>
 </section>
 </div>
 
+<div id="startupDialog" class="startup-backdrop" hidden>
+ <div class="startup-card" role="dialog" aria-modal="true" aria-labelledby="startupTitle" aria-describedby="startupBody">
+  <div class="startup-head"><span class="status-led"></span><h2 id="startupTitle">Information</h2></div>
+  <p id="startupBody"></p>
+  <label class="setting-line startup-choice"><input id="startupOptOut" type="checkbox"><span id="startupOptOutLabel">Do not show this again</span></label>
+  <p id="startupError" class="startup-error" role="alert"></p>
+  <div class="startup-actions"><button type="button" class="primary" id="startupConnect" hidden>Connect project folder…</button><button type="button" id="startupDismiss">Continue</button></div>
+ </div>
+</div>
 <div id="picker" class="overlay" hidden>
  <div class="sheet">
   <div class="sheethead"><b id="pickTitle">Choose preset</b><button id="pickClose" class="mini">✕</button></div>

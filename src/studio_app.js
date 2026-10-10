@@ -25,6 +25,7 @@
     await IO.save({state:sourcePayload(),nam:Policy.normalize(namConfig(),ampNames())});
     if(version===revision)markDirty(false);
     if(namView)namView.status();
+    window.PMVoidUI?.refresh();
   }
   function changed(){
     markDirty(true);
@@ -46,6 +47,7 @@
   }
   async function connectFolder(){
     const saved=await IO.connect();
+    window.PMVoidUI?.refresh();
     if(saved&&(saved.state||saved.nam)){
       if(S.dirty&&!confirm("Existing config found. Load saved project settings and replace unsaved changes?"))
         return;
@@ -55,6 +57,7 @@
     }else{
       await persistConfig();toast("Config folder connected and initialized.");
     }
+    window.PMVoidUI?.refresh();
   }
   async function saveConfig(){
     if(!IO.connected()){await connectFolder();return}
@@ -172,20 +175,12 @@
   }
 
   // ---- tabs ----
-  function showTab(id) {
-    $$("#view-studio [data-tab]").forEach((b) => {
-      const active = b.dataset.tab === id;
-      b.classList.toggle("on", active);
-      b.setAttribute("aria-selected", String(active));
-    });
-    $$("#view-studio .panel").forEach((p) => { p.hidden = p.id !== "panel-" + id; });
-  }
   function showLibraryTab(id) {
     const t = LIBRARY.find((x) => x.id === id);
     if (!t) return;
     const pane = $("#library-pane-" + id);
     if (!pane) throw Error("Missing Library pane: " + id);
-    if (id !== "overview" && !mountedLibrary.has(id)) {
+    if (id !== "overview" && id !== "manage" && !mountedLibrary.has(id)) {
       try {
         mountLibraryPane(id);
         mountedLibrary.add(id);
@@ -303,7 +298,7 @@
     markDirty(true); rebuild();
     $("#pasteBox").value = ""; $("#pasteResult").innerHTML = '<div class="ok">✓ Incorporated and regenerated. Don\'t forget to <b>Save</b>.</div>';
     $("#applyBtn").hidden = true; PENDING = null;
-    activate("studio"); showTab("manage");
+    activate("studio"); $("#pasteResult").scrollIntoView({block:"nearest",behavior:"smooth"});
   }
 
   // ---- searchable preset picker (shared) ----
@@ -393,6 +388,9 @@
         '<div style="padding:4px 2px">' + songs + "</div></details>";
     }).join("");
     wrap.innerHTML = html;
+    // Keep artist checkbox clicks from also toggling their enclosing <details> row.
+    $$("details.art > summary label.chk", wrap).forEach((label) =>
+      label.addEventListener("click", (event) => event.stopPropagation()));
     filterSourceList($("#dataFilter")?.value || "");
   }
   // Filter rendered source rows in place: no data changes, no lost selections.
@@ -721,7 +719,7 @@
     { id: "library", label: "Library", icon: "📚", group: "" },
     { id: "nam", label: "NAM/Clone", icon: "🎚️", group: "" },
     { id: "prst", label: ".prst Lab", icon: "🧪", group: "" },
-    { id: "docs", label: "Docs", icon: "📖", group: "" },
+    { id: "settings", label: "Settings", icon: "⚙️", group: "" },
   ];
   // Previous listing generators and per-view controls remain unchanged.
   const LIBRARY = [
@@ -729,6 +727,8 @@
     { id: "index", label: "Listing", variants: true, gen: (map) => PMHtml.buildIndex(map)["index.html"] },
     { id: "full", label: "Table", variants: true, gen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_full.html"], printGen: (map) => PMTabla.buildTabla(map, S.payload.factory)["presets_print.html"] },
     { id: "map", label: "Map", variants: true, gen: (map) => PMMap.buildM50(map)["map_Best50.html"], printGen: (map) => PMMap.buildM50(map)["map_Best50_print.html"] },
+    { id: "manage", label: "Manage" },
+    { id: "docs", label: "Docs" },
   ];
   // amp-set variants shown as a radio-style selector on each listing view.
   const VARIANTS = [["modeled", "Modeled"], ["clone", "Clone/NAM"], ["mixed", "Mixed"]];
@@ -754,7 +754,7 @@
     if (se) { se.scrollTop = st.scroll; requestAnimationFrame(() => { try { se.scrollTop = st.scroll; } catch (e) {} }); }
   }
   const mounted = { studio: true, library: true };
-  const mountedLibrary = new Set(["overview"]);
+  const mountedLibrary = new Set(["overview", "manage"]);
   let activeMain = "studio";
   const tabHtml = (t) => '<span class="ic">' + t.icon + "</span>" + escH(t.label);
   function buildAppbar() {
@@ -875,13 +875,15 @@
       return;
     }
     if (id === "editor") return mountEditor(view, t);
-    if (id === "docs") return mountDocs(view);
+    if (id === "settings") return window.PMVoidUI.mountSettings(view);
     throw Error("Unknown main view: " + id);
   }
   function mountLibraryPane(id) {
     const t = LIBRARY.find((x) => x.id === id);
     const view = $("#library-pane-" + id);
-    if (!t?.gen || !view) throw Error("Invalid Library pane: " + id);
+    if (!t || !view) throw Error("Invalid Library pane: " + id);
+    if (id === "docs") return mountDocs(view);
+    if (!t.gen) throw Error("Missing Library generator: " + id);
     const f = el("iframe", { class: "full", title: t.label });
     f.dataset.mode = "interactive";
     t._variant = t._variant || DEFAULT_VARIANT;
@@ -1011,31 +1013,26 @@
     } else if (d.type === "pm-download" && typeof d.text === "string") {
       download(d.filename || "download.json", d.text, d.mime);
     } else if (d.type === "pm-override" && typeof d.text === "string") {
-      $("#pasteBox").value = d.text; activate("studio"); showTab("paste"); analyze();
+      $("#pasteBox").value = d.text; activate("studio"); analyze(); $("#pasteBox").focus();
       toast("Preset sent from the editor — review in “Paste JSON” and click Incorporate.");
     }
   }
 
   // ---- init ----
-  function compat() {
-    const miss = [];
-    if (typeof DecompressionStream === "undefined") miss.push("DecompressionStream");
-    if (typeof CompressionStream === "undefined") miss.push("CompressionStream (saving)");
-    if (!("bluetooth" in navigator)) miss.push("Web Bluetooth (pedal)");
-    if (miss.length) { const e = $("#compat"); e.hidden = false; e.innerHTML = "Your browser does not support: <b>" + miss.join("</b>, <b>") + "</b>. Use <b>Chrome</b>, <b>Edge</b> or <b>Opera</b>."; }
-  }
-
   async function boot() {
-    compat();
     buildAppbar();
     window.addEventListener("message", (ev) => { if (ev.data) editorBridge(ev.data); });
-    $$("#view-studio [data-tab]").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
     $$("#view-library [data-library-pane]").forEach((t) =>
       t.addEventListener("click", () => showLibraryTab(t.dataset.libraryPane)));
     $("#genPrompt").addEventListener("click", buildPrompt);
     $("#copyPrompt").addEventListener("click", copyPrompt);
     $("#analyzeBtn").addEventListener("click", analyze);
     $("#applyBtn").addEventListener("click", applyPending);
+    $("#clearPasteBtn").addEventListener("click", () => {
+      $("#pasteBox").value = "";
+      $("#pasteResult").textContent = "";
+      $("#applyBtn").hidden = true; PENDING = null;
+    });
     $("#saveBtn").addEventListener("click",saveApp);
     $("#dlIndex").addEventListener("click", () => S.built && download("index.html", PMHtml.buildIndex(S.built.jsonMap)["index.html"], "text/html"));
     $("#delBtn").addEventListener("click", doDelete);
@@ -1084,6 +1081,8 @@
       const organized=withImportedCollection(S.payload), migrated=organized!==S.payload;
       S.payload=organized;rebuild();markDirty(migrated);
     } catch (e) { $("#stats").innerHTML = '<span class="err">ERROR: ' + escH(e.message) + "</span>"; }
+    window.PMVoidUI.start({ onConnect: connectFolder, onSave: saveConfig,
+      onSettings: () => activate("settings") });
     window.PMStudio = { S, rebuild, gzipB64, inflate, serializeApp, exportZip, importProject, importNativeFiles, sourcePayload, saveConfig, applyNAM, connectFolder };
   }
   window.addEventListener("DOMContentLoaded", boot);

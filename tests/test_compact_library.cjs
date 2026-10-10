@@ -67,8 +67,8 @@ test('Map uses NAM name instead of inactive donor and opens compactly',()=>{
 });
 
 test('Manage combines source and collections, while the Overview duplicate is removed',()=>{
-  const manage=html.match(/id="panel-manage"([\s\S]*?)id="view-library"/)?.[1];
-  assert.ok(manage,'Unified Studio workspace is missing');
+  const manage=html.match(/id="library-pane-manage"([\s\S]*?)id="library-pane-docs"/)?.[1];
+  assert.ok(manage,'Unified Library workspace is missing');
   for(const id of ['dataList','dataFilter','collSel','collBody','delBtn','collAdd','collDelete'])
     assert.match(manage,new RegExp('id="'+id+'"'));
   assert.doesNotMatch(html,/id="preview"/);
