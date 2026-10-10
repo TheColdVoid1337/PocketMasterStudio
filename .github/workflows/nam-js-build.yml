@@ -42,9 +42,13 @@ jobs:
           const fs = require('node:fs');
           const html = fs.readFileSync('PocketMasterStudio.html','utf8');
           const js = fs.readFileSync('src/assets/nam_dsp_worker.js','utf8');
-          if(!html.includes(js) || !html.includes('PMNamDSPAssets') ||
-            !html.includes('Browser NAM DSP inference/fitting in progress'))
-            throw Error('Standalone DSP bundle stale');
+          const prefix = 'window.PMNamDSPAssets = ';
+          const start = html.indexOf(prefix),end=html.indexOf(';\n</script>',start);
+          if(start<0||end<0)throw Error('Standalone NAM assets script missing');
+          const assets=JSON.parse(html.slice(start+prefix.length,end));
+          if(assets.workerJs!==js || assets.diGzipBase64.length<100000 ||
+             !html.includes('Browser NAM DSP inference/fitting in progress'))
+            throw Error('Standalone DSP bundle stale or reference DI missing');
           if(html.includes('/api/nam/convert') || html.includes('application/x-nam'))
             throw Error('Legacy local native conversion API is still present');
           console.log('PASS: self-contained JS DSP, reference DI and source parity');
