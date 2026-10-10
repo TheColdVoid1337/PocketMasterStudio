@@ -111,7 +111,7 @@ const editorBlob = zlib.gzipSync(Buffer.from(editorHtml, "utf-8"), { level: 9 })
 console.log("editor stripped/patched -> gzip+base64", editorBlob.length);
 
 const inlineSafe = (js) => js.replace(/<\/(script)/gi, "<\\/$1");
-const modules = ["void_policy.js", "void_config_io.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
+const modules = ["void_policy.js", "void_config_io.js", "void_clone_protocol.js", "void_clone_transport.js", "void_clone_upload_ui.js", "void_nam_ui.js", "void_ui.js", "void_debug.js", "pmbuild.js", "pmhtml.js", "pmtabla.js", "pmmap.js", "pmmd.js", "pmedit.js", "pmzip.js", "pmstats.js", "pmchangelog.js"]
   .map((f) => `<script>\n${inlineSafe(rd(path.join(HERE, f)))}\n</script>`).join("\n");
 const appJs = inlineSafe(rd(path.join(HERE, "studio_app.js")));
 
@@ -403,6 +403,20 @@ const CSS = String.raw`
  .debug-footer button{padding:6px 8px;min-height:30px;font-size:11.5px}
  .debug-status{font-size:11px;color:var(--mut);padding:0 10px 7px;line-height:1.3}
  @media(max-width:680px){.debug-line{grid-template-columns:minmax(0,1fr)}.debug-when{font-size:10px}.debug-fab{bottom:12px;right:9px}.debug-panel{right:8px;width:calc(100vw - 16px);bottom:64px;height:min(63vh,540px)}.overview-listing iframe.full{height:65vh}}
+
+ .clone-upload-card{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+ .clone-upload-card h3{font-size:15px;margin:0 0 9px}
+ .clone-upload-card>p{font-size:12px;line-height:1.55}
+ .clone-upload-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px 14px;align-items:center;margin-top:11px}
+ .clone-upload-form>label:not(.setting-line){grid-column:1;line-height:1.3;font-size:12px;font-weight:600}
+ .clone-upload-form>input,.clone-upload-form>select{grid-column:2;max-width:100%;min-width:0;box-sizing:border-box;padding:7px 8px;font-size:12px}
+ #clone-file-status,#clone-device-state,#clone-upload-progress{grid-column:1/-1;font-size:12px;line-height:1.45}
+ .clone-actions{grid-column:2;display:flex;gap:7px;flex-wrap:wrap}
+ .clone-actions button{padding:6px 10px;font-size:12px}
+ .clone-consent{grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:12px}
+ #clone-upload{grid-column:1/-1;min-height:38px}
+ #clone-upload-progress{padding:7px;border:1px solid var(--line);border-radius:6px;background:var(--card2);min-height:22px;overflow-wrap:anywhere}
+ @media(max-width:650px){.clone-upload-form{grid-template-columns:minmax(0,1fr)}.clone-upload-form>label:not(.setting-line),.clone-upload-form>input,.clone-upload-form>select,.clone-actions{grid-column:1}}
 `;
 
 const BODY = String.raw`

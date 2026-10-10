@@ -15,6 +15,7 @@
    '<div id="void-slots" class="void-slots"></div>'+
    '<div class="row"><button id="void-apply" class="primary">Apply NAM slots</button></div>'+
    '<div id="void-feedback" class="note" role="status" aria-live="polite"></div>'+
+   '<div id="void-clone-transfer"></div>'+
    '<p class="mut">Choose the project root folder (the one containing PocketMasterStudio.html), not config itself. Chrome/Edge creates <code>config/nam_clone.json</code> and <code>config/studio_state.json</code>. Saved changes do not modify the HTML. The config folder is gitignored. File access may require reconnection after reopening the browser.</p></div>';
   const $=s=>view.querySelector(s);
   const models=policy.validAmpNames(catalog);
@@ -60,7 +61,10 @@
    try{await onImport(f);render();status();$("#void-feedback").textContent="JSON imported and applied."}
    catch(err){$("#void-feedback").textContent="Import failed: "+err.message}};
   render();status();
-  return Object.freeze({render,status});
+  // Independent of the five logical modeled-AMP mappings above.
+  // Physical slot transfers never silently mark an unverified capture as Full Rig.
+  const transfer=(typeof window!=="undefined"?window:globalThis).PMCloneUploadUI?.mount?.($("#void-clone-transfer"));
+  return Object.freeze({render,status,transfer});
  }
  return Object.freeze({mount});
 });
