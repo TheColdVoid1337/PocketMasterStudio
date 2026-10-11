@@ -110,6 +110,32 @@ The user listened to the three experimental finishing variants A/B/C on the phys
 
 Suggested next validation: capture the *same recorded DI* through mobile SONICLINK reference and candidates B/C at identical settings, record output, equalize loudness offline, compare HF difference and attack/transients; then repeat across at least one independent NAM with different gain/cab characteristics before implementation into the production JS-only path. Retain v0.1, A, B and C as rollback/test fixtures.
 
+## Automatic NAM-derived Post-FIR spectral calibration v0.3 (2026-10-12)
+
+**Research candidate only — not production and not hardware-validated.** In v0.2 hardware listening, the user preferred candidate C for JCM800 2203 Crunch; all A/B/C sounded extremely close to SONICLINK.
+
+We tested automatic HF shelf selection from **independent NAM WaveNet output**, without using Windows Manager CLO/WAV for parameter estimation. A Python research harness (distributed separately as NAM_CLO_Auto_PostFIR_v0_3_Research.zip) trains on five two-second reference-DI windows at levels ×0.03, ×0.1, ×0.3 and ×1.0; independent heldout windows are reserved for evaluation. The only binary DSP change is to the first 512 Post-FIR taps and derived CRC16.
+
+**Algorithm:** causal 2.5 kHz high shelf with 0–4 dB grid (steps of 0.25 dB). Optimize 2–4k, 4–8k and 8–12k energy relative to the 300–2000 Hz midrange. The spectrum-only optimum sacrifices waveform correlation at high input. A **train-only shape gate** therefore allows at most 0.002 absolute-correlation loss at each of four input levels; no test-set tuning.
+
+| NAM | Unguarded spectrum fit | Gated per-NAM HF shelf | Correlation ×0.03: v0.1 → v0.3 | Correlation ×1.0: v0.1 → v0.3 |
+| --- | ---: | ---: | ---: | ---: |
+| JCM800 2203 Crunch | +3.50 dB (rejected) | **+2.50 dB** | 0.91630 → **0.92167** | 0.89484 → 0.88842 |
+| SC20 Full Rig | +3.00 dB (rejected) | **+1.75 dB** | 0.73874 → **0.74889** | 0.76617 → 0.75811 |
+
+At ×0.3, **heldout 4–8 kHz deviation from NAM** changed from −1.97 dB to −0.61 dB for JCM800 2203, and −1.78 dB to −0.84 dB for SC20. This is a gain-normalized spectral difference, not an instrumented pedal measurement.
+
+**New experimental files for hardware audition:**
+- 2203_v03_AUTO_TONE_UNITY.clo: selected +2.50 dB HF shelf, maintaining original v0.1 RMS.
+- 2203_v03_AUTO_TONE_PLUS2_5DB.clo: same automatically derived HF shelf **plus a separate +2.50 dB output boost** based on prior model-specific audition. This output gain is **NOT** learned from NAM and must not be globally applied.
+- sc20_v03_AUTO_TONE_UNITY.clo: research-only; unresolved earlier weak-gain regression vs original Void.
+
+The automatically selected +2.50 dB HF correction for JCM800 2203 is close to the user-favored v0.2 C (+2.25 dB). This does NOT establish that v0.3 sounds better: no hardware audition of v0.3 has occurred. Strong-input holdout correlation regresses for both models. No production default should change.
+
+**Verification:** four Python tests passed covering training-gate selection, byte-level VTSI/CRC16 invariants and coefficient preservation, heldout checks, and no vendor CLO/WAV usage by the fitting script. Research ZIP integrity verified. The original NAM/user captures, vendor reference WAV, and proprietary DLL are not committed.
+
+**Next:** compare v0.2 C and v0.3 on a physical spare User Profile using the same DI/preset with controlled loudness, then broaden to a distinct amp model. The existing production JS-only converter remains unchanged.
+
 ## Important limitations
 
 1. This prototype **requires an existing baseline CLO**, so it has not replaced current 5-probe fitting or shortened end-to-end NAM conversion.
