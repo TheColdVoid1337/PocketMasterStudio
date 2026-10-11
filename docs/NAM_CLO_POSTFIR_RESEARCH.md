@@ -66,6 +66,37 @@ The experiments with an arbitrary `+6 dB`/`+12 dB` amplitude boost on the *older
 
 **Status:** JCM800 2203 = **one positive subjective hardware audition, further validation required**. SC20 = **not yet hardware-validated for refit**; weak-input offline regression remains. No production default change.
 
+## JCM800 2203 Post-FIR finishing v0.2 — offline candidates (2026-10-12)
+
+After the first **positive hardware audition of v0.1**, we prepared three **not-yet-hardware-tested** candidate CLOs from that *exact* v0.1 file. The goal is to investigate the user's observation that the character is nearly identical to mobile SONICLINK but slightly quieter and less bright. This is **not** a new NAM fitting algorithm and does **not** alter the production JS converter.
+
+**What changes:** Only the first **512 hardware-transmitted Post-FIR taps**. Pre-FIR, nonlinear gains, DC-blocker, remaining 1536 taps, container structure are byte-for-byte unchanged from v0.1 (apart from CRC16). All outputs are 8,840-byte VTSI files with verified CRC16.
+
+Three candidates at the same **+2.50 dB** training-window RMS versus v0.1 (DI gain ×0.3):
+
+| Candidate | Output boost on training DI | Gentle high shelf above approximately 2.5 kHz |
+| --- | ---: | ---: |
+| A: LEVEL_ONLY | +2.50 dB | 0 dB |
+| B: GENTLE_BRIGHT | +2.50 dB | +1.25 dB |
+| C: BRIGHT_PLUS | +2.50 dB | +2.25 dB |
+
+The optional HF shelf uses a causal first-order minimum-phase response (unity DC, no look-ahead). Each FIR is adjusted so A/B/C are level-matched on the training signal.
+
+**Held-out, simulated hardware response** using the user-provided Windows Sonicake Manager CLO as comparator (not proven the same as mobile SONICLINK):
+
+| DI level | Windows Manager louder than v0.1 | Windows Manager louder than candidate A | Relative 4–8 kHz deficit after level compensation: A / B / C |
+| ---: | ---: | ---: | ---: |
+| ×0.03 | +1.86 dB | −0.64 dB | 2.67 / 1.97 / 1.41 dB |
+| ×0.10 | +2.28 dB | −0.22 dB | 2.38 / 1.67 / 1.09 dB |
+| ×0.30 | +2.56 dB | +0.06 dB | 2.00 / 1.29 / 0.70 dB |
+| ×1.00 | +2.74 dB | +0.24 dB | 1.83 / 1.12 / 0.54 dB |
+
+At ×0.3, all three new candidates match the Windows Manager model RMS to within 0.1 dB in the software approximation. B and C improve gain-aligned waveform correlation at softer DI levels but incur a slight regression at ×1.0 versus v0.1, so **none is automatically better**.
+
+**Required physical acceptance:** Retain the previous v0.1 and the official SONICLINK slot; turn monitoring level down before switching (+2.5 dB nominal); audition A first to isolate output-level effect, then compare B/C at identical levels for actual brightness/attack/distortion differences. Do not apply either gain or high shelf globally on other NAMs. **No hardware audition of v0.2 has been reported.**
+
+The reproducible research scripts, verification tests, candidate manifest, files, and frequency-band graph were packaged as `JCM800_2203_PostFIR_Finishing_v0_2.zip` as a conversation artifact. The original commercial NAM, vendor intermediate WAV, and official Windows Manager CLO are **not** added to the repo. The source of the candidate files is the v0.1 user-accepted experimental refit, not the vendor CLO. The existing production default is unchanged.
+
 ## Important limitations
 
 1. This prototype **requires an existing baseline CLO**, so it has not replaced current 5-probe fitting or shortened end-to-end NAM conversion.
