@@ -97,6 +97,19 @@ At ×0.3, all three new candidates match the Windows Manager model RMS to within
 
 The reproducible research scripts, verification tests, candidate manifest, files, and frequency-band graph were packaged as `JCM800_2203_PostFIR_Finishing_v0_2.zip` as a conversation artifact. The original commercial NAM, vendor intermediate WAV, and official Windows Manager CLO are **not** added to the repo. The source of the candidate files is the v0.1 user-accepted experimental refit, not the vendor CLO. The existing production default is unchanged.
 
+## JCM800 2203 v0.2 first physical audition (2026-10-12)
+
+**User-reported listening feedback, not level-matched instrumented measurements.**
+The user listened to the three experimental finishing variants A/B/C on the physical Pocket Master, compared with their SONICLINK reference for the *same* JCM800 2203 Crunch NAM:
+
+- **All three variants are now perceived as extremely close** in overall character to the SONICLINK version.
+- **Candidate C (`BRIGHT_PLUS`, nominal +2.25 dB HF shelf with the same +2.5 dB overall level target) is tentatively perceived as closest.** The user explicitly expressed some uncertainty, so this is a preference rather than a conclusive ranking.
+- This strengthens the prior positive v0.1 hardware impression: Post-FIR refitting improved the sound substantially, and mild HF compensation appears helpful for this capture.
+
+**Do not treat C as a universal preset or ship it as the default.** The HF and level values were selected for this specific model and are calibrated by a software approximation to the Windows Manager result; equivalence of Windows Manager and mobile SONICLINK converters remains unproven.
+
+Suggested next validation: capture the *same recorded DI* through mobile SONICLINK reference and candidates B/C at identical settings, record output, equalize loudness offline, compare HF difference and attack/transients; then repeat across at least one independent NAM with different gain/cab characteristics before implementation into the production JS-only path. Retain v0.1, A, B and C as rollback/test fixtures.
+
 ## Important limitations
 
 1. This prototype **requires an existing baseline CLO**, so it has not replaced current 5-probe fitting or shortened end-to-end NAM conversion.
