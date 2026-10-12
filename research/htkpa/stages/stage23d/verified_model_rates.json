@@ -1,0 +1,16 @@
+{
+  "source": "Original user-supplied NAM JSON files, inspected read-only through Project file access",
+  "models": {
+    "2203": {
+      "reported_original_sha256": "29abbdbf982ee64b963d1d8de06848d1b06450a623bb08ba3ffefce146dfac42",
+      "root_sample_rate": 48000,
+      "submodel_sample_rates": [48000, 48000]
+    },
+    "SC20": {
+      "reported_original_sha256": "509ad3d6dc31cf0539afe4a264ff7386d6282ffe9d1e0de4b6cce514b1915b11",
+      "root_sample_rate": 48000,
+      "submodel_sample_rates": [48000, 48000]
+    }
+  },
+  "note": "Original full NAM model weights are NOT included. SHA fingerprints are from the established source handoff; no local full-file rehash in this checker run."
+}

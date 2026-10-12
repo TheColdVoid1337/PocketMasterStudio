@@ -1,0 +1,56 @@
+[
+  {
+    "assumed_native_fs_FROM_NAM": 48000,
+    "fit_window_seconds": [
+      23,
+      28
+    ],
+    "independent_diagnostic_gains_NOT_VENDOR": {
+      "nmax": 0.15541093051433563,
+      "nrate": 0.7949548959732056,
+      "pmax": 0.15571577847003937,
+      "prate": 0.9706250429153442
+    },
+    "model": "2203",
+    "note": "Official gains are held out until AFTER candidate calculation. Large mismatch does not validate a converter.",
+    "official_CLO_gains_READ_ONLY": {
+      "nmax": 0.06251806020736694,
+      "nrate": 356.1883544921875,
+      "pmax": 0.05869760736823082,
+      "prate": 425.43896484375
+    },
+    "source_resampling": "GENERIC scipy.signal.resample_poly 160/147, NOT original 0x18000CE00",
+    "source_wav_fs": 44100,
+    "status": "NON_NATIVE_PARITY_NEGATIVE_CONTROL",
+    "target_detrend": "GENERIC float64 OLS, NOT original f32 accumulation",
+    "target_onset_samples": 0,
+    "target_wav_fs": 48000
+  },
+  {
+    "assumed_native_fs_FROM_NAM": 48000,
+    "fit_window_seconds": [
+      23,
+      28
+    ],
+    "independent_diagnostic_gains_NOT_VENDOR": {
+      "nmax": 0.06844198703765869,
+      "nrate": 0.6999996900558472,
+      "pmax": 0.07492959499359131,
+      "prate": 0.6314334869384766
+    },
+    "model": "SC20",
+    "note": "Official gains are held out until AFTER candidate calculation. Large mismatch does not validate a converter.",
+    "official_CLO_gains_READ_ONLY": {
+      "nmax": 0.012697473168373108,
+      "nrate": 253.91091918945312,
+      "pmax": 0.010616911575198174,
+      "prate": 450.9261779785156
+    },
+    "source_resampling": "GENERIC scipy.signal.resample_poly 160/147, NOT original 0x18000CE00",
+    "source_wav_fs": 44100,
+    "status": "NON_NATIVE_PARITY_NEGATIVE_CONTROL",
+    "target_detrend": "GENERIC float64 OLS, NOT original f32 accumulation",
+    "target_onset_samples": 19,
+    "target_wav_fs": 48000
+  }
+]

@@ -1,1 +1,2 @@
-Stage23D research in progress. Vendor numerical parity not achieved. Source-first only.
+Original Stage23D sources restored byte-for-byte; see ../../stage23d_archive_manifest.json.
+Stage23 remains OPEN: native real-audio buffers and gain parity are not reconstructed.

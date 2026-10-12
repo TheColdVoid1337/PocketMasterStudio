@@ -1,5 +1,7 @@
 # CODEX HANDOFF — PocketMaster / Sonicake HTKPA DLL Reverse Engineering
 
+**Execution update:** Stage23D sources and original reports have now been restored, with a separate 14-file SHA manifest and fresh passing tests. See [restoration record](NAM_CLO_HTKPA_STAGE23D_RESTORATION_2026-10-12.md). The placeholder/source-gap statements below are the original task baseline, no longer the current repository state.
+
 **Date:** 2026-10-12  
 **Repository:** `https://github.com/TheColdVoid1337/PocketMasterStudio`  
 **Local WSL checkout:** `/mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod` (verify, do not assume it is the only clone)  

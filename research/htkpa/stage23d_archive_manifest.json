@@ -1,0 +1,91 @@
+{
+  "stage": "23D",
+  "archive_name": "Sonicake_HTKPA_DLL_RE_Stage23D_PLUS_DECODER_v0_23d.zip",
+  "archive_sha256": "69ee4bf61fc3ec9f18a0981d44caaaaac31842a2d3d719de39d9698d1245fa19",
+  "files": [
+    {
+      "path": "docs/htkpa/source_archive/stage23d/README.md",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/README.md",
+      "size_bytes": 1991,
+      "sha256": "aea7024883ec89cd7bf63ceaf9d90842d9d7f1423f0edfc15da610507e91e1c0"
+    },
+    {
+      "path": "docs/htkpa/source_archive/stage23d/RESEARCH_REPORT.md",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/RESEARCH_REPORT.md",
+      "size_bytes": 9613,
+      "sha256": "50f7530e659d4bc726a822815f664137bcc0107b0e4d8d67d65fde8fa15136aa"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/evidence.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/evidence.json",
+      "size_bytes": 4737,
+      "sha256": "02ffe50f98ba53ade3b5ef4895f317c767ea288896f0920098d3f2dd1ec09ba5"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/evidence_repeat.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/evidence_repeat.json",
+      "size_bytes": 4737,
+      "sha256": "02ffe50f98ba53ade3b5ef4895f317c767ea288896f0920098d3f2dd1ec09ba5"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/rate_diagnostic_NOT_NATIVE.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/rate_diagnostic_NOT_NATIVE.json",
+      "size_bytes": 1879,
+      "sha256": "6f5b1c62b75579e7f7112ed2ecaa2a7e2e14288f4021c450204e0fb05250f1cc"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage21_reverified.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage21_reverified.json",
+      "size_bytes": 3713,
+      "sha256": "fe1e9bcf8cc18ce8c94d260612960773ccf1c474d48ddd6d3c862854e7705658"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage21_verification.txt",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage21_verification.txt",
+      "size_bytes": 133,
+      "sha256": "14633f08cf11ab6aca9c1fc15101fab9028c644f0d2e665b91249f158f742527"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage22_reverified.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage22_reverified.json",
+      "size_bytes": 3667,
+      "sha256": "d4c4edbd29674ddd3ab9a161192b579647bb9f58a441b00a8c52970a6faaedbb"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage22_verification.txt",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage22_verification.txt",
+      "size_bytes": 102,
+      "sha256": "63862725588eb72052f097d7261e573a05491c1f90366d65631148c6b888cec1"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage23d_pcm_decoder_branch.py",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage23d_pcm_decoder_branch.py",
+      "size_bytes": 2336,
+      "sha256": "1827aec4e1564c38c35b8d386ebbf266b93d5ba0c659c0606b4411ac6257d4dd"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage23d_rate_diagnostic.py",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage23d_rate_diagnostic.py",
+      "size_bytes": 3178,
+      "sha256": "fc76b726584c467c5e36b2fe640ec50f9980d06b7259573269474cbbfb1129cb"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/stage23d_source_provenance.py",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/stage23d_source_provenance.py",
+      "size_bytes": 8095,
+      "sha256": "c1be83f1cb16c2b882686ae6924c83dd45967badc31f9476a115e06ce27e6995"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/test_stage23d.py",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/test_stage23d.py",
+      "size_bytes": 1053,
+      "sha256": "2c5e2f39108acad55a2fb0eb60441444f0754a88b416bc5bbbad0c82c46b7603"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/verified_model_rates.json",
+      "archive_member": "HTKPA_DLL_RE_v0_23d/verified_model_rates.json",
+      "size_bytes": 695,
+      "sha256": "208162961fc457b4da62ae333cdc8e316c310d664f054207fb21a310f485aba2"
+    }
+  ]
+}

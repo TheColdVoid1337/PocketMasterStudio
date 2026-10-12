@@ -1,0 +1,216 @@
+{
+  "models": {
+    "2203": {
+      "wav_DI": {
+        "channels": 2,
+        "frames": 3087000,
+        "rate": 44100,
+        "sample_width": 2
+      },
+      "wav_reference": {
+        "channels": 2,
+        "frames": 3360000,
+        "rate": 48000,
+        "sample_width": 2
+      }
+    },
+    "SC20": {
+      "wav_DI": {
+        "channels": 2,
+        "frames": 3087000,
+        "rate": 44100,
+        "sample_width": 2
+      },
+      "wav_reference": {
+        "channels": 2,
+        "frames": 3360000,
+        "rate": 48000,
+        "sample_width": 2
+      }
+    }
+  },
+  "source": {
+    "address_pins_passed": 42,
+    "checks": [
+      {
+        "asm": "mov qword ptr [rax+0x200],rsi",
+        "va": "0x1800e20c1"
+      },
+      {
+        "asm": "mov qword ptr [rdx+0x208],rcx",
+        "va": "0x1800e20ea"
+      },
+      {
+        "asm": "mov qword ptr [rdx+0x210],rcx",
+        "va": "0x1800e2134"
+      },
+      {
+        "asm": "mov rdx,r15",
+        "va": "0x1800e2157"
+      },
+      {
+        "asm": "lea rsi,[rcx+0x218]",
+        "va": "0x1800e219c"
+      },
+      {
+        "asm": "mov dword ptr [rcx+0x27c],r12d",
+        "va": "0x1800e2232"
+      },
+      {
+        "asm": "mov rdx,qword ptr [rbx+0x210]",
+        "va": "0x180061305"
+      },
+      {
+        "asm": "mov rcx,qword ptr [rbx+0x208]",
+        "va": "0x180061329"
+      },
+      {
+        "asm": "call 0x180010e70",
+        "va": "0x18006137d"
+      },
+      {
+        "asm": "mov r13,r8",
+        "va": "0x180010eaf"
+      },
+      {
+        "asm": "mov r12,rdx",
+        "va": "0x180010eb2"
+      },
+      {
+        "asm": "mov r15,rcx",
+        "va": "0x180010eb5"
+      },
+      {
+        "asm": "mov rax,qword ptr [r15]",
+        "va": "0x180010f41"
+      },
+      {
+        "asm": "lea r8,[rsp+0x48]",
+        "va": "0x180010f72"
+      },
+      {
+        "asm": "lea rdx,[rsp+0x50]",
+        "va": "0x180010f77"
+      },
+      {
+        "asm": "call 0x18000e0e0",
+        "va": "0x180010f7f"
+      },
+      {
+        "asm": "mov r15,rcx",
+        "va": "0x18000e154"
+      },
+      {
+        "asm": "mov rdi,r15",
+        "va": "0x18000e2ef"
+      },
+      {
+        "asm": "call 0x180008b80",
+        "va": "0x18000e65d"
+      },
+      {
+        "asm": "call 0x1800cc4e0",
+        "va": "0x18000e698"
+      },
+      {
+        "asm": "movsd xmm9,qword ptr [rbx+0x18]",
+        "va": "0x18000e855"
+      },
+      {
+        "asm": "cvtpd2ps xmm9,xmm9",
+        "va": "0x18000e85b"
+      },
+      {
+        "asm": "lea rdx,[rip+0x235f57] # 0x180244800",
+        "va": "0x18000e8a2"
+      },
+      {
+        "asm": "comiss xmm6,xmm9",
+        "va": "0x18000e9b8"
+      },
+      {
+        "asm": "movss xmm9,dword ptr [rip+0x23e401] # 0x18024cdf4",
+        "va": "0x18000e9ea"
+      },
+      {
+        "asm": "cvttss2si ebx,xmm9",
+        "va": "0x18000f620"
+      },
+      {
+        "asm": "mov eax,ebx",
+        "va": "0x18000f66b"
+      },
+      {
+        "asm": "movaps xmm2,xmm6",
+        "va": "0x180011016"
+      },
+      {
+        "asm": "mov rdx,qword ptr [r15]",
+        "va": "0x180011019"
+      },
+      {
+        "asm": "call 0x18000d4a0",
+        "va": "0x180011021"
+      },
+      {
+        "asm": "call 0x180010230",
+        "va": "0x1800110ad"
+      },
+      {
+        "asm": "movaps xmm1,xmm6",
+        "va": "0x180010453"
+      },
+      {
+        "asm": "call 0x1800bf9f0",
+        "va": "0x180010489"
+      },
+      {
+        "asm": "call 0x1800bf5e0",
+        "va": "0x1800104bd"
+      },
+      {
+        "asm": "mov rax,qword ptr [rcx+0x243e0]",
+        "va": "0x1800bfa27"
+      },
+      {
+        "asm": "mov rax,qword ptr [rcx+0x243e8]",
+        "va": "0x1800bf617"
+      },
+      {
+        "asm": "movsxd rsi,dword ptr [rdx]",
+        "va": "0x180142201"
+      },
+      {
+        "asm": "mov r15,qword ptr [rax]",
+        "va": "0x180142223"
+      },
+      {
+        "asm": "mov r15,qword ptr [rax]",
+        "va": "0x1800bfc2c"
+      },
+      {
+        "asm": "mov eax,dword ptr [rdx+r15*1]",
+        "va": "0x1800bfca7"
+      },
+      {
+        "asm": "mov dword ptr [rdx+rcx*1],eax",
+        "va": "0x1800bfcab"
+      },
+      {
+        "asm": "call 0x1800bdbe0",
+        "va": "0x1800bede4"
+      }
+    ],
+    "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+    "native_fallback_fs": 48000.0,
+    "original_pe_log_strings": {
+      "0x1802446d8": "[NAM] ========== getNamOutput start ==========",
+      "0x180244708": "[NAM] namFile: ",
+      "0x180244730": "[NAM] outputFile: ",
+      "0x180244800": "[NAM] model sampleRate: ",
+      "0x180244820": "[NAM] WARN sampleRate<=0, using 48000"
+    }
+  },
+  "stage": "23D",
+  "status": "SOURCE_PROVEN_RATE_AND_WAV_ROLES__NO_NUMERICAL_PARITY"
+}

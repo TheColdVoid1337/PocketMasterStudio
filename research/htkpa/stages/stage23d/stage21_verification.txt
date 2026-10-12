@@ -1,0 +1,2 @@
+PASSED pinned instructions=75 constants=8 mathematical_assertions=77
+STRICT GATE: full native saturation fit from WAV = NOT_COMPUTED

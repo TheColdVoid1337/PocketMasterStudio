@@ -1,0 +1,1 @@
+Stage22: verified 43 static address pins, 7 PE constants and 53 assertions; vendor gains NOT_COMPUTED
