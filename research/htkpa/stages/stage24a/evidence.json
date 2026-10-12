@@ -1,0 +1,46 @@
+{
+  "stage": "Stage24A",
+  "status": "SOURCE_PINNED_PARAMETER_LINEAGE_NATIVE_NEGATIVE_CONTROL",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "instruction_pins": 52,
+  "private_native_coefficient_sha256": "649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770",
+  "source_call_chain": [
+    "0x18000CFF3",
+    "0x180011B60",
+    "0x180011CE3",
+    "0x18000BB80",
+    "0x18000BD12",
+    "0x18000B0E0",
+    "0x18000B981",
+    "0x180014810"
+  ],
+  "filter_object_fields": {
+    "+0x0": "cutoff float64",
+    "+0x8": "quality float64",
+    "+0x10": "attenuation float64",
+    "+0x20": "normalization gain float64"
+  },
+  "generator_fields": {
+    "+0x0": "pre-floor G float64",
+    "+0x10": "lower oscillator initially zero",
+    "+0x18": "upper oscillator angle float64",
+    "+0x20": "window exponent gamma float64",
+    "+0x58": "window counter uint32",
+    "+0xC0": "Bessel beta float64",
+    "+0xC8": "Bessel normalization float64",
+    "+0xD0": "initial offset zero"
+  },
+  "source_cutoff_branch": "0x180011C83 chooses 0.5 or 0.5*source_rate/destination_rate; which native filter instance uses which branch is not yet proven by user-private trace",
+  "conditional_native_ratio_diagnostic": {
+    "native_tap2_over_tap1": 0.02794104254224959,
+    "stage23z_tap2_over_tap1": 0.02794316121340997,
+    "stage23z_source_angle_radians": 1.5428478841482018,
+    "conditional_inferred_angle_radians": 1.5428500037716606,
+    "conditional_phase_delta_radians": 0.000002119623458751718,
+    "stage23z_max_abs_native_coefficient_error": 9.282550449007586e-10
+  },
+  "no_fit_caveat": "Conditional angle is inferred from vendor RAM only to falsify the existing Stage23Z assumptions; it is not an accepted generator setting and was not substituted into coefficient generation.",
+  "native_execution": "none; original DLL statically inspected offline; private saved coefficient snapshot used for comparison only",
+  "next_capture": "Single native Windows check of XMM0/1/2 and fifth-argument stack slot at 0x180011CE3, plus RCX pre-call generator object fields +0,+0x18,+0x20,+0x58,+0xC0,+0xC8,+0xD0 at 0x18000B981, correlated by same filter identity.",
+  "still_open": "native FIR coefficient bit parity, output routing, full resampler, four independent Marshall gains, CLO parity"
+}
