@@ -49,3 +49,16 @@ At outer level, this executes three selectors `2→1→3` with counts `3→2→5
 A separate conversation artifact `Sonicake_HTKPA_DLL_RE_Stage16_v0_16.zip` includes independent read-only `verify_stage16.py`, full `RESEARCH_REPORT.md`, `README.md` and `evidence.json`. **74 exact instruction pins, 9 numeric constants and 22 structural/algebraic tests passed**, with two runs producing identical evidence JSON SHA-256 `bc778ec7ca5092b62f9f11a06a809821154fa289a9aa33d6fbb7ac22c39e5280`. It does not contain the DLL, user's audio/NAM, vendor CLO or full disassembly.
 
 **Original acceptance gate is STILL NOT MET.** While memory provenance and the control-flow skeleton are now confirmed, native edge/alias semantics of the three conditioner calls and `0x1800B6220`, integrated rendering/STFT float32 equivalence, cross-selector state and final resampling all require more work before an independent **exact** vendor Pre-FIR/Post-FIR can be derived from the NAM/probe. No guessed fitting constants or production changes should be introduced until those blocks have source-grounded numerical tests.
+
+
+## Stage 17 correction (2026-10-12): vector multiplication is NOT stored in V2
+
+The Stage-16 prose descriptions `V2[k] ← V2[k] × V0[k]`, `V2 was ... altered by ... 0x1800BB575`, and the scratch-loop pseudocode `V2[k] ← V2[k] * V0[k]` are **incorrect**. Full Win64 caller-to-callee stack tracing shows that `0x1800BB575` writes to the **second caller-owned array**, outer `r12`, located in callee `r13=[rsp+0x1E8]`. The other vector operation at `0x1800BB6E1` writes to **the first caller-owned array**, outer `r15`, accessed through callee `rdi=[rsp+0x1E0]`. Both use the second conditioner output `V0`:
+
+```text
+outer_r12[k] *= V0[k]          # actual destination at 0x1800BB578
+outer_r15[k] /= V0[k]          # actual destination at 0x1800BB6E9
+0x1800B6220(outer_r15, L)   # in-place low-index geometric conditioning
+```
+
+The local `V2` scratch is still involved in the **separate** regularized feedback quotient `V2 ← 1e6*V5/(1e6*V2+2^-23)`, correctly identified later in this Stage-16 report. The two caller arrays are allocated once by the enclosing native function before all three selector calls, so the correction changes inter-pass state. See [Stage 17](NAM_CLO_HTKPA_DLL_RE_STAGE17.md) for pinned instructions, full operand-register proof and a tested isolated helper. This erratum is intentionally appended rather than silently rewriting historical observations.
