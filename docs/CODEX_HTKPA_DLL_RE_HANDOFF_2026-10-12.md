@@ -168,3 +168,29 @@ Use a **small/fast Codex model or low reasoning effort** for file inventory, SHA
 ## 6. User-facing short task to paste into Codex
 
 > Read `docs/CODEX_HTKPA_DLL_RE_HANDOFF_2026-10-12.md` in full and carry out its staged instructions. This assignment is **exclusively HTKPA `5868USB.dll` static disassembly/reverse engineering**, plus safe research-tree and local-checkout maintenance; **not PocketMasterStudio feature work**. My private research inputs are already in ignored `research/_LOCAL_FILES/`. Start with verification and Stage23D source archival, then trace decoder/resampler native audio buffers. Preserve docs under `docs/`, commit small source-backed changes using existing commit prefixes, avoid destructive cleanup, and report SHA/commands/results in Russian.
+
+## WSL handoff recovery: verified CRLF-only checkout problem (2026-10-12)
+
+On a Windows-mounted WSL checkout the local integrity check reported **0/144**, with many tracked `docs/` and `research/` files marked modified. This was diagnosed, **not corruption of committed source bytes**: the observed local SHA-256s exactly matched original archive files after `LF -> CRLF` conversion; GitHub blobs matched original ZIP source bytes and SHA-256 manifest. Original `git pull --ff-only` succeeded; `git check-ignore -v research/_LOCAL_FILES/vendor/5868USB.dll` passed; `unzip` was unavailable.
+
+Root `.gitattributes` now enforces LF for Markdown under `docs/` and text sources under `research/`. Two safe, standard-library-only utilities are committed:
+
+- `research/htkpa/repair_checkout_line_endings.py`: **dry-run by default**; with `--apply`, only converts CRLF files to LF when the normalized bytes exactly equal `git show HEAD:<path>`. It **never overwrites genuine edits or untracked/private files**.
+- `research/htkpa/extract_local_archive.py`: ZIP CRC check, no overwrites, path confinement to `research/_LOCAL_FILES/`, SHA256 validation against the private package manifest; no dependency on OS `unzip`.
+
+Safe WSL recovery sequence:
+
+```bash
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+git status --short
+git config --local core.autocrlf false
+git pull --ff-only origin main
+python3 research/htkpa/repair_checkout_line_endings.py
+python3 research/htkpa/repair_checkout_line_endings.py --apply
+python3 research/htkpa/source_integrity.py
+python3 research/htkpa/extract_local_archive.py --archive research/_LOCAL_FILES/POCKET_MASTER_HTKPA_CODEX_LOCAL_FILES_2026-10-12.zip
+git check-ignore -v research/_LOCAL_FILES/vendor/5868USB.dll
+git status --short
+```
+
+Before `--apply`, inspect its dry-run report. The tool corrects only files whose sole difference is line endings, and preserves any other modifications. If an unexpected file remains modified, inspect `git diff -- <path>` and **do not** indiscriminately run `git reset --hard`, `git restore .`, `git clean -fdx`, or `git add -A`. Do not assume a list of 144 source mismatches means GitHub archive loss. Only use `git add` for the exact intended paths, with `research/_LOCAL_FILES/` fully ignored. This recovery is subordinate to the primary mission: static reverse engineering of original `5868USB.dll` NAM→CLO pipeline.
