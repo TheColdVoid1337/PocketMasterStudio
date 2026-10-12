@@ -1,0 +1,1 @@
+Stage23D research in progress. Vendor numerical parity not achieved. Source-first only.
