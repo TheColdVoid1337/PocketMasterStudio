@@ -1,0 +1,14 @@
+# Keep the research/ tree limited to reproducible tools, safe manifests and fixtures.
+# Canonical engineering reports and all project documentation remain in docs/.
+*.dll
+*.wav
+*.nam
+*.clo
+*.zip
+*.log
+*.asm
+*.pyc
+__pycache__/
+**/scratch/
+**/tmp/
+**/evidence/
