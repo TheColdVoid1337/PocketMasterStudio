@@ -1,0 +1,14 @@
+{
+  "decoded_general_instructions": 147,
+  "fft_twiddle_pair_bit_reverse_bits": 10,
+  "general_blocks": 255,
+  "low_f64_scalar_sse_operations_per_block": 144,
+  "max_abs_difference": 4.5288390936029406e-15,
+  "oracle_cases": 3060,
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_sign_mask_hex": "0x8000000000000000",
+  "review_status": "Research checkpoint, no full FFT parity",
+  "status": "general base FFT blocks source-emulated; no full FFT or vendor RAM parity",
+  "verification_mode": "Static PE disassembly, 144 low-lane SSE scalar ops per block and independent synthetic DFT4; no native DLL execution",
+  "verified_instruction_pins": 29
+}
