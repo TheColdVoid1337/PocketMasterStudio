@@ -1,0 +1,20 @@
+{
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "instruction_pins": 52,
+  "complex_points": 2048,
+  "real_samples": 4096,
+  "source_real_pair_iterations": 1023,
+  "scalar_sse_operations_per_pair": 25,
+  "source_scalar_sse_operations_total": 25575,
+  "packed_layout": "[Re X0, Re X2048, Re X1, Im X1, ..., Re X2047, Im X2047]",
+  "spectrum_sign": "positive; conjugate of numpy rfft",
+  "untouched_middle_bin_k1024": true,
+  "complete_real_fft_synthetic_cases": 28,
+  "max_abs_error": 5.684341886080801e-13,
+  "worst_case": [
+    "sine_33",
+    4031
+  ],
+  "negative_sign_control": "passed",
+  "limits": "source-executed real post-combine + algebraic Stage23Q inner complex FFT; no vendor Windows CRT/SSE native RAM parity, audio/gains/CLO"
+}
