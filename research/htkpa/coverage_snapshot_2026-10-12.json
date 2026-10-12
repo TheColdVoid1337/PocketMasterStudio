@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-12",
+  "kind": "source-address audit snapshot, not an estimate of fully reverse-engineered bytes",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "dll_bytes": 2902016,
+  "text_virtual_bytes": 1613400,
+  "pdata_unwind_functions": 5575,
+  "verifiers": {
+    "stage21_saturator_source.py": 75,
+    "stage22_pre_fit_trace.py": 43,
+    "stage23_loader_source_trace.py": 40,
+    "stage23_resampler_branch_source.py": 125,
+    "stage23_polyphase_source.py": 79
+  },
+  "total_unique_pinned_addresses": 335,
+  "pins_resolved_to_unwind_functions": 329,
+  "pin_touched_unwind_functions": 28,
+  "pin_touched_function_percentage": 0.5022,
+  "full_spans_of_pin_touched_functions_bytes": 37203,
+  "full_spans_percentage_of_text": 2.3059,
+  "handoff_cited_addresses": 50,
+  "union_distinct_unwind_functions_with_handoff_citations": 48,
+  "union_full_function_spans_bytes": 58813,
+  "union_full_function_spans_percentage_of_text": 3.6453,
+  "limitations": [
+    "Cited/pinned function footprint is not instruction-level coverage.",
+    "Historical Stage1-20 verifiers are not fully enumerated by this snapshot.",
+    "The 5575 .pdata entries exclude leaf functions; sections include unrelated code.",
+    "No complete independent 4-gain or Pre/Post FIR numerical parity with both official CLOs."
+  ]
+}
