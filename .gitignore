@@ -11,3 +11,7 @@ __pycache__/
 /tools/nam_js/data/*.f32
 /tools/nam_js/data/*.tmp
 /.dart_tool/
+
+# Private, user-owned HTKPA reverse-engineering inputs for local Codex work.
+# Keep the entire tree out of GitHub (vendor DLL, NAM, WAV, CLO, capture ZIPs).
+/research/_LOCAL_FILES/
