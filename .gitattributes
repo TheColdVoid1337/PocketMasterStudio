@@ -1,0 +1,10 @@
+# Preserve byte-exact LF in documentation and reproducible HTKPA research sources.
+# Other files, especially production assets and local proprietary binaries, are unaffected.
+/docs/*.md text eol=lf
+/docs/**/*.md text eol=lf
+/research/**/*.py text eol=lf
+/research/**/*.json text eol=lf
+/research/**/*.txt text eol=lf
+/research/**/*.md text eol=lf
+/research/**/requirements.txt text eol=lf
+/research/.gitignore text eol=lf
