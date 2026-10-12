@@ -1,0 +1,23 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "machine_instruction_pins": 62,
+  "filter_source_initial_flag_at_B996": 1,
+  "flag_0": "complex multiply each packed spectrum pair after DC/Nyquist",
+  "flag_nonzero": "independent real/imag double multiplication after DC/Nyquist",
+  "forward_mode": 1,
+  "inverse_mode": -1,
+  "fft_blocks_in_fir_stage": {
+    "fir_half_length": 708,
+    "fir_length": 1417,
+    "fft_scalar_doubles": 4096,
+    "initial_fill": 2680,
+    "initial_skip": 3388
+  },
+  "synthetic_4096_double_random_tests": 30,
+  "max_complex_vs_independent_error": 8.881784197001252e-16,
+  "max_lane_vs_independent_error": 0.0,
+  "symmetric_three_tap_sine33_conventional_rms": 0.7066538836185248,
+  "symmetric_three_tap_sine33_flag1_rms": 2.137607619668548e-15,
+  "critical_open_conflict": "flag1 scalar multiply with ordinary symmetric packed FFT suppresses sine; verify actual native filter coefficient representation / flag and inverse normalization before asserting convolution",
+  "not_proven": "normal runtime branch activation, native RAM/CRT, full convolution, overlap streaming, sample alignment, gains or CLO"
+}
