@@ -1,5 +1,7 @@
 # HTKPA / NAM→CLO — Interim engineering review after Stage 23C
 
+> **HISTORICAL REVIEW, NOT THE CURRENT STOPPING POINT.** For Stage23E–O findings, 1417-tap FIR derivation, FFT research and the next Stage23P gate, read the [2026-10-13 current research status](NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md). The architecture/coverage percentages below were a **2026-10-12 Stage23C snapshot**, not updated measures.
+
 **2026-10-12 · REVIEW checkpoint, not Stage 24.** Baseline: GitHub docs Stages 2–23C, the comprehensive Stage 1–22 handoff, native source-verifier files from Stages 21–23C, matching user capture ZIPs, and the SHA-pinned original x64 `5868USB.dll`. Stage 1's original GitHub filename is not assumed to follow the Stage2–23 naming convention. No vendor DLL execution, new CLO production, firmware changes, or pedal writes.
 
 ## Executive verdict
