@@ -1,0 +1,210 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "pinned_instructions": 38,
+  "constants": {
+    "mel_divisor": {
+      "va": "0x18024cdc0",
+      "float32": 2595.0
+    },
+    "mel_base": {
+      "va": "0x18024cd24",
+      "float32": 10.0
+    },
+    "mel_offset": {
+      "va": "0x18024c6a0",
+      "float32": 1.0
+    },
+    "mel_hz_scale": {
+      "va": "0x18024cda8",
+      "float32": 700.0
+    },
+    "mel_high_argument": {
+      "va": "0x18024cd38",
+      "float32": 15.285714149475098
+    },
+    "mel_low_argument": {
+      "va": "0x18024c6f8",
+      "float32": 1.1142857074737549
+    },
+    "intensity_fallback": {
+      "va": "0x18024ce08",
+      "float32": 3.4028234663852886e+38
+    },
+    "score_epsilon": {
+      "va": "0x18024c4d4",
+      "float32": 1.1920928955078125e-07
+    },
+    "score_average": {
+      "va": "0x18024c4f0",
+      "float32": 0.001953125
+    }
+  },
+  "evidence": {
+    "init_log10_high": {
+      "va": "0x1800bfe50",
+      "instruction": "call   0x18017e146"
+    },
+    "init_log10_low": {
+      "va": "0x1800bfe6c",
+      "instruction": "call   0x18017e146"
+    },
+    "mel_linear_fill": {
+      "va": "0x1800bfe85",
+      "instruction": "call   0x180027db0"
+    },
+    "mel_output_base": {
+      "va": "0x1800bfe92",
+      "instruction": "lea    rbx,[rdi+0x23b2c]"
+    },
+    "mel_initial_80hz": {
+      "va": "0x1800bfeb0",
+      "instruction": "mov    DWORD PTR [rdi+0x23b28],0x42a00000"
+    },
+    "mel_power_input": {
+      "va": "0x1800bfec0",
+      "instruction": "movss  xmm1,DWORD PTR [rbx-0x800]"
+    },
+    "mel_div_2595": {
+      "va": "0x1800bfecb",
+      "instruction": "divss  xmm1,xmm7"
+    },
+    "mel_pow10": {
+      "va": "0x1800bfecf",
+      "instruction": "call   0x18017e158"
+    },
+    "mel_minus_one": {
+      "va": "0x1800bfed4",
+      "instruction": "subss  xmm0,xmm8"
+    },
+    "mel_scale_700": {
+      "va": "0x1800bfed9",
+      "instruction": "mulss  xmm0,xmm9"
+    },
+    "mel_write_next": {
+      "va": "0x1800bfede",
+      "instruction": "movss  DWORD PTR [rbx],xmm0"
+    },
+    "mel_510_values": {
+      "va": "0x1800bfea2",
+      "instruction": "mov    esi,0x1fe"
+    },
+    "mel_final_10000hz": {
+      "va": "0x1800bfeec",
+      "instruction": "mov    DWORD PTR [rdi+0x24324],0x461c4000"
+    },
+    "linear_fill_first": {
+      "va": "0x180027dbe",
+      "instruction": "movss  DWORD PTR [r9],xmm0"
+    },
+    "linear_fill_interval": {
+      "va": "0x180027dca",
+      "instruction": "divss  xmm3,xmm2"
+    },
+    "linear_fill_last": {
+      "va": "0x180027e4e",
+      "instruction": "movss  DWORD PTR [r9+rdx*4-0x4],xmm1"
+    },
+    "fitter_lookup_x": {
+      "va": "0x1800bc3d2",
+      "instruction": "lea    rax,[rbx+0x23b28]"
+    },
+    "fitter_arg_x": {
+      "va": "0x1800bc3f4",
+      "instruction": "mov    QWORD PTR [rsp+0x20],rax"
+    },
+    "fitter_arg_npoints": {
+      "va": "0x1800bc3e1",
+      "instruction": "mov    r8d,r14d"
+    },
+    "fitter_arg_queries": {
+      "va": "0x1800bc3ec",
+      "instruction": "mov    DWORD PTR [rsp+0x28],0x200"
+    },
+    "fitter_output_ptr": {
+      "va": "0x1800bc3e4",
+      "instruction": "mov    QWORD PTR [rsp+0x30],r13"
+    },
+    "fitter_call_interpolator": {
+      "va": "0x1800bc3f9",
+      "instruction": "call   0x1800b5d00"
+    },
+    "piecewise_alloc_slopes": {
+      "va": "0x1800b5d29",
+      "instruction": "call   QWORD PTR [rip+0xd5c11]        # 0x18018b940"
+    },
+    "piecewise_diff_y": {
+      "va": "0x1800b5dcf",
+      "instruction": "subss  xmm1,DWORD PTR [rcx-0x8]"
+    },
+    "piecewise_slope": {
+      "va": "0x1800b5dd4",
+      "instruction": "divss  xmm1,xmm0"
+    },
+    "piecewise_intercept": {
+      "va": "0x1800b5deb",
+      "instruction": "subss  xmm0,xmm1"
+    },
+    "piecewise_test_above": {
+      "va": "0x1800b6048",
+      "instruction": "comiss xmm1,xmm2"
+    },
+    "piecewise_nearest_lower": {
+      "va": "0x1800b6050",
+      "instruction": "jbe    0x1800b6058"
+    },
+    "piecewise_apply_slope": {
+      "va": "0x1800b60ed",
+      "instruction": "mulss  xmm0,DWORD PTR [r10]"
+    },
+    "piecewise_apply_intercept": {
+      "va": "0x1800b60f2",
+      "instruction": "addss  xmm0,DWORD PTR [rbp+r8*4+0x0]"
+    },
+    "piecewise_output_write": {
+      "va": "0x1800b60fe",
+      "instruction": "movss  DWORD PTR [rdi+r10*1],xmm0"
+    },
+    "piecewise_fallback_maxfloat": {
+      "va": "0x1800b5feb",
+      "instruction": "movss  xmm4,DWORD PTR [rip+0x196e15]        # 0x18024ce08"
+    },
+    "score_read_output": {
+      "va": "0x1800bc410",
+      "instruction": "movss  xmm0,DWORD PTR [r13+rdi*4+0x0]"
+    },
+    "score_epsilon_add": {
+      "va": "0x1800bc417",
+      "instruction": "addss  xmm0,xmm15"
+    },
+    "score_logf": {
+      "va": "0x1800bc41c",
+      "instruction": "call   0x18017e14c"
+    },
+    "score_abs_mask": {
+      "va": "0x1800bc42b",
+      "instruction": "andps  xmm1,xmm14"
+    },
+    "score_loop_512": {
+      "va": "0x1800bc437",
+      "instruction": "cmp    rdi,0x200"
+    },
+    "score_normalize_512": {
+      "va": "0x1800bc440",
+      "instruction": "mulss  xmm7,DWORD PTR [rip+0x1900a8]        # 0x18024c4f0"
+    }
+  },
+  "local_tests": {
+    "unit_tests": 7,
+    "grid_freq_indices_hz": {
+      "0": 80.00000000000003,
+      "1": 84.00750044581235,
+      "10": 121.01435563314115,
+      "100": 602.1352178106774,
+      "256": 2196.356375650308,
+      "511": 10000.0
+    },
+    "grid_first_step_hz": 4.007500445812326,
+    "grid_last_step_hz": 54.69367926430459
+  },
+  "status": "Math and buffer lineage confirmed; meaning of source A/B curves and exact end-to-end FIR not yet recovered."
+}

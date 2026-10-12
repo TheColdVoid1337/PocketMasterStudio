@@ -1,0 +1,242 @@
+{
+  "constants": {
+    "feedback_epsilon": {
+      "address": "0x18024d1e0",
+      "value": 1.1920928955078125e-07
+    },
+    "feedback_spectrum_multiplier": {
+      "address": "0x18024d5a0",
+      "value": 1000000.0
+    },
+    "finalizer_energy_norm_1e_minus3": {
+      "address": "0x18024c618",
+      "value": 0.001
+    },
+    "finalizer_epsilon": {
+      "address": "0x18024c588",
+      "value": 1.1920928955078125e-07
+    },
+    "finalizer_ratio_limit_hi": {
+      "address": "0x18024cd24",
+      "value": 10.0
+    },
+    "finalizer_ratio_limit_lo": {
+      "address": "0x18024c7a0",
+      "value": 0.1
+    },
+    "finalizer_spectrum_multiplier": {
+      "address": "0x18024cd28",
+      "value": 1000000.0
+    },
+    "finalizer_support_seconds": {
+      "address": "0x18024c7a0",
+      "value": 0.1
+    }
+  },
+  "limitations": "Static evidence + isolated original algebraic tests only; not complete or bit-exact HTKPA.",
+  "passed_tests": 13,
+  "sha256_dll": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage": 15,
+  "test_names": [
+    "unit_regularized_ratio",
+    "zero_numerator",
+    "zero_both_is_zero",
+    "scaled_epsilon",
+    "scale_invariance_nonzero",
+    "conv_identity_dc",
+    "conv_has_zero_dc",
+    "causal_truncated_conv",
+    "causal_not_circular",
+    "match_rms_3x",
+    "match_rms_1x",
+    "rms_zero_rejected",
+    "wrong_kernel_rejected"
+  ],
+  "verified_instruction_count": 46,
+  "verified_instructions": {
+    "corrector_conv_accumulate": {
+      "address": "0x1800b66aa",
+      "assembly": "addss  xmm0,DWORD PTR [rax-0x4]"
+    },
+    "corrector_conv_iterations": {
+      "address": "0x1800b6694",
+      "assembly": "mov    r10d,0x20"
+    },
+    "corrector_conv_outer_index": {
+      "address": "0x1800b6751",
+      "assembly": "add    rdx,0x4"
+    },
+    "corrector_mean_div": {
+      "address": "0x1800b67ea",
+      "assembly": "divss  xmm2,xmm0"
+    },
+    "corrector_mean_sub": {
+      "address": "0x1800b682b",
+      "assembly": "subps  xmm0,xmm3"
+    },
+    "corrector_resample_bins": {
+      "address": "0x1800b65fd",
+      "assembly": "call   0x1800b7670"
+    },
+    "corrector_scalar_mean_sub": {
+      "address": "0x1800b68b0",
+      "assembly": "subss  xmm0,xmm2"
+    },
+    "corrector_scratch_256_1": {
+      "address": "0x1800b65b8",
+      "assembly": "mov    ecx,0x400"
+    },
+    "corrector_scratch_256_2": {
+      "address": "0x1800b65cc",
+      "assembly": "mov    ecx,0x400"
+    },
+    "corrector_synth_256": {
+      "address": "0x1800b6621",
+      "assembly": "call   0x1800b68f0"
+    },
+    "corrector_truncate_copy": {
+      "address": "0x1800b6771",
+      "assembly": "call   0x1800a505a"
+    },
+    "feedback_curvemap": {
+      "address": "0x1800bc33d",
+      "assembly": "call   0x1800b7670"
+    },
+    "feedback_post_ptr": {
+      "address": "0x1800bc342",
+      "assembly": "mov    r13,QWORD PTR [rsp+0x200]"
+    },
+    "feedback_post_synth": {
+      "address": "0x1800bc35c",
+      "assembly": "call   0x1800b68f0"
+    },
+    "feedback_ratio_scalar_den": {
+      "address": "0x1800bc222",
+      "assembly": "mulsd  xmm0,xmm6"
+    },
+    "feedback_ratio_scalar_divide": {
+      "address": "0x1800bc22f",
+      "assembly": "divsd  xmm1,xmm0"
+    },
+    "feedback_ratio_scalar_eps": {
+      "address": "0x1800bc22a",
+      "assembly": "addsd  xmm0,xmm10"
+    },
+    "feedback_ratio_scalar_num": {
+      "address": "0x1800bc226",
+      "assembly": "mulsd  xmm1,xmm6"
+    },
+    "feedback_ratio_scalar_write": {
+      "address": "0x1800bc237",
+      "assembly": "movss  DWORD PTR [rax+r9*1-0x4],xmm0"
+    },
+    "feedback_ratio_vector_denominator": {
+      "address": "0x1800bc114",
+      "assembly": "mulpd  xmm2,xmm4"
+    },
+    "feedback_ratio_vector_divide": {
+      "address": "0x1800bc11c",
+      "assembly": "divpd  xmm3,xmm2"
+    },
+    "feedback_ratio_vector_epsilon": {
+      "address": "0x1800bc118",
+      "assembly": "addpd  xmm2,xmm5"
+    },
+    "feedback_ratio_vector_numerator": {
+      "address": "0x1800bc10d",
+      "assembly": "mulpd  xmm3,xmm4"
+    },
+    "feedback_ratio_vector_write": {
+      "address": "0x1800bc12e",
+      "assembly": "movsd  QWORD PTR [rdx+r8*1-0x8],xmm0"
+    },
+    "feedback_spectrum_eval": {
+      "address": "0x1800bc055",
+      "assembly": "call   0x1800b82b0"
+    },
+    "finalizer_256_fir_apply": {
+      "address": "0x1800baf88",
+      "assembly": "call   0x1800b65a0"
+    },
+    "finalizer_ceil": {
+      "address": "0x1800b9bd0",
+      "assembly": "call   0x18017e10a"
+    },
+    "finalizer_clamp_max": {
+      "address": "0x1800baeb3",
+      "assembly": "mov    DWORD PTR [r14+rax*4],0x41200000"
+    },
+    "finalizer_clamp_min": {
+      "address": "0x1800baec6",
+      "assembly": "mov    DWORD PTR [r14+rax*4],0x3dcccccd"
+    },
+    "finalizer_gain_mul": {
+      "address": "0x1800bb12f",
+      "assembly": "mulps  xmm0,xmm2"
+    },
+    "finalizer_gaussian_smooth": {
+      "address": "0x1800baef9",
+      "assembly": "call   0x1800b7e10"
+    },
+    "finalizer_output_audio": {
+      "address": "0x1800bafab",
+      "assembly": "call   0x1800b5a30"
+    },
+    "finalizer_output_second_filter": {
+      "address": "0x1800ba3bc",
+      "assembly": "call   0x1800b63a0"
+    },
+    "finalizer_ratio_vector_den": {
+      "address": "0x1800bac92",
+      "assembly": "mulpd  xmm2,xmm4"
+    },
+    "finalizer_ratio_vector_div": {
+      "address": "0x1800bac9a",
+      "assembly": "divpd  xmm3,xmm2"
+    },
+    "finalizer_ratio_vector_eps": {
+      "address": "0x1800bac96",
+      "assembly": "addpd  xmm2,xmm5"
+    },
+    "finalizer_ratio_vector_scale": {
+      "address": "0x1800bac8b",
+      "assembly": "mulpd  xmm3,xmm4"
+    },
+    "finalizer_rms_ratio": {
+      "address": "0x1800bb0e2",
+      "assembly": "divss  xmm7,xmm0"
+    },
+    "finalizer_rms_sqrt_render": {
+      "address": "0x1800bb0cb",
+      "assembly": "call   0x18017e170"
+    },
+    "finalizer_rms_sqrt_target": {
+      "address": "0x1800bb0c0",
+      "assembly": "call   0x18017e170"
+    },
+    "finalizer_spectrum_magnitude": {
+      "address": "0x1800ba97b",
+      "assembly": "call   0x18017e170"
+    },
+    "finalizer_support_times_0_1s": {
+      "address": "0x1800b9bcb",
+      "assembly": "mulsd  xmm0,xmm12"
+    },
+    "finalizer_transform_1": {
+      "address": "0x1800ba8a3",
+      "assembly": "call   0x1800b4cf0"
+    },
+    "finalizer_transform_2": {
+      "address": "0x1800ba8bb",
+      "assembly": "call   0x1800b4cf0"
+    },
+    "fit_end_finalizer_call": {
+      "address": "0x1800bf11e",
+      "assembly": "call   0x1800b9b70"
+    },
+    "fit_end_finalizer_post_arg5": {
+      "address": "0x1800bf100",
+      "assembly": "mov    rax,QWORD PTR [r14+0x24410]"
+    }
+  }
+}

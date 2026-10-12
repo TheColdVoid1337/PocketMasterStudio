@@ -1,0 +1,324 @@
+{
+  "confirmed": [
+    "first conditioning result V2, second V0",
+    "two caller-owned curves change in-place, not V2",
+    "auxiliary low-index geometric in-place filter with sqrt-based K",
+    "outer three-selector carries caller buffers across calls"
+  ],
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "pinned_constants": 5,
+  "pinned_instructions": 64,
+  "source_constants": {
+    "anneal": {
+      "address": "0x18024c654",
+      "value": 0.8999999761581421
+    },
+    "aux_60": {
+      "address": "0x18024cd60",
+      "value": 60.0
+    },
+    "outer_0_5_fs": {
+      "address": "0x18024c5c4",
+      "value": 0.5
+    },
+    "pow_ceiling": {
+      "address": "0x18024ccd0",
+      "value": 5.0
+    },
+    "pow_floor": {
+      "address": "0x18024c7e0",
+      "value": 0.2
+    }
+  },
+  "source_instructions": {
+    "aux_call": {
+      "address": "0x1800bb7e3",
+      "instruction": "call   0x1800b6220"
+    },
+    "aux_center_mult": {
+      "address": "0x1800b62d3",
+      "instruction": "mulss  xmm0,DWORD PTR [r14-0x4]"
+    },
+    "aux_center_sqrt": {
+      "address": "0x1800b62d9",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_center_write": {
+      "address": "0x1800b62de",
+      "instruction": "movss  DWORD PTR [r14-0x4],xmm0"
+    },
+    "aux_first_const60": {
+      "address": "0x1800bb7d2",
+      "instruction": "movss  xmm3,DWORD PTR [rip+0x191586]        # 0x18024cd60"
+    },
+    "aux_first_neighbor_mul": {
+      "address": "0x1800b6267",
+      "instruction": "mulss  xmm0,DWORD PTR [rdi+0x4]"
+    },
+    "aux_first_sample": {
+      "address": "0x1800b6260",
+      "instruction": "movss  xmm6,DWORD PTR [rdi]"
+    },
+    "aux_first_self_mul": {
+      "address": "0x1800b6271",
+      "instruction": "mulss  xmm0,xmm6"
+    },
+    "aux_first_sqrt1": {
+      "address": "0x1800b626c",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_first_sqrt2": {
+      "address": "0x1800b6275",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_first_write": {
+      "address": "0x1800b627d",
+      "instruction": "movss  DWORD PTR [rdi],xmm0"
+    },
+    "aux_input": {
+      "address": "0x1800bb7dd",
+      "instruction": "mov    rdx,rdi"
+    },
+    "aux_inv_fs": {
+      "address": "0x1800b622a",
+      "instruction": "mulss  xmm3,DWORD PTR [rcx+0x20ec8]"
+    },
+    "aux_multiply_n": {
+      "address": "0x1800b623d",
+      "instruction": "mulss  xmm3,xmm0"
+    },
+    "aux_neighbor_left": {
+      "address": "0x1800b62c8",
+      "instruction": "mulss  xmm0,DWORD PTR [r14-0x8]"
+    },
+    "aux_neighbor_right": {
+      "address": "0x1800b62c0",
+      "instruction": "movss  xmm6,DWORD PTR [r14]"
+    },
+    "aux_neighbor_sqrt": {
+      "address": "0x1800b62ce",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_scalar_center": {
+      "address": "0x1800b6364",
+      "instruction": "mulss  xmm0,DWORD PTR [rdi+rbx*4]"
+    },
+    "aux_scalar_center_sqrt": {
+      "address": "0x1800b6369",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_scalar_left": {
+      "address": "0x1800b6353",
+      "instruction": "movss  xmm0,DWORD PTR [rdi+rbx*4-0x4]"
+    },
+    "aux_scalar_left_sqrt": {
+      "address": "0x1800b635f",
+      "instruction": "call   0x18017e170"
+    },
+    "aux_scalar_right": {
+      "address": "0x1800b6359",
+      "instruction": "mulss  xmm0,DWORD PTR [rdi+rbx*4+0x4]"
+    },
+    "aux_scalar_write": {
+      "address": "0x1800b636e",
+      "instruction": "movss  DWORD PTR [rdi+rbx*4],xmm0"
+    },
+    "aux_short_guard": {
+      "address": "0x1800b624d",
+      "instruction": "cmp    ebx,0x1"
+    },
+    "aux_sqrt_count": {
+      "address": "0x1800b6244",
+      "instruction": "call   0x18017e13a"
+    },
+    "aux_truncate_count": {
+      "address": "0x1800b6249",
+      "instruction": "cvttss2si ebx,xmm0"
+    },
+    "cond1_call": {
+      "address": "0x1800bb4d9",
+      "instruction": "call   0x1800b7670"
+    },
+    "cond1_input": {
+      "address": "0x1800bb4b3",
+      "instruction": "mov    rdx,r12"
+    },
+    "cond1_output_A": {
+      "address": "0x1800bb4cf",
+      "instruction": "mov    QWORD PTR [rsp+0x30],rdi"
+    },
+    "cond1_output_F": {
+      "address": "0x1800bb4ca",
+      "instruction": "mov    QWORD PTR [rsp+0x38],rax"
+    },
+    "cond2_call": {
+      "address": "0x1800bb4f8",
+      "instruction": "call   0x1800b7670"
+    },
+    "cond2_input": {
+      "address": "0x1800bb4eb",
+      "instruction": "mov    rdx,rdi"
+    },
+    "cond2_output_A": {
+      "address": "0x1800bb4ee",
+      "instruction": "mov    QWORD PTR [rsp+0x30],r12"
+    },
+    "cond2_output_F": {
+      "address": "0x1800bb4e6",
+      "instruction": "mov    QWORD PTR [rsp+0x38],rbp"
+    },
+    "context_half_fs": {
+      "address": "0x1800b5865",
+      "instruction": "mulss  xmm1,DWORD PTR [rip+0x196d57]        # 0x18024c5c4"
+    },
+    "context_half_fs_store": {
+      "address": "0x1800b587f",
+      "instruction": "movss  DWORD PTR [rcx+0x20ec4],xmm1"
+    },
+    "context_inv_half_fs": {
+      "address": "0x1800b587b",
+      "instruction": "divss  xmm0,xmm1"
+    },
+    "context_inv_half_fs_store": {
+      "address": "0x1800b5887",
+      "instruction": "movss  DWORD PTR [rcx+0x20ec8],xmm0"
+    },
+    "curve3_call": {
+      "address": "0x1800bb812",
+      "instruction": "call   0x1800b7670"
+    },
+    "curve3_input": {
+      "address": "0x1800bb800",
+      "instruction": "mov    rdx,rdi"
+    },
+    "curve3_output": {
+      "address": "0x1800bb803",
+      "instruction": "mov    QWORD PTR [rsp+0x30],rax"
+    },
+    "external_A_loaded": {
+      "address": "0x1800bb66a",
+      "instruction": "mov    rdi,QWORD PTR [rsp+0x1e0]"
+    },
+    "external_DIV": {
+      "address": "0x1800bb6e1",
+      "instruction": "divps  xmm1,xmm0"
+    },
+    "external_DIV_A": {
+      "address": "0x1800bb6d0",
+      "instruction": "movups xmm1,XMMWORD PTR [rax-0x10]"
+    },
+    "external_DIV_B": {
+      "address": "0x1800bb6d8",
+      "instruction": "movups xmm0,XMMWORD PTR [rcx+rax*1-0x10]"
+    },
+    "external_DIV_write": {
+      "address": "0x1800bb6e9",
+      "instruction": "movups XMMWORD PTR [rax-0x50],xmm1"
+    },
+    "external_MUL_operation": {
+      "address": "0x1800bb575",
+      "instruction": "mulps  xmm1,xmm0"
+    },
+    "external_MUL_other": {
+      "address": "0x1800bb568",
+      "instruction": "movups xmm1,XMMWORD PTR [rax+rcx*1-0x10]"
+    },
+    "external_MUL_src": {
+      "address": "0x1800bb560",
+      "instruction": "movups xmm0,XMMWORD PTR [rax-0x10]"
+    },
+    "external_MUL_write": {
+      "address": "0x1800bb578",
+      "instruction": "movups XMMWORD PTR [rax-0x50],xmm1"
+    },
+    "feedback_estimate": {
+      "address": "0x1800bc055",
+      "instruction": "call   0x1800b82b0"
+    },
+    "inner_external_B": {
+      "address": "0x1800bb391",
+      "instruction": "mov    r13,QWORD PTR [rsp+0x1e8]"
+    },
+    "inner_external_frequency": {
+      "address": "0x1800bb4b6",
+      "instruction": "mov    rbp,QWORD PTR [rsp+0x1f0]"
+    },
+    "iteration_loop": {
+      "address": "0x1800bc5c2",
+      "instruction": "jne    0x1800bb440"
+    },
+    "outer_alloc_A": {
+      "address": "0x1800bee33",
+      "instruction": "mov    r15,rax"
+    },
+    "outer_alloc_B": {
+      "address": "0x1800bee3f",
+      "instruction": "mov    r12,rax"
+    },
+    "outer_alloc_freq": {
+      "address": "0x1800bee4b",
+      "instruction": "mov    r13,rax"
+    },
+    "outer_pass_first_external": {
+      "address": "0x1800bf092",
+      "instruction": "mov    QWORD PTR [rsp+0x40],r15"
+    },
+    "outer_pass_second_external": {
+      "address": "0x1800bf08d",
+      "instruction": "mov    QWORD PTR [rsp+0x48],r12"
+    },
+    "outer_pass_third_external": {
+      "address": "0x1800bf088",
+      "instruction": "mov    QWORD PTR [rsp+0x50],r13"
+    },
+    "outer_three_calls": {
+      "address": "0x1800bf0d1",
+      "instruction": "cmp    rbx,0x3"
+    },
+    "post_synth": {
+      "address": "0x1800bc35c",
+      "instruction": "call   0x1800b68f0"
+    },
+    "pre_synth": {
+      "address": "0x1800bb836",
+      "instruction": "call   0x1800b68f0"
+    },
+    "reject_restore_external": {
+      "address": "0x1800bc53f",
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x1f8]"
+    }
+  },
+  "stage": 17,
+  "synthetic_check_count": 23,
+  "synthetic_checks": [
+    "half_rate_normalization",
+    "prefix_count_n1000_48k",
+    "prefix_count_n2500_48k",
+    "prefix_count_n10000_48k",
+    "prefix_count_high_fs",
+    "prefix_count_can_be_one",
+    "prefix_support_K5",
+    "prefix_first_formula",
+    "prefix_sequential_results",
+    "prefix_unchanged_tail",
+    "prefix_last_needs_lookahead",
+    "sequential_differs_from_jacobi",
+    "unit_input_preserved",
+    "K_le_1_no_update",
+    "helper_finite_at_fs_2000",
+    "helper_finite_at_fs_48000",
+    "helper_finite_at_fs_96000",
+    "caller_first_is_divided",
+    "caller_second_is_multiplied",
+    "caller_input_not_mutated_in_fixture",
+    "two_writes_not_to_v2",
+    "distinct_windows_order",
+    "cannot_claim_full_fit_without_conditioner"
+  ],
+  "unresolved": [
+    "full conditioner 0xB7670 intermediate parity",
+    "one full optimizer iteration",
+    "three-stage real audio fitting",
+    "exact vendor FIR numerical parity"
+  ]
+}

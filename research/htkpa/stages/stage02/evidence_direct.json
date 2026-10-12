@@ -1,0 +1,88 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "status": "Static analysis only — no DLL execution",
+  "imported_expf_rva": "0x18b9a8",
+  "call_thunk_expf_va": "0x18017e12e",
+  "constants": {
+    "probe_rate_1": 44100.0,
+    "probe_rate_2": 48000.0,
+    "probe_rate_3": 96000.0,
+    "fitting_rate_factor_start": 0.800000011920929,
+    "fitting_rate_factor_step": 0.05,
+    "fitting_rate_factor_end": 1.2,
+    "rate_preprocess_constant_1": 0.0020322001073509455,
+    "rate_preprocess_constant_2": -0.0032508999574929476,
+    "positive_nl_unity": 1.0,
+    "sign_bit_flip_mask": 2147483648
+  },
+  "verified_instructions": {
+    "nl_input_positive": "18002869d:\tcomiss xmm5,xmm4",
+    "nl_positive_rate": "1800286b2:\tmulss  xmm2,xmm5",
+    "nl_positive_exp": "1800286c0:\tcall   0x18017e12e",
+    "nl_positive_subtract": "1800286cd:\tsubss  xmm1,xmm0",
+    "nl_positive_amp": "1800286d1:\tmulss  xmm1,xmm7",
+    "nl_negative_rate": "1800286e7:\tmulss  xmm3,xmm5",
+    "nl_negative_exp": "1800286ee:\tcall   0x18017e12e",
+    "nl_negative_subtract": "1800286f3:\tsubss  xmm0,DWORD PTR [rip+0x223fa5]        # 0x18024c6a0",
+    "nl_negative_amp": "180028700:\tmulss  xmm0,xmm6",
+    "amp_pos_store": "1800be661:\tmovss  DWORD PTR [rax],xmm0",
+    "amp_neg_store": "1800be676:\tmovss  DWORD PTR [rax],xmm0",
+    "rate_pos_store": "1800be682:\tmovss  DWORD PTR [rax],xmm10",
+    "rate_neg_store": "1800be68f:\tmovss  DWORD PTR [rax],xmm9",
+    "iir_feedback1": "1800bd564:\tmulsd  xmm1,QWORD PTR [rdi+0x232f0]",
+    "iir_feedback2": "1800bd56f:\tmulsd  xmm0,QWORD PTR [rdi+0x232f8]",
+    "iir_feedforward0": "1800bd599:\tmulsd  xmm0,QWORD PTR [rdi+0x232d8]",
+    "iir_feedforward1": "1800bd591:\tmulsd  xmm1,QWORD PTR [rdi+0x232e0]",
+    "iir_feedforward2": "1800bd5a1:\tmulsd  xmm2,QWORD PTR [rdi+0x232e8]",
+    "rate_44100": "1800bc739:\tucomiss xmm0,DWORD PTR [rip+0x1906b0]        # 0x18024cdf0",
+    "rate_48000": "1800bc7ef:\tucomiss xmm0,DWORD PTR [rip+0x1905fe]        # 0x18024cdf4",
+    "rate_96000": "1800bc89e:\tucomiss xmm0,DWORD PTR [rip+0x190553]        # 0x18024cdf8",
+    "pass_select_2": "1800bee9f:\tmov    DWORD PTR [rsp+0xa8],0x2",
+    "pass_select_1": "1800beeaa:\tmov    DWORD PTR [rsp+0xac],0x1",
+    "pass_select_3": "1800beeb5:\tmov    DWORD PTR [rsp+0xb0],0x3",
+    "pass_call": "1800bf0c9:\tcall   0x1800bb210",
+    "pass_bound": "1800bf0d1:\tcmp    rbx,0x3",
+    "rate_sweep_pos": "1800be529:\taddsd  xmm0,xmm2",
+    "rate_sweep_neg": "1800be631:\taddsd  xmm0,xmm2",
+    "saturator_scalar_positive": "1800be4ba:\tcall   0x18017e12e",
+    "saturator_scalar_negative": "1800be4d5:\tcall   0x18017e12e"
+  },
+  "code_ranges": {
+    "fit_nonlinearity": [
+      "0x1800bdbe0",
+      "0x1800be700"
+    ],
+    "iir_preprocessing": [
+      "0x1800bd490",
+      "0x1800bdbe0"
+    ],
+    "rate_specific_preprocessing": [
+      "0x1800bc6b0",
+      "0x1800bd490"
+    ],
+    "three_region_processing": [
+      "0x1800bb210",
+      "0x1800bc6b0"
+    ],
+    "nonlinear_forward": [
+      "0x180028690",
+      "0x18002870e"
+    ],
+    "nonlinear_buffer_update": [
+      "0x1800be700",
+      "0x1800be824"
+    ],
+    "htkpa_caller": [
+      "0x1800be830",
+      "0x1800bf55d"
+    ]
+  },
+  "inference": {
+    "saturator": "f(x) = Pmax*(1-exp(-Prate*x)) if x>0, else Nmax*(exp(Nrate*x)-1)",
+    "parameter_fit": "0x1800bdbe0 stores gains at context+0x243f8..0x24404, with 0.8:0.05:1.2 search factors",
+    "iir_preprocess": "0x1800bd490 has direct-form-II style second-order recursive stages and separate coefficient banks",
+    "rate_branches": "0x1800bc6b0 checks 44100,48000,96000 and loads separate coefficient vectors",
+    "loop": "Three calls to 0x1800bb210 via selectors 2,1,3; NOT proof of repeating an identical fit.",
+    "unsolved": "Design/filter fit in 0x1800bb210 and 0x1800b9b70, coeff table derivation, exact calibration"
+  }
+}

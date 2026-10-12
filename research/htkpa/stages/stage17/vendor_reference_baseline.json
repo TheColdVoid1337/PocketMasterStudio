@@ -1,0 +1,42 @@
+{
+  "2203": {
+    "independently_reconstructed_fir": "NOT_PROVIDED",
+    "model": "2203",
+    "reference_coefficient_stats": {
+      "post_fir": {
+        "l2": 1.1705279563738586,
+        "nonzero_taps": 1881,
+        "sum": 0.0029591506890938035
+      },
+      "pre_fir": {
+        "l2": 3.2316134315618372,
+        "nonzero_taps": 117,
+        "sum": 0.01421416145603871
+      }
+    },
+    "reference_crc16": 47741,
+    "reference_sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+    "vendor_parity": "NOT_TESTED"
+  },
+  "reference_use": "read-only post-hoc coefficient comparison, NEVER optimization",
+  "research_only": true,
+  "sc20": {
+    "independently_reconstructed_fir": "NOT_PROVIDED",
+    "model": "sc20",
+    "reference_coefficient_stats": {
+      "post_fir": {
+        "l2": 1.922987231367457,
+        "nonzero_taps": 1881,
+        "sum": 0.006035439627112282
+      },
+      "pre_fir": {
+        "l2": 2.4961181883791874,
+        "nonzero_taps": 117,
+        "sum": 0.005174505462491652
+      }
+    },
+    "reference_crc16": 24553,
+    "reference_sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a",
+    "vendor_parity": "NOT_TESTED"
+  }
+}

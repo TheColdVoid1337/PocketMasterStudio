@@ -1,0 +1,102 @@
+[
+  {
+    "case": "2203",
+    "profiles": {
+      "void": {
+        "lag": 0,
+        "train": {
+          "correlation": 0.7694991843671919,
+          "nrmse_after_signed_gain_alignment": 0.6386486085052479,
+          "gain_to_target_signed": 0.28733921260758993,
+          "rms_dbfs": -21.788927077696748
+        },
+        "heldout": {
+          "correlation": 0.7486901049274685,
+          "nrmse_after_signed_gain_alignment": 0.6629277474527401,
+          "gain_to_target_signed": 0.2798961782588717,
+          "rms_dbfs": -20.425559390179476
+        }
+      },
+      "refit_v01": {
+        "lag": 0,
+        "train": {
+          "correlation": 0.8758295259993908,
+          "nrmse_after_signed_gain_alignment": 0.4826217375944523,
+          "gain_to_target_signed": 0.32704415063248055,
+          "rms_dbfs": -21.78892708737917
+        },
+        "heldout": {
+          "correlation": 0.8948667139944448,
+          "nrmse_after_signed_gain_alignment": 0.4463498672044225,
+          "gain_to_target_signed": 0.33002549185438446,
+          "rms_dbfs": -20.30744590601
+        }
+      },
+      "fav_v02_C": {
+        "lag": 0,
+        "train": {
+          "correlation": 0.8749555807661842,
+          "nrmse_after_signed_gain_alignment": 0.4842043433766277,
+          "gain_to_target_signed": 0.24488952018236304,
+          "rms_dbfs": -19.284874997479672
+        },
+        "heldout": {
+          "correlation": 0.8894683732433533,
+          "nrmse_after_signed_gain_alignment": 0.4570125414961978,
+          "gain_to_target_signed": 0.24530833812319103,
+          "rms_dbfs": -17.783299169246817
+        }
+      },
+      "minphase_v06": {
+        "lag": -3,
+        "train": {
+          "correlation": -0.7036564124381618,
+          "nrmse_after_signed_gain_alignment": 0.710540833026303,
+          "gain_to_target_signed": -0.19696382041358682,
+          "rms_dbfs": -19.28573169880281
+        },
+        "heldout": {
+          "correlation": -0.8173979244938934,
+          "nrmse_after_signed_gain_alignment": 0.5760843491406775,
+          "gain_to_target_signed": -0.2254378709206309,
+          "rms_dbfs": -17.78343333237364
+        }
+      }
+    }
+  },
+  {
+    "case": "sc20",
+    "profiles": {
+      "void": {
+        "lag": 0,
+        "train": {
+          "correlation": 0.7501564447921302,
+          "nrmse_after_signed_gain_alignment": 0.6613830310477198,
+          "gain_to_target_signed": 0.30610502649309634,
+          "rms_dbfs": -32.12324782862729
+        },
+        "heldout": {
+          "correlation": 0.6581728779673898,
+          "nrmse_after_signed_gain_alignment": 0.7529214209494687,
+          "gain_to_target_signed": 0.26009638716790867,
+          "rms_dbfs": -32.05203527558551
+        }
+      },
+      "refit_v01": {
+        "lag": 0,
+        "train": {
+          "correlation": 0.8243316924068462,
+          "nrmse_after_signed_gain_alignment": 0.566280151500348,
+          "gain_to_target_signed": 0.33637258072758325,
+          "rms_dbfs": -32.123247815489876
+        },
+        "heldout": {
+          "correlation": 0.7662044514080044,
+          "nrmse_after_signed_gain_alignment": 0.6426841571602756,
+          "gain_to_target_signed": 0.302479867005196,
+          "rms_dbfs": -32.043190369487235
+        }
+      }
+    }
+  }
+]

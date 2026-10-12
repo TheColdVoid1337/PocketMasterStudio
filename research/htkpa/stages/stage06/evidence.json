@@ -1,0 +1,132 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "static_pin_count": 20,
+  "static_pins": {
+    "logf_spectrum": "1800b73bb:\tcall   0x18017e14c",
+    "spectral_interpolation": "1800b7450:\tcall   0x1800b5d00",
+    "mirror_reverse_index": "1800b748f:\tmov    eax,DWORD PTR [r14+rax*4]",
+    "complex_spectrum_transform": "1800b754a:\tcall   0x1800b4a50",
+    "complex_conjugate_fold": "1800b7569:\tcall   0x1800b6e30",
+    "complex_reconstruction": "1800b7590:\tcall   0x1800b4f60",
+    "exp_of_log_re": "1800b75d5:\tcall   0x18017e12e",
+    "cos_of_phase": "1800b75e1:\tcall   0x18017e11c",
+    "exp_times_cos": "1800b75e6:\tmulss  xmm0,xmm6",
+    "sin_of_phase": "1800b75f4:\tcall   0x18017e164",
+    "exp_times_sin": "1800b75f9:\tmulss  xmm0,xmm6",
+    "store_real": "1800b75ea:\tmovss  DWORD PTR [rdi+rbx*1-0x4],xmm0",
+    "store_imag": "1800b7601:\tmovss  DWORD PTR [rdi+rbx*1-0x8],xmm0",
+    "hermitian_re_add": "1800b6edb:\taddss  xmm0,DWORD PTR [rdx+0x8]",
+    "hermitian_im_subtract": "1800b6eeb:\tsubss  xmm1,DWORD PTR [rdx+0xc]",
+    "spectrum_complex_fft_basis": "1800b7534:\tcall   0x1800b52e0",
+    "block_transform_initialization": "1800b5aa5:\tcall   0x1800c0d40",
+    "block_transform_call": "1800b5b4b:\tcall   0x1800c0f60",
+    "fixed_fft_work_buffer": "1800b65b8:\tmov    ecx,0x400",
+    "fixed_work_count": "1800b65f5:\tmov    DWORD PTR [rsp+0x20],0x100"
+  },
+  "cases": {
+    "official_2203": {
+      "sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+      "pre": {
+        "minphase_cosine": 1.0,
+        "normalized_residual": 7.319405908701678e-11,
+        "peak_tap": 0,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": 0.9985633791935201,
+        "normalized_residual": 0.053602353238584095,
+        "peak_tap": 3,
+        "tap_count_analyzed": 1881
+      }
+    },
+    "void_2203": {
+      "sha256": "2628218c655e63f1495aa6c66b1283c7d224fa87511a258eef4e410b2a8ecf7f",
+      "pre": {
+        "minphase_cosine": 1.0,
+        "normalized_residual": 3.5957613361887793e-16,
+        "peak_tap": 1,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": -0.24366892792432546,
+        "normalized_residual": 1.5771296255470655,
+        "peak_tap": 6,
+        "tap_count_analyzed": 1881
+      }
+    },
+    "official_sc20": {
+      "sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a",
+      "pre": {
+        "minphase_cosine": 0.9999999999999996,
+        "normalized_residual": 1.5715545463957728e-08,
+        "peak_tap": 1,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": 0.9995890311107896,
+        "normalized_residual": 0.028669126926134096,
+        "peak_tap": 2,
+        "tap_count_analyzed": 1881
+      }
+    },
+    "void_sc20": {
+      "sha256": "e1a73487594db2cd6a7e42b81717f2f6b43299668019530e3e3e19577cd316ef",
+      "pre": {
+        "minphase_cosine": 1.0,
+        "normalized_residual": 4.2857387340691465e-16,
+        "peak_tap": 2,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": -0.04072428427056531,
+        "normalized_residual": 1.4427226235229285,
+        "peak_tap": 17,
+        "tap_count_analyzed": 1881
+      }
+    },
+    "v01_2203": {
+      "sha256": "0d867edeaa7de0726d936c479855b065906798ce2d5dbdca5927430bbc39b216",
+      "pre": {
+        "minphase_cosine": 1.0,
+        "normalized_residual": 3.5957613361887793e-16,
+        "peak_tap": 1,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": -0.2973385756797698,
+        "normalized_residual": 1.6108001570731199,
+        "peak_tap": 6,
+        "tap_count_analyzed": 1881
+      }
+    },
+    "v02c_2203": {
+      "sha256": "4bdbdb70ed001ce55d0a61a1bd46dbdcbb23f439268f178a748ca85a20655b0c",
+      "pre": {
+        "minphase_cosine": 1.0,
+        "normalized_residual": 3.5957613361887793e-16,
+        "peak_tap": 1,
+        "tap_count_analyzed": 128
+      },
+      "post": {
+        "minphase_cosine": -0.2264871572392947,
+        "normalized_residual": 1.5661974058526857,
+        "peak_tap": 6,
+        "tap_count_analyzed": 1881
+      }
+    }
+  },
+  "2203_cross_reference": {
+    "void_2203": {
+      "raw_cosine_with_official": -0.19321550719256061,
+      "projected_cosine_with_official": 0.962165139715542
+    },
+    "v01_2203": {
+      "raw_cosine_with_official": -0.28469085839701314,
+      "projected_cosine_with_official": 0.9473173485945051
+    },
+    "v02c_2203": {
+      "raw_cosine_with_official": -0.2916399719230829,
+      "projected_cosine_with_official": 0.9367313018244319
+    }
+  }
+}

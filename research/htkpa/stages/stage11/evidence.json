@@ -1,0 +1,203 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "limits": [
+    "No proprietary DLL executed",
+    "No complete Pre-FIR impulse response from NAM/WAV",
+    "Full frequency mapping / transform in b7670, b72e0 and b47f0 remains open",
+    "No exact pre/post coefficient recovery",
+    "No hardware CLO created"
+  ],
+  "machine_evidence": {
+    "candidate_destination_arg": {
+      "assembly": "mov    QWORD PTR [rsp+0x20],rdi",
+      "va": "0x1800bb831"
+    },
+    "candidate_divide": {
+      "assembly": "divps  xmm1,xmm0",
+      "va": "0x1800bb6e1"
+    },
+    "candidate_filter_conditioner": {
+      "assembly": "call   0x1800b6220",
+      "va": "0x1800bb7e3"
+    },
+    "candidate_high_clamp": {
+      "assembly": "movaps xmm0,xmm11",
+      "va": "0x1800bb479"
+    },
+    "candidate_live_pre_pointer": {
+      "assembly": "mov    rdi,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bb821"
+    },
+    "candidate_low_clamp": {
+      "assembly": "mov    DWORD PTR [rdi],0x3e4ccccd",
+      "va": "0x1800bb48c"
+    },
+    "candidate_multiply": {
+      "assembly": "mulps  xmm1,xmm0",
+      "va": "0x1800bb575"
+    },
+    "candidate_power": {
+      "assembly": "call   0x18017e158",
+      "va": "0x1800bb46e"
+    },
+    "candidate_pre_input_length": {
+      "assembly": "mov    r8d,DWORD PTR [rbx+0x20ed4]",
+      "va": "0x1800bb817"
+    },
+    "candidate_pre_output_length": {
+      "assembly": "mov    r9d,r8d",
+      "va": "0x1800bb81e"
+    },
+    "candidate_pre_synth_call": {
+      "assembly": "call   0x1800b68f0",
+      "va": "0x1800bb836"
+    },
+    "fft_helper_interp": {
+      "assembly": "call   0x1800b5d00",
+      "va": "0x1800b7450"
+    },
+    "fft_helper_log_eps": {
+      "assembly": "movss  xmm0,DWORD PTR [rbp+rbx*4+0x0]",
+      "va": "0x1800b73b1"
+    },
+    "fft_helper_symmetric_reverse": {
+      "assembly": "mov    eax,DWORD PTR [r14+rax*4]",
+      "va": "0x1800b748f"
+    },
+    "first_frequency_mapping": {
+      "assembly": "call   0x1800b7670",
+      "va": "0x1800bb4d9"
+    },
+    "iteration_decay": {
+      "assembly": "mulss  xmm12,DWORD PTR [rip+0x19118d]        # 0x18024c654",
+      "va": "0x1800bb4be"
+    },
+    "main_call_fitter": {
+      "assembly": "call   0x1800bb210",
+      "va": "0x1800bf0c9"
+    },
+    "main_post_context_reference": {
+      "assembly": "mov    rax,QWORD PTR [r14+0x24410]",
+      "va": "0x1800bf070"
+    },
+    "main_post_stack_reference": {
+      "assembly": "mov    QWORD PTR [rsp+0x60],rax",
+      "va": "0x1800bf077"
+    },
+    "main_pre_context": {
+      "assembly": "mov    rax,QWORD PTR [r14+0x24408]",
+      "va": "0x1800bf07c"
+    },
+    "main_pre_stack": {
+      "assembly": "mov    QWORD PTR [rsp+0x58],rax",
+      "va": "0x1800bf083"
+    },
+    "mapping_gaussian_1": {
+      "assembly": "call   0x1800b7e10",
+      "va": "0x1800b7bbb"
+    },
+    "mapping_gaussian_2": {
+      "assembly": "call   0x1800b7e10",
+      "va": "0x1800b7c12"
+    },
+    "mapping_interpolation_1": {
+      "assembly": "call   0x1800b5d00",
+      "va": "0x1800b7bf8"
+    },
+    "mapping_interpolation_2": {
+      "assembly": "call   0x1800b5d00",
+      "va": "0x1800b7c4b"
+    },
+    "mapping_interpolation_3": {
+      "assembly": "call   0x1800b5d00",
+      "va": "0x1800b7c8c"
+    },
+    "second_frequency_mapping": {
+      "assembly": "call   0x1800b7670",
+      "va": "0x1800bb4f8"
+    },
+    "synth_centered_energy_sqrt": {
+      "assembly": "call   0x18017e170",
+      "va": "0x1800b6d07"
+    },
+    "synth_complex_operation": {
+      "assembly": "call   0x1800b47f0",
+      "va": "0x1800b6a66"
+    },
+    "synth_copy_declared_output": {
+      "assembly": "call   0x1800a505a",
+      "va": "0x1800b6b39"
+    },
+    "synth_copy_first_half": {
+      "assembly": "call   0x1800a505a",
+      "va": "0x1800b695b"
+    },
+    "synth_double_support": {
+      "assembly": "lea    eax,[rsi+rsi*1]",
+      "va": "0x1800b691f"
+    },
+    "synth_energy_scale": {
+      "assembly": "divss  xmm7,xmm0",
+      "va": "0x1800b6d0e"
+    },
+    "synth_full_energy_sqrt": {
+      "assembly": "call   0x18017e170",
+      "va": "0x1800b6b18"
+    },
+    "synth_generate_basis": {
+      "assembly": "call   0x1800b52e0",
+      "va": "0x1800b6a50"
+    },
+    "synth_mean": {
+      "assembly": "divss  xmm2,xmm0",
+      "va": "0x1800b6b9d"
+    },
+    "synth_reflected_sample_load": {
+      "assembly": "mov    eax,DWORD PTR [rdx+0x8]",
+      "va": "0x1800b69a0"
+    },
+    "synth_remove_mean": {
+      "assembly": "subps  xmm0,xmm3",
+      "va": "0x1800b6beb"
+    },
+    "synth_scale_output": {
+      "assembly": "mulps  xmm0,xmm2",
+      "va": "0x1800b6d52"
+    },
+    "synth_scale_output_tail": {
+      "assembly": "mulps  xmm0,xmm7",
+      "va": "0x1800b6db8"
+    },
+    "synth_support_minus_two": {
+      "assembly": "lea    r14d,[rax-0x2]",
+      "va": "0x1800b6925"
+    },
+    "synth_transform_one": {
+      "assembly": "call   0x1800b72e0",
+      "va": "0x1800b6a16"
+    },
+    "third_frequency_mapping": {
+      "assembly": "call   0x1800b7670",
+      "va": "0x1800bb812"
+    }
+  },
+  "official_check": {
+    "JCM800_2203": {
+      "dc_sum_to_l2": 0.004398472081225697,
+      "nonzero_taps": 117,
+      "note": "cross-check only; not an output of the DLL helper",
+      "official_pre_l2": 3.2316134315618372,
+      "official_pre_sum": 0.01421416145603871
+    },
+    "SC20_Full_Rig": {
+      "dc_sum_to_l2": 0.0020730210158244273,
+      "nonzero_taps": 117,
+      "note": "cross-check only; not an output of the DLL helper",
+      "official_pre_l2": 2.4961181883791874,
+      "official_pre_sum": 0.005174505462491652
+    }
+  },
+  "stage": "11",
+  "static_pins": 43,
+  "tests": 9
+}

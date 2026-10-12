@@ -1,0 +1,99 @@
+{
+  "research_status": "read-only; DLL never executed; production converter untouched",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "sample_rate_target_hz": 44100.0,
+  "source_rate_hz_inferred_from_output_wav": 48000.0,
+  "filter_effective_length_formula": "int32_truncate(input_taps * target_Hz / source_Hz)",
+  "predicted_effective_taps": {
+    "128": 117,
+    "2048": 1881
+  },
+  "verified_assembly_instructions": 23,
+  "static_assembly_proofs": {
+    "initialize_post_zero": "1800bed51:\tcall   0x1800a504e",
+    "initialize_post_impulse": "1800bed5d:\tmov    DWORD PTR [rax],0x3f800000",
+    "post_initial_filter_apply": "1800bed78:\tcall   0x1800c0d40",
+    "three_stage_optimizer": "1800bf0c9:\tcall   0x1800bb210",
+    "spectral_finalizer": "1800bf11e:\tcall   0x1800b9b70",
+    "pre_context_ptr": "1800bf12e:\tmov    rdx,QWORD PTR [r14+0x24408]",
+    "pre_context_copy": "1800bf135:\tcall   0x1800c0d40",
+    "post_context_ptr": "1800bf141:\tmov    rdx,QWORD PTR [r14+0x24410]",
+    "post_context_copy": "1800bf14f:\tcall   0x1800c0d40",
+    "pack_pre_tap_count": "1800bf263:\tmov    eax,DWORD PTR [r14+0x20ed4]",
+    "pack_post_tap_count": "1800bf27a:\tmov    eax,DWORD PTR [r14+0x20ed8]",
+    "pre_raw_filter_copy": "1800bf320:\tmov    rax,QWORD PTR [r14+0x24408]",
+    "pre_resample_call": "1800bf364:\tcall   0x18000ce00",
+    "pre_tail_zero": "1800bf386:\tcall   0x1800a504e",
+    "post_raw_filter_copy": "1800bf440:\tmov    rax,QWORD PTR [r14+0x24410]",
+    "post_resample_call": "1800bf47f:\tcall   0x18000ce00",
+    "post_tail_zero": "1800bf4a7:\tcall   0x1800a504e",
+    "crc_container_magic": "1800bf4df:\tmov    DWORD PTR [rdi],0x49535456",
+    "raw_input_length": "18000d031:\tmovd   xmm0,DWORD PTR [rsi+0x4]",
+    "resample_multiply_target_rate": "18000d039:\tmulss  xmm0,xmm8",
+    "resample_divide_source_rate": "18000d03e:\tdivss  xmm0,xmm9",
+    "resample_trunc_output_len": "18000d043:\tcvttss2si rbx,xmm0",
+    "resample_allocate_output": "18000d065:\tcall   0x180012340"
+  },
+  "cases": {
+    "JCM800_2203": {
+      "official_sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+      "void_sha256": "2628218c655e63f1495aa6c66b1283c7d224fa87511a258eef4e410b2a8ecf7f",
+      "official_pre": {
+        "nonzero": 117,
+        "last_nonzero_index": 116,
+        "trailing_zeros": 11
+      },
+      "official_post": {
+        "nonzero": 1881,
+        "last_nonzero_index": 1880,
+        "trailing_zeros": 167
+      },
+      "void_pre": {
+        "nonzero": 117,
+        "last_nonzero_index": 116,
+        "trailing_zeros": 11
+      },
+      "void_post": {
+        "nonzero": 1881,
+        "last_nonzero_index": 1880,
+        "trailing_zeros": 167
+      },
+      "shape_difference": {
+        "pre_tap_cosine": 0.01744471552196345,
+        "post_tap_cosine": -0.19321550719256064,
+        "post_first512_tap_cosine": -0.19386981516754795
+      }
+    },
+    "SC20_Full_Rig": {
+      "official_sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a",
+      "void_sha256": "e1a73487594db2cd6a7e42b81717f2f6b43299668019530e3e3e19577cd316ef",
+      "official_pre": {
+        "nonzero": 117,
+        "last_nonzero_index": 116,
+        "trailing_zeros": 11
+      },
+      "official_post": {
+        "nonzero": 1881,
+        "last_nonzero_index": 1880,
+        "trailing_zeros": 167
+      },
+      "void_pre": {
+        "nonzero": 117,
+        "last_nonzero_index": 116,
+        "trailing_zeros": 11
+      },
+      "void_post": {
+        "nonzero": 1881,
+        "last_nonzero_index": 1880,
+        "trailing_zeros": 167
+      },
+      "shape_difference": {
+        "pre_tap_cosine": 0.7966165172657235,
+        "post_tap_cosine": -0.031053418528149163,
+        "post_first512_tap_cosine": -0.05957107768270148
+      }
+    }
+  },
+  "critical_limitation": "This reproduces support/packing, NOT the 128/2048 nonzero coefficient values from NAM/WAV; official FIR coefficient generation is still unresolved.",
+  "root_cause_caveat": "The Void baseline has the same 117/1881 support. Resampling does not explain its timbre discrepancy with Sonicake."
+}

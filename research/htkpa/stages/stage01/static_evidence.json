@@ -1,0 +1,97 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "pe": "PE32+ x64",
+  "main_entry_va": "0x1800be830",
+  "reference_constants": {
+    "duration_seconds": 70.0,
+    "extra_samples": 600.0,
+    "threshold_abs": 0.01,
+    "pre_FIR_taps": 128.0,
+    "post_FIR_taps_disk": 2048.0,
+    "post_FIR_taps_low": 512.0,
+    "window_5_seconds": 5.0,
+    "window_15_seconds": 15.0,
+    "window_20_seconds": 20.0
+  },
+  "static_assembly_evidence": {
+    "invocation": [
+      "18000fa41:\tcall   0x1800be830"
+    ],
+    "demean_loop": [
+      "1800be92c:\tsubss  xmm0,xmm2"
+    ],
+    "detrend_slope": [
+      "1800be9f2:\tdivss  xmm5,xmm1"
+    ],
+    "detrend_loop": [
+      "1800bea30:\tsubss  xmm0,xmm1"
+    ],
+    "six_second_offset": [
+      "1800bea61:\tadd    r10d,r10d"
+    ],
+    "post6s_scan_600_samples": [
+      "1800bea64:\tlea    r11d,[r10+0x258]"
+    ],
+    "window_23s": [
+      "1800beb2b:\timul   eax,edi,0x17"
+    ],
+    "window_30s": [
+      "1800beb4d:\timul   eax,edi,0x1e"
+    ],
+    "window_50s": [
+      "1800beb6f:\timul   eax,edi,0x32"
+    ],
+    "first_stage": [
+      "1800bede4:\tcall   0x1800bdbe0"
+    ],
+    "second_stage": [
+      "1800bee25:\tcall   0x1800bd490"
+    ],
+    "third_stage": [
+      "1800bee89:\tcall   0x1800bc6b0"
+    ],
+    "fit_pass_function": [
+      "1800bf0c9:\tcall   0x1800bb210"
+    ],
+    "fit_loop_three_passes": [
+      "1800bf0d1:\tcmp    rbx,0x3"
+    ],
+    "last_stage": [
+      "1800bf11e:\tcall   0x1800b9b70"
+    ],
+    "format_VTSI": [
+      "1800bf4df:\tmov    DWORD PTR [rdi],0x49535456"
+    ],
+    "container_8840": [
+      "1800bf1c4:\tmov    ecx,0x2288",
+      "1800bf1d3:\tmov    r8d,0x2288",
+      "1800bf4e5:\tmov    DWORD PTR [rdi+0x4],0x2288",
+      "1800bf4fe:\tadd    edx,0x2288"
+    ],
+    "body_8704": [
+      "1800bf1e5:\tmov    DWORD PTR [rdi+0x14],0x2200",
+      "1800bf290:\tmov    r8d,0x2200"
+    ],
+    "crc": [
+      "1800bf510:\txor    cl,BYTE PTR [r8]"
+    ]
+  },
+  "interpretation": {
+    "zero_centered_linear_detrend": "applied in-place to +0x243e8 buffer",
+    "work_length_formula": "N = 70 * sample_rate + 600 (buffer padded)",
+    "discrete_onset_search": "start 6 * sample_rate; test <= 600 samples, abs(x)>0.01",
+    "other_segment_offsets_sec": [
+      23,
+      30,
+      50
+    ],
+    "other_window_sizes_sec": [
+      5,
+      15,
+      20
+    ],
+    "fit": "0x1800bb210 called inside loop bounded by 3; pass arguments vary",
+    "pack": "VTSI 8840 bytes; gains, FIR A, FIR B and CRC written",
+    "limitations": "not decompiled fully; no claim of identical SONICLINK algorithm or exact DSP fit"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "description": "synthetic arbitrary positive input curve; not fitted from user NAM, WAV or Sonicake output",
+  "input_curve_length": 128,
+  "mirror_support": 254,
+  "input_curve_min": 0.7152244813394688,
+  "input_curve_max": 1.3190052652912432,
+  "spectrum_min_magnitude": 0.7152246005487582,
+  "spectrum_max_magnitude": 1.3190053845005332,
+  "pre_fir_taps": 128,
+  "pre_fir_sum": -1.6653345369377348e-16,
+  "pre_fir_l2": 0.9374846714872628,
+  "pre_fir_first_16": [
+    0.8925010777775869,
+    0.15651446422905996,
+    -0.06565826091929591,
+    -0.20002253472645806,
+    -0.0804875019527144,
+    0.02610994586937828,
+    0.03593682104239751,
+    0.005895096576215841,
+    -0.011759514454088384,
+    -0.012136152884767756,
+    -0.008001919731906199,
+    -0.005984195923001569,
+    -0.006065384855442811,
+    -0.006431536087287856,
+    -0.006567809491002372,
+    -0.0065101005053788755
+  ],
+  "all_finite": true,
+  "precision_note": "float64 numerical/algebraic reference; not native float32 bit-exact"
+}

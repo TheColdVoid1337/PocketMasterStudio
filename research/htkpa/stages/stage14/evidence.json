@@ -1,0 +1,257 @@
+{
+  "algebraic_test_names": [
+    "mel_roundtrip_80",
+    "mel_roundtrip_100",
+    "mel_roundtrip_440",
+    "mel_roundtrip_1000",
+    "mel_roundtrip_10000",
+    "db_roundtrip_0.01",
+    "db_roundtrip_0.1",
+    "db_roundtrip_1",
+    "db_roundtrip_1.7",
+    "db_roundtrip_10",
+    "width_2401_128",
+    "width_2401_2048",
+    "width_4097_117",
+    "unit_curve_32",
+    "unit_curve_117",
+    "unit_curve_512"
+  ],
+  "constants": {
+    "curve_db_inverse_scale": {
+      "va": "0x18024d160",
+      "value": 0.05000000074505806
+    },
+    "decibel_multiplier": {
+      "va": "0x18024cd40",
+      "value": 20.0
+    },
+    "first_smoothing_width_ratio": {
+      "va": "0x18024c640",
+      "value": 0.002
+    },
+    "initial_gain_unity": {
+      "va": "0x18024c6a0",
+      "value": 1.0
+    },
+    "linear_base": {
+      "va": "0x18024cd24",
+      "value": 10.0
+    },
+    "mel_divisor": {
+      "va": "0x18024cdc0",
+      "value": 2595.0
+    },
+    "mel_hz_offset": {
+      "va": "0x18024cda8",
+      "value": 700.0
+    }
+  },
+  "input_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "limits": "Read-only static pinning and isolated scalar math, NOT native execution or complete spectral fitter",
+  "passed_tests": 16,
+  "pinned_instructions": 50,
+  "stage": "14",
+  "static_proofs": {
+    "curve_count_input": {
+      "instruction": "movsxd r15,r9d",
+      "va": "0x1800b76ba"
+    },
+    "curve_frequency_input": {
+      "instruction": "mov    rdi,r8",
+      "va": "0x1800b7695"
+    },
+    "curve_gain_db_scalar": {
+      "instruction": "call   0x18017e146",
+      "va": "0x1800b7b75"
+    },
+    "curve_gain_db_vector": {
+      "instruction": "mulps  xmm0,xmm7",
+      "va": "0x1800b7b19"
+    },
+    "curve_gain_first": {
+      "instruction": "call   0x18017a2c0",
+      "va": "0x1800b7b14"
+    },
+    "db_to_mag_scalar": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800b7d1c"
+    },
+    "db_to_mag_vector": {
+      "instruction": "call   0x18017a2e0",
+      "va": "0x1800b7cce"
+    },
+    "final_linear_interpolator": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7c8c"
+    },
+    "first_curvemap": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb4d9"
+    },
+    "first_gauss": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800b7bbb"
+    },
+    "first_gauss_width": {
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x194a8d]        # 0x18024c640",
+      "va": "0x1800b7bab"
+    },
+    "first_interpolator": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7bf8"
+    },
+    "fit_pow_cap": {
+      "instruction": "movaps xmm0,xmm11",
+      "va": "0x1800bb479"
+    },
+    "fit_pow_lower_bound": {
+      "instruction": "mov    DWORD PTR [rdi],0x3e4ccccd",
+      "va": "0x1800bb48c"
+    },
+    "fit_powf": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800bb46e"
+    },
+    "fitter_read_curve_A": {
+      "instruction": "mov    rdx,QWORD PTR [rbx+0x24328]",
+      "va": "0x1800bb289"
+    },
+    "fitter_read_curve_B": {
+      "instruction": "mov    rdx,QWORD PTR [rbx+0x24330]",
+      "va": "0x1800bb347"
+    },
+    "input_axis_linear_output": {
+      "instruction": "call   0x180027db0",
+      "va": "0x1800b7a95"
+    },
+    "mel_count_remap": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7c4b"
+    },
+    "mel_linear_output": {
+      "instruction": "call   0x180027db0",
+      "va": "0x1800b77d4"
+    },
+    "mel_log_first": {
+      "instruction": "call   0x18017e146",
+      "va": "0x1800b778f"
+    },
+    "mel_pow10_scalar": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800b78d0"
+    },
+    "output_gain_arg7": {
+      "instruction": "mov    rdi,QWORD PTR [rsp+0x190]",
+      "va": "0x1800b7c70"
+    },
+    "output_linear_axis": {
+      "instruction": "mov    rax,QWORD PTR [rsp+0x198]",
+      "va": "0x1800b7c65"
+    },
+    "post_arg5": {
+      "instruction": "mov    QWORD PTR [rsp+0x20],r13",
+      "va": "0x1800bc357"
+    },
+    "post_curvemap": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bc33d"
+    },
+    "post_dest_arg": {
+      "instruction": "mov    r13,QWORD PTR [rsp+0x200]",
+      "va": "0x1800bc342"
+    },
+    "post_finalizer": {
+      "instruction": "call   0x1800b9b70",
+      "va": "0x1800bf11e"
+    },
+    "post_forward_convolver": {
+      "instruction": "call   0x1800b5a30",
+      "va": "0x1800bc381"
+    },
+    "post_length": {
+      "instruction": "mov    r9d,DWORD PTR [rbx+0x20ed8]",
+      "va": "0x1800bc34d"
+    },
+    "post_synth": {
+      "instruction": "call   0x1800b68f0",
+      "va": "0x1800bc35c"
+    },
+    "pre_curvemap": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb812"
+    },
+    "pre_dest_arg": {
+      "instruction": "mov    rdi,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bb821"
+    },
+    "pre_length": {
+      "instruction": "mov    r8d,DWORD PTR [rbx+0x20ed4]",
+      "va": "0x1800bb817"
+    },
+    "pre_post_state_restore1": {
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bc53f"
+    },
+    "pre_post_state_restore2": {
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x200]",
+      "va": "0x1800bc55c"
+    },
+    "pre_post_state_snapshot1": {
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bc495"
+    },
+    "pre_synth": {
+      "instruction": "call   0x1800b68f0",
+      "va": "0x1800bb836"
+    },
+    "reverse_curvemap": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb4f8"
+    },
+    "second_gauss": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800b7c12"
+    },
+    "second_gauss_width_div": {
+      "instruction": "idiv   ebp",
+      "va": "0x1800b7c07"
+    },
+    "second_gauss_width_x2": {
+      "instruction": "add    eax,eax",
+      "va": "0x1800b7c0c"
+    },
+    "synth_dest_arg5": {
+      "instruction": "call   0x1800a505a",
+      "va": "0x1800b6b39"
+    },
+    "synth_input_count": {
+      "instruction": "movsxd rsi,r8d",
+      "va": "0x1800b690c"
+    },
+    "synth_output_count": {
+      "instruction": "movsxd rbp,r9d",
+      "va": "0x1800b691c"
+    },
+    "unity_copy_dest": {
+      "instruction": "mov    rcx,QWORD PTR [r14+0x24330]",
+      "va": "0x1800befbd"
+    },
+    "unity_copy_source": {
+      "instruction": "mov    rdx,QWORD PTR [r14+0x24328]",
+      "va": "0x1800befb6"
+    },
+    "unity_curve_A_allocation": {
+      "instruction": "mov    QWORD PTR [r14+0x24328],rax",
+      "va": "0x1800bef5b"
+    },
+    "unity_curve_B_allocation": {
+      "instruction": "mov    QWORD PTR [r14+0x24330],rax",
+      "va": "0x1800bef73"
+    },
+    "unity_write": {
+      "instruction": "mov    DWORD PTR [rcx+rax*1],0x3f800000",
+      "va": "0x1800bef97"
+    }
+  }
+}

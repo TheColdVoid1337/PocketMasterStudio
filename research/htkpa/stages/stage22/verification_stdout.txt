@@ -1,0 +1,5 @@
+Static native import, fitter, alignment and pointer chains verified against SHA-pinned DLL.
+43 instruction pins, 7 constants, 53 ordinary-domain synthetic assertions PASSED.
+Two runs of JSON evidence byte-identical.
+Real 2203 and SC20 input/target sample arrays NOT YET COMPUTED; native gains NOT_COMPUTED.
+No vendor binaries or CLO generated.

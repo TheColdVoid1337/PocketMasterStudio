@@ -1,0 +1,347 @@
+{
+  "coefficient_parity": "NOT_TESTED for both 2203 and SC20; no independent candidate created",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "integration_status": "PARTIAL: BC6B0 audio preprocess/STFT and full optimizer unimplemented; no vendor FIR candidate",
+  "native_equivalence": "NOT_TESTED: source-supported algebraic reimplementations only",
+  "numeric_constants": {
+    "db20": {
+      "va": "0x18024cd40",
+      "value": 20.0
+    },
+    "db_back": {
+      "va": "0x18024c520",
+      "value": 0.05000000074505806
+    },
+    "eps": {
+      "va": "0x18024c588",
+      "value": 1.1920928955078125e-07
+    },
+    "gauss_exp": {
+      "va": "0x18024cea8",
+      "value": -0.5
+    },
+    "gauss_k": {
+      "va": "0x18024cab0",
+      "value": 5.0
+    },
+    "gauss_output_divisor": {
+      "va": "0x18024c598",
+      "value": 1e-06
+    },
+    "gauss_scale": {
+      "va": "0x18024c640",
+      "value": 0.002
+    },
+    "half_percent": {
+      "va": "0x18024c688",
+      "value": 0.005
+    },
+    "mel_2595": {
+      "va": "0x18024cdc0",
+      "value": 2595.0
+    },
+    "mel_700": {
+      "va": "0x18024cda8",
+      "value": 700.0
+    },
+    "million": {
+      "va": "0x18024cd28",
+      "value": 1000000.0
+    },
+    "one_thousandth": {
+      "va": "0x18024c618",
+      "value": 0.001
+    }
+  },
+  "pinned_instructions": {
+    "conditioner_first_gauss": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800b7bbb"
+    },
+    "conditioner_first_interp": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7bf8"
+    },
+    "conditioner_first_width": {
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x194a8d]        # 0x18024c640",
+      "va": "0x1800b7bab"
+    },
+    "conditioner_inverse_mel": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800b78d0"
+    },
+    "conditioner_linear_grid": {
+      "instruction": "call   0x180027db0",
+      "va": "0x1800b7a95"
+    },
+    "conditioner_mag_return": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800b7d1c"
+    },
+    "conditioner_mel_grid": {
+      "instruction": "call   0x180027db0",
+      "va": "0x1800b77d4"
+    },
+    "conditioner_mel_start": {
+      "instruction": "call   0x18017e146",
+      "va": "0x1800b778f"
+    },
+    "conditioner_remap_linear": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7c8c"
+    },
+    "conditioner_resample_mel": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800b7c4b"
+    },
+    "conditioner_second_gauss": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800b7c12"
+    },
+    "conditioner_second_width": {
+      "instruction": "idiv   ebp",
+      "va": "0x1800b7c07"
+    },
+    "conditioner_second_width_x2": {
+      "instruction": "add    eax,eax",
+      "va": "0x1800b7c0c"
+    },
+    "conditioner_target_mel_grid": {
+      "instruction": "call   0x180027db0",
+      "va": "0x1800b7917"
+    },
+    "conditioner_to_db": {
+      "instruction": "mulps  xmm0,xmm7",
+      "va": "0x1800b7b19"
+    },
+    "gauss_kernel_center": {
+      "instruction": "call   0x18017e10a",
+      "va": "0x1800b7e91"
+    },
+    "gauss_kernel_exp": {
+      "instruction": "call   0x18017e128",
+      "va": "0x1800b7edf"
+    },
+    "gauss_kernel_scale": {
+      "instruction": "divsd  xmm6,xmm0",
+      "va": "0x1800b7e85"
+    },
+    "gauss_renormalize_edge": {
+      "instruction": "divsd  xmm3,xmm4",
+      "va": "0x1800b824c"
+    },
+    "init_A_eps": {
+      "instruction": "addpd  xmm2,xmm5",
+      "va": "0x1800bd258"
+    },
+    "init_A_num": {
+      "instruction": "cvtps2pd xmm3,xmm0",
+      "va": "0x1800bd244"
+    },
+    "init_A_output": {
+      "instruction": "movsd  QWORD PTR [rcx+r8*1-0x8],xmm0",
+      "va": "0x1800bd26e"
+    },
+    "init_A_quotient": {
+      "instruction": "divpd  xmm3,xmm2",
+      "va": "0x1800bd25c"
+    },
+    "init_A_scalar_den_scale": {
+      "instruction": "mulsd  xmm0,xmm3",
+      "va": "0x1800bd361"
+    },
+    "init_A_scalar_div": {
+      "instruction": "divsd  xmm1,xmm0",
+      "va": "0x1800bd36d"
+    },
+    "init_A_scalar_eps": {
+      "instruction": "addsd  xmm0,xmm4",
+      "va": "0x1800bd369"
+    },
+    "init_A_scalar_num_scale": {
+      "instruction": "mulsd  xmm1,xmm3",
+      "va": "0x1800bd365"
+    },
+    "init_A_scalar_out": {
+      "instruction": "movss  DWORD PTR [r8+rax*1-0x4],xmm0",
+      "va": "0x1800bd375"
+    },
+    "init_A_scale_den": {
+      "instruction": "mulpd  xmm2,xmm4",
+      "va": "0x1800bd254"
+    },
+    "init_A_scale_num": {
+      "instruction": "mulpd  xmm3,xmm4",
+      "va": "0x1800bd24d"
+    },
+    "init_audio_filtering": {
+      "instruction": "call   0x1800b5a30",
+      "va": "0x1800bc96d"
+    },
+    "init_curve_ratio": {
+      "instruction": "divss  xmm2,xmm0",
+      "va": "0x1800bd0da"
+    },
+    "init_double_threshold": {
+      "instruction": "addss  xmm1,xmm3",
+      "va": "0x1800bd0c8"
+    },
+    "init_gaussian_A": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800bd01f"
+    },
+    "init_gaussian_B": {
+      "instruction": "call   0x1800b7e10",
+      "va": "0x1800bd03d"
+    },
+    "init_low_branch": {
+      "instruction": "comiss xmm1,xmm4",
+      "va": "0x1800bd105"
+    },
+    "init_max_of_reference": {
+      "instruction": "inc    rcx",
+      "va": "0x1800bd0a8"
+    },
+    "init_parabola": {
+      "instruction": "mulss  xmm0,xmm2",
+      "va": "0x1800bd10d"
+    },
+    "init_parabola_offset": {
+      "instruction": "addss  xmm0,xmm3",
+      "va": "0x1800bd115"
+    },
+    "init_parabola_output": {
+      "instruction": "movss  DWORD PTR [rax-0x8],xmm0",
+      "va": "0x1800bd119"
+    },
+    "init_parabola_second_mult": {
+      "instruction": "mulss  xmm0,xmm4",
+      "va": "0x1800bd111"
+    },
+    "init_saturator": {
+      "instruction": "call   0x1800be700",
+      "va": "0x1800bcc79"
+    },
+    "init_scale_max": {
+      "instruction": "mulsd  xmm0,xmm7",
+      "va": "0x1800bd0bd"
+    },
+    "init_scale_to_float": {
+      "instruction": "cvtpd2ps xmm3,xmm0",
+      "va": "0x1800bd0c1"
+    },
+    "init_second_order_first_coef": {
+      "instruction": "mulsd  xmm1,QWORD PTR [rbx+0x232f0]",
+      "va": "0x1800bc9d2"
+    },
+    "init_second_order_first_state": {
+      "instruction": "movsd  xmm3,QWORD PTR [rbx+0x28]",
+      "va": "0x1800bc9c5"
+    },
+    "init_second_order_second_coef": {
+      "instruction": "mulsd  xmm1,QWORD PTR [rbx+0x23318]",
+      "va": "0x1800bcce8"
+    },
+    "init_stft": {
+      "instruction": "call   0x1800b82b0",
+      "va": "0x1800bcff2"
+    },
+    "init_threshold_squared": {
+      "instruction": "mulss  xmm0,xmm1",
+      "va": "0x1800bd0d2"
+    },
+    "linspace_last_exact": {
+      "instruction": "movss  DWORD PTR [r9+rdx*4-0x4],xmm1",
+      "va": "0x180027e4e"
+    },
+    "outer_array_A": {
+      "instruction": "mov    r15,rax",
+      "va": "0x1800bee33"
+    },
+    "outer_array_B": {
+      "instruction": "mov    r12,rax",
+      "va": "0x1800bee3f"
+    },
+    "outer_array_frequency": {
+      "instruction": "mov    r13,rax",
+      "va": "0x1800bee4b"
+    },
+    "outer_first_fit": {
+      "instruction": "call   0x1800bb210",
+      "va": "0x1800bf0c9"
+    },
+    "outer_init_A_dest": {
+      "instruction": "mov    QWORD PTR [rsp+0x30],r15",
+      "va": "0x1800bee58"
+    },
+    "outer_init_B_dest": {
+      "instruction": "mov    QWORD PTR [rsp+0x38],r12",
+      "va": "0x1800bee53"
+    },
+    "outer_init_F_dest": {
+      "instruction": "mov    QWORD PTR [rsp+0x40],rax",
+      "va": "0x1800bee4e"
+    },
+    "outer_initializer_call": {
+      "instruction": "call   0x1800bc6b0",
+      "va": "0x1800bee89"
+    },
+    "outer_source_filter": {
+      "instruction": "call   0x1800bd490",
+      "va": "0x1800bee25"
+    }
+  },
+  "stage": 18,
+  "synthetic_tests": [
+    "seed_T_one_thousandth_of_max",
+    "seed_at_zero_exact_T",
+    "seed_nonnegative",
+    "seed_scalar_float",
+    "seed_outside_branch_unmodified",
+    "seed_point_0",
+    "seed_point_0.0020000000949949026",
+    "seed_point_0.004000000189989805",
+    "seed_join_derivative",
+    "seed_reference_quotient",
+    "kernel_len_1",
+    "kernel_area_1",
+    "gauss_constant_1",
+    "kernel_len_2",
+    "kernel_area_2",
+    "gauss_constant_2",
+    "kernel_len_3",
+    "kernel_area_3",
+    "gauss_constant_3",
+    "kernel_len_4",
+    "kernel_area_4",
+    "gauss_constant_4",
+    "kernel_len_5",
+    "kernel_area_5",
+    "gauss_constant_5",
+    "kernel_len_16",
+    "kernel_area_16",
+    "gauss_constant_16",
+    "kernel_len_36",
+    "kernel_area_36",
+    "gauss_constant_36",
+    "gauss_edge_cropped_renorm",
+    "linspace_endpoints",
+    "interp_exact_affine",
+    "reject_subfirst_query",
+    "full_seed_two_gaussians_widths",
+    "full_seed_shapes",
+    "full_seed_nonnegative",
+    "seed_into_pre_conditioner",
+    "seed_into_post_conditioner",
+    "conditioner_size_128",
+    "conditioner_unity_128",
+    "conditioner_edges_128",
+    "conditioner_widths_128",
+    "conditioner_size_2048",
+    "conditioner_unity_2048",
+    "conditioner_edges_2048",
+    "conditioner_widths_2048",
+    "conditioner_nonconstant_finite"
+  ],
+  "synthetic_tests_passed": 49
+}

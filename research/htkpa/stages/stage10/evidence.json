@@ -1,0 +1,243 @@
+{
+  "checked_constants": 5,
+  "checked_instructions": 51,
+  "conclusions": {
+    "caveats": "Transform scaling, full source samples, overlap/end frames and all fitting equations are NOT recovered.",
+    "first_signal": "0x1800BC399 rdx=r15 (current generated output)",
+    "frequency_k": "k*source_rate/N",
+    "scoring": "linearly interpolated to 512 Mel-Hz queries then mean abs(log(value+2^-23))",
+    "second_signal": "0x1800BC391 r8=reference waveform passed to fitter",
+    "spectral_magnitude": "|S_AB|/(S_AA+2^-23) computed from accumulated spectra"
+  },
+  "constants": {
+    "frame_hop_seconds": {
+      "va": "0x18024c880",
+      "value": 0.5
+    },
+    "hamming_a": {
+      "va": "0x18024c5d4",
+      "value": 0.5400000214576721
+    },
+    "hamming_b": {
+      "va": "0x18024c5b0",
+      "value": 0.46000000834465027
+    },
+    "spectrum_epsilon_scalar": {
+      "va": "0x18024c4d4",
+      "value": 1.1920928955078125e-07
+    },
+    "spectrum_epsilon_vector": {
+      "va": "0x18024d110",
+      "value": 1.1920928955078125e-07
+    }
+  },
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "pins": {
+    "caller_frequency_output_to_interpolator": {
+      "instruction": "mov    rdx,rbp",
+      "va": "0x1800bc3e9"
+    },
+    "caller_mel_interpolator": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800bc3f9"
+    },
+    "caller_mel_queries": {
+      "instruction": "lea    rax,[rbx+0x23b28]",
+      "va": "0x1800bc3d2"
+    },
+    "caller_model_first_signal": {
+      "instruction": "mov    rdx,r15",
+      "va": "0x1800bc399"
+    },
+    "caller_output_magnitude_buffer": {
+      "instruction": "mov    QWORD PTR [rsp+0x38],rax",
+      "va": "0x1800bc3a4"
+    },
+    "caller_predict_wave": {
+      "instruction": "call   0x1800b5a30",
+      "va": "0x1800bc381"
+    },
+    "caller_prior_wave_output": {
+      "instruction": "mov    r9,r15",
+      "va": "0x1800bc368"
+    },
+    "caller_ratio_output_to_interpolator": {
+      "instruction": "mov    r9,QWORD PTR [rsp+0x1a0]",
+      "va": "0x1800bc3d9"
+    },
+    "caller_reference_second_signal": {
+      "instruction": "mov    r8,QWORD PTR [rsp+0x1b0]",
+      "va": "0x1800bc391"
+    },
+    "caller_score_input": {
+      "instruction": "movss  xmm0,DWORD PTR [r13+rdi*4+0x0]",
+      "va": "0x1800bc410"
+    },
+    "caller_score_log": {
+      "instruction": "call   0x18017e14c",
+      "va": "0x1800bc41c"
+    },
+    "caller_score_size": {
+      "instruction": "cmp    rdi,0x200",
+      "va": "0x1800bc437"
+    },
+    "caller_source_rate": {
+      "instruction": "mov    eax,DWORD PTR [rbx+0x232cc]",
+      "va": "0x1800bc3bb"
+    },
+    "caller_welch_call": {
+      "instruction": "call   0x1800b82b0",
+      "va": "0x1800bc3c5"
+    },
+    "cross_imag_difference": {
+      "instruction": "subps  xmm3,xmm5",
+      "va": "0x1800b905b"
+    },
+    "cross_multiply_first": {
+      "instruction": "mulps  xmm1,xmm3",
+      "va": "0x1800b903e"
+    },
+    "cross_multiply_second": {
+      "instruction": "mulps  xmm0,xmm4",
+      "va": "0x1800b9044"
+    },
+    "cross_real_sum": {
+      "instruction": "addps  xmm1,xmm0",
+      "va": "0x1800b9047"
+    },
+    "freq_bin_over_n": {
+      "instruction": "divps  xmm1,xmm4",
+      "va": "0x1800b9575"
+    },
+    "freq_multiply_samplerate": {
+      "instruction": "mulps  xmm1,xmm2",
+      "va": "0x1800b9578"
+    },
+    "freq_write": {
+      "instruction": "movups XMMWORD PTR [r11+rax*1],xmm1",
+      "va": "0x1800b957b"
+    },
+    "mag_den_epsilon": {
+      "instruction": "addps  xmm0,xmm3",
+      "va": "0x1800b9559"
+    },
+    "mag_ratio": {
+      "instruction": "divps  xmm1,xmm0",
+      "va": "0x1800b955c"
+    },
+    "mag_ratio_write": {
+      "instruction": "movups XMMWORD PTR [r10+rax*1],xmm1",
+      "va": "0x1800b955f"
+    },
+    "mag_sqrt": {
+      "instruction": "sqrtps xmm1,xmm1",
+      "va": "0x1800b9551"
+    },
+    "mag_squared_imag": {
+      "instruction": "mulps  xmm0,xmm0",
+      "va": "0x1800b954b"
+    },
+    "mag_squared_real": {
+      "instruction": "mulps  xmm1,xmm1",
+      "va": "0x1800b9548"
+    },
+    "power_accumulate": {
+      "instruction": "movups XMMWORD PTR [rcx],xmm1",
+      "va": "0x1800b9030"
+    },
+    "power_add_real_imag": {
+      "instruction": "addps  xmm1,xmm0",
+      "va": "0x1800b9027"
+    },
+    "power_square_imag": {
+      "instruction": "mulps  xmm0,xmm4",
+      "va": "0x1800b9024"
+    },
+    "power_square_real": {
+      "instruction": "mulps  xmm1,xmm5",
+      "va": "0x1800b901e"
+    },
+    "predict_wave_dest_copy": {
+      "instruction": "call   0x1800a505a",
+      "va": "0x1800b5c15"
+    },
+    "predict_wave_dest_copy_ptr": {
+      "instruction": "lea    rdx,[rbx+r12*1]",
+      "va": "0x1800b5c11"
+    },
+    "predict_wave_receives_dest": {
+      "instruction": "mov    r12,r9",
+      "va": "0x1800b5a87"
+    },
+    "scalar_frequency_write": {
+      "instruction": "movss  DWORD PTR [rbx+rbp*1],xmm0",
+      "va": "0x1800b9832"
+    },
+    "scalar_magnitude_write": {
+      "instruction": "movss  DWORD PTR [rbx+r14*1],xmm0",
+      "va": "0x1800b9817"
+    },
+    "scalar_ratio": {
+      "instruction": "divss  xmm0,xmm1",
+      "va": "0x1800b9813"
+    },
+    "scalar_sqrt": {
+      "instruction": "call   0x18017e170",
+      "va": "0x1800b9805"
+    },
+    "welch_bin_count_check": {
+      "instruction": "cmp    ebx,eax",
+      "va": "0x1800b847b"
+    },
+    "welch_fft_length": {
+      "instruction": "movsxd rbp,DWORD PTR [rsp+0x1c8]",
+      "va": "0x1800b8306"
+    },
+    "welch_first_transform": {
+      "instruction": "call   0x1800289d0",
+      "va": "0x1800b8e38"
+    },
+    "welch_half_second_hop": {
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x194485]        # 0x18024c880",
+      "va": "0x1800b83f3"
+    },
+    "welch_half_second_trunc": {
+      "instruction": "cvttsd2si eax,xmm0",
+      "va": "0x1800b83fb"
+    },
+    "welch_hamming_054_minus": {
+      "instruction": "subss  xmm1,xmm0",
+      "va": "0x1800b83d8"
+    },
+    "welch_hamming_cosine": {
+      "instruction": "call   0x18017e11c",
+      "va": "0x1800b83ca"
+    },
+    "welch_hamming_multiply_046": {
+      "instruction": "mulss  xmm0,xmm9",
+      "va": "0x1800b83cf"
+    },
+    "welch_hamming_write": {
+      "instruction": "movss  DWORD PTR [r15+rbx*4],xmm1",
+      "va": "0x1800b83dc"
+    },
+    "welch_read_first_wave": {
+      "instruction": "mov    rax,QWORD PTR [rsp+0x1a8]",
+      "va": "0x1800b85a6"
+    },
+    "welch_read_second_wave": {
+      "instruction": "mov    rax,QWORD PTR [rsp+0x1b0]",
+      "va": "0x1800b85c2"
+    },
+    "welch_sampling_rate": {
+      "instruction": "movsxd rdi,DWORD PTR [rsp+0x1c0]",
+      "va": "0x1800b8319"
+    },
+    "welch_second_transform": {
+      "instruction": "call   0x1800289d0",
+      "va": "0x1800b8e55"
+    }
+  },
+  "synthetic_tests": 8,
+  "test_interpretation": "Algebraic primitives / float64 tests; no vendor bitwise reproduction"
+}

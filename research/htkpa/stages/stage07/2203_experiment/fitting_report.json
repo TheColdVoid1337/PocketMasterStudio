@@ -1,0 +1,83 @@
+{
+  "stage": 7,
+  "model": "NAM-only independent WaveNet windows, baseline Pre-FIR + saturator",
+  "not_vendor_algorithm": true,
+  "nperseg": 4800,
+  "spectral_method": "cross spectral magnitude; minimum-phase; no Gaussian",
+  "train_windows": [
+    [
+      5,
+      7
+    ],
+    [
+      18,
+      20
+    ],
+    [
+      30,
+      32
+    ],
+    [
+      43,
+      45
+    ],
+    [
+      58,
+      60
+    ]
+  ],
+  "heldout_windows": [
+    [
+      13,
+      15
+    ],
+    [
+      26,
+      28
+    ],
+    [
+      39,
+      41
+    ],
+    [
+      53,
+      55
+    ],
+    [
+      65,
+      67
+    ]
+  ],
+  "baseline_sha256": "2628218c655e63f1495aa6c66b1283c7d224fa87511a258eef4e410b2a8ecf7f",
+  "target_sha256": "33818abd24c0d9fc8cb5aaed4ee8fa3281f7c78e9be0b5a65a72800a1b5cd9bd",
+  "rms_gain_match_to_baseline": 0.9454457065641589,
+  "train_only_polarity_flip": true,
+  "before": {
+    "training_lag": 0,
+    "train": {
+      "abs_correlation": 0.7694420386293632,
+      "signed_correlation": 0.7694420386293632,
+      "nrmse_after_signed_gain": 0.6387169812602496
+    },
+    "holdout": {
+      "abs_correlation": 0.7486747695959665,
+      "signed_correlation": 0.7486747695959665,
+      "nrmse_after_signed_gain": 0.6629435977195279
+    }
+  },
+  "after": {
+    "training_lag": -2,
+    "train": {
+      "abs_correlation": 0.700963255623943,
+      "signed_correlation": 0.700963255623943,
+      "nrmse_after_signed_gain": 0.7131975196198552
+    },
+    "holdout": {
+      "abs_correlation": 0.8226163534645755,
+      "signed_correlation": 0.8226163534645755,
+      "nrmse_after_signed_gain": 0.5686059509760897
+    }
+  },
+  "experimental_file_written": false,
+  "not_accepted_for_production": true
+}

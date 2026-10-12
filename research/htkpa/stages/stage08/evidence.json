@@ -1,0 +1,366 @@
+{
+  "status": "STATIC READ ONLY; exact instruction and data table checks; original DLL NOT executed",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "proof_count": 70,
+  "proofs": {
+    "input_6s_pointer": {
+      "address": "0x1800beb14",
+      "instruction": "mov    QWORD PTR [rsp+0x80],r12"
+    },
+    "input_23s_pointer": {
+      "address": "0x1800beb35",
+      "instruction": "mov    QWORD PTR [rsp+0xa8],rax"
+    },
+    "input_30s_pointer": {
+      "address": "0x1800beb57",
+      "instruction": "mov    QWORD PTR [rsp+0x88],rax"
+    },
+    "input_50s_pointer": {
+      "address": "0x1800beb79",
+      "instruction": "mov    QWORD PTR [rsp+0x78],rax"
+    },
+    "output_6s_pointer": {
+      "address": "0x1800beb23",
+      "instruction": "mov    QWORD PTR [rsp+0x90],r13"
+    },
+    "output_23s_pointer": {
+      "address": "0x1800beb45",
+      "instruction": "mov    QWORD PTR [rsp+0xc8],rax"
+    },
+    "output_30s_pointer": {
+      "address": "0x1800beb67",
+      "instruction": "mov    QWORD PTR [rsp+0xb8],rax"
+    },
+    "output_50s_pointer": {
+      "address": "0x1800beb86",
+      "instruction": "mov    QWORD PTR [rsp+0x70],rax"
+    },
+    "onset_600_sample_search": {
+      "address": "0x1800bea84",
+      "instruction": "mov    esi,0x258"
+    },
+    "onset_output_23s_shift": {
+      "address": "0x1800beb3d",
+      "instruction": "lea    rax,[rcx+rdx*1]"
+    },
+    "onset_output_30s_shift": {
+      "address": "0x1800beb5f",
+      "instruction": "lea    rax,[rcx+rdx*1]"
+    },
+    "onset_output_50s_shift": {
+      "address": "0x1800beb7e",
+      "instruction": "lea    rax,[rcx+rdx*1]"
+    },
+    "reference_6s_scale": {
+      "address": "0x1800bea5d",
+      "instruction": "lea    r10d,[rdi+rdi*2]"
+    },
+    "reference_23s_scale": {
+      "address": "0x1800beb2b",
+      "instruction": "imul   eax,edi,0x17"
+    },
+    "reference_30s_scale": {
+      "address": "0x1800beb4d",
+      "instruction": "imul   eax,edi,0x1e"
+    },
+    "reference_50s_scale": {
+      "address": "0x1800beb6f",
+      "instruction": "imul   eax,edi,0x32"
+    },
+    "selector_2_first": {
+      "address": "0x1800bee9f",
+      "instruction": "mov    DWORD PTR [rsp+0xa8],0x2"
+    },
+    "selector_1_second": {
+      "address": "0x1800beeaa",
+      "instruction": "mov    DWORD PTR [rsp+0xac],0x1"
+    },
+    "selector_3_third": {
+      "address": "0x1800beeb5",
+      "instruction": "mov    DWORD PTR [rsp+0xb0],0x3"
+    },
+    "iteration_table_load": {
+      "address": "0x1800bee8e",
+      "instruction": "movdqa xmm0,XMMWORD PTR [rip+0x18e11a]        # 0x18024cfb0"
+    },
+    "iteration_table_copy": {
+      "address": "0x1800bee96",
+      "instruction": "movdqu XMMWORD PTR [rsp+0xc8],xmm0"
+    },
+    "window_15s": {
+      "address": "0x1800bef2a",
+      "instruction": "mov    DWORD PTR [rsp+0xb8],edi"
+    },
+    "window_5s": {
+      "address": "0x1800bef31",
+      "instruction": "mov    DWORD PTR [rsp+0xbc],esi"
+    },
+    "window_20s": {
+      "address": "0x1800bef3c",
+      "instruction": "mov    DWORD PTR [rsp+0xc0],eax"
+    },
+    "input_table_6s": {
+      "address": "0x1800beec8",
+      "instruction": "mov    QWORD PTR [rsp+0xf8],rax"
+    },
+    "input_table_23s": {
+      "address": "0x1800beed0",
+      "instruction": "mov    QWORD PTR [rsp+0x100],rbx"
+    },
+    "input_table_30s": {
+      "address": "0x1800beee0",
+      "instruction": "mov    QWORD PTR [rsp+0x108],rax"
+    },
+    "output_table_6s": {
+      "address": "0x1800beefd",
+      "instruction": "mov    QWORD PTR [rsp+0xd8],rax"
+    },
+    "output_table_23s": {
+      "address": "0x1800bef05",
+      "instruction": "mov    QWORD PTR [rsp+0xe0],rbp"
+    },
+    "output_table_30s": {
+      "address": "0x1800bef15",
+      "instruction": "mov    QWORD PTR [rsp+0xe8],rax"
+    },
+    "dispatch_selector_lookup": {
+      "address": "0x1800bf050",
+      "instruction": "movsxd rdx,DWORD PTR [rsp+rbx*4+0xa8]"
+    },
+    "dispatch_count_lookup": {
+      "address": "0x1800bf0a3",
+      "instruction": "mov    eax,DWORD PTR [rsp+rdx*4+0xc4]"
+    },
+    "dispatch_window_lookup": {
+      "address": "0x1800bf0ae",
+      "instruction": "mov    r9d,DWORD PTR [rsp+rdx*4+0xb4]"
+    },
+    "dispatch_output_lookup": {
+      "address": "0x1800bf0b6",
+      "instruction": "mov    r8,QWORD PTR [rsp+rdx*8+0xd0]"
+    },
+    "dispatch_input_lookup": {
+      "address": "0x1800bf0be",
+      "instruction": "mov    rdx,QWORD PTR [rsp+rdx*8+0xf0]"
+    },
+    "dispatch_fitter_call": {
+      "address": "0x1800bf0c9",
+      "instruction": "call   0x1800bb210"
+    },
+    "dispatch_loop_three": {
+      "address": "0x1800bf0d1",
+      "instruction": "cmp    rbx,0x3"
+    },
+    "final_input_50s": {
+      "address": "0x1800bf116",
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x78]"
+    },
+    "final_output_50s": {
+      "address": "0x1800bf111",
+      "instruction": "mov    r8,QWORD PTR [rsp+0x70]"
+    },
+    "final_spectral_call": {
+      "address": "0x1800bf11e",
+      "instruction": "call   0x1800b9b70"
+    },
+    "fitter_iterations_arg": {
+      "address": "0x1800bb245",
+      "instruction": "mov    edi,DWORD PTR [rsp+0x1c0]"
+    },
+    "fitter_iteration_loop_tail": {
+      "address": "0x1800bc5c2",
+      "instruction": "jne    0x1800bb440"
+    },
+    "pre_source_array": {
+      "address": "0x1800bf07c",
+      "instruction": "mov    rax,QWORD PTR [r14+0x24408]"
+    },
+    "post_source_array": {
+      "address": "0x1800bf070",
+      "instruction": "mov    rax,QWORD PTR [r14+0x24410]"
+    },
+    "post_length_fitter_arg": {
+      "address": "0x1800bf097",
+      "instruction": "movss  DWORD PTR [rsp+0x30],xmm0"
+    },
+    "pre_length_fitter_arg": {
+      "address": "0x1800bf09d",
+      "instruction": "movss  DWORD PTR [rsp+0x28],xmm1"
+    },
+    "gain_candidate_forward_fit": {
+      "address": "0x1800bbb5b",
+      "instruction": "call   0x1800b5a30"
+    },
+    "gain_candidate_second_fit": {
+      "address": "0x1800bc381",
+      "instruction": "call   0x1800b5a30"
+    },
+    "window_candidate_first": {
+      "address": "0x1800bc055",
+      "instruction": "call   0x1800b82b0"
+    },
+    "window_candidate_second": {
+      "address": "0x1800bc3c5",
+      "instruction": "call   0x1800b82b0"
+    },
+    "save_pre_on_improvement": {
+      "address": "0x1800bc495",
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x1f8]"
+    },
+    "save_post_on_improvement": {
+      "address": "0x1800bc4b2",
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x200]"
+    },
+    "score_work_buffer_load": {
+      "address": "0x1800bc3ca",
+      "instruction": "mov    r13,QWORD PTR [rsp+0xa0]"
+    },
+    "score_work_buffer_pass_as_output": {
+      "address": "0x1800bc3e4",
+      "instruction": "mov    QWORD PTR [rsp+0x30],r13"
+    },
+    "score_buffer_producer": {
+      "address": "0x1800bc3f9",
+      "instruction": "call   0x1800b5d00"
+    },
+    "score_producer_destination_read": {
+      "address": "0x1800b5fe3",
+      "instruction": "mov    rdi,QWORD PTR [rsp+0xb0]"
+    },
+    "score_producer_destination_write": {
+      "address": "0x1800b60fe",
+      "instruction": "movss  DWORD PTR [rdi+r10*1],xmm0"
+    },
+    "score_buffer_consumer": {
+      "address": "0x1800bc410",
+      "instruction": "movss  xmm0,DWORD PTR [r13+rdi*4+0x0]"
+    },
+    "loss_logf": {
+      "address": "0x1800bc41c",
+      "instruction": "call   0x18017e14c"
+    },
+    "loss_loop_512": {
+      "address": "0x1800bc437",
+      "instruction": "cmp    rdi,0x200"
+    },
+    "loss_average": {
+      "address": "0x1800bc440",
+      "instruction": "mulss  xmm7,DWORD PTR [rip+0x1900a8]        # 0x18024c4f0"
+    },
+    "score_compare": {
+      "address": "0x1800bc459",
+      "instruction": "comiss xmm0,xmm7"
+    },
+    "score_nonimproving_branch": {
+      "address": "0x1800bc469",
+      "instruction": "jbe    0x1800bc4fe"
+    },
+    "worse_than_20pct": {
+      "address": "0x1800bc504",
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x19049c]        # 0x18024c9a8"
+    },
+    "threshold_branch": {
+      "address": "0x1800bc514",
+      "instruction": "jbe    0x1800bc5ab"
+    },
+    "restore_pre": {
+      "address": "0x1800bc53f",
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x1f8]"
+    },
+    "restore_post": {
+      "address": "0x1800bc55c",
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x200]"
+    },
+    "reduce_exponent_step": {
+      "address": "0x1800bc59c",
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x1902dc]        # 0x18024c880"
+    },
+    "updated_state_persist_pre": {
+      "address": "0x1800bc62d",
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x1f8]"
+    },
+    "updated_state_persist_post": {
+      "address": "0x1800bc64a",
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x200]"
+    }
+  },
+  "pinned_constants": {
+    "iteration_table_u32": [
+      2,
+      3,
+      5,
+      1
+    ],
+    "seconds": {
+      "window5": 5.0,
+      "window15": 15.0,
+      "window20": 20.0
+    },
+    "optimizer_constants": {
+      "loss_divisor": 0.001953125,
+      "score_worsening_threshold": 1.2,
+      "step_shrink": 0.5,
+      "exponent_anneal": 0.8999999761581421,
+      "loss_epsilon": 1.1920928955078125e-07
+    }
+  },
+  "stage_dispatch": [
+    {
+      "order": 1,
+      "selector": 2,
+      "source_start_sec": 23,
+      "output_start_sec": 23,
+      "window_seconds": 5,
+      "iteration_count": 3,
+      "source_end_sec": 28,
+      "output_alignment": "source_start_sec plus detected 0..600 sample initial offset"
+    },
+    {
+      "order": 2,
+      "selector": 1,
+      "source_start_sec": 6,
+      "output_start_sec": 6,
+      "window_seconds": 15,
+      "iteration_count": 2,
+      "source_end_sec": 21,
+      "output_alignment": "source_start_sec plus detected 0..600 sample initial offset"
+    },
+    {
+      "order": 3,
+      "selector": 3,
+      "source_start_sec": 30,
+      "output_start_sec": 30,
+      "window_seconds": 20,
+      "iteration_count": 5,
+      "source_end_sec": 50,
+      "output_alignment": "source_start_sec plus detected 0..600 sample initial offset"
+    }
+  ],
+  "spectral_finish": {
+    "input_window_start_sec": 50,
+    "duration_sec": 20,
+    "output_alignment": "same detected offset",
+    "entry_VA": "0x1800b9b70"
+  },
+  "joint_fir_backup": {
+    "finding": "both Pre and Post coefficient buffers are backed up and restored together on accepted/rolled-back iterations",
+    "pre_context_offset": "0x24408",
+    "post_context_offset": "0x24410"
+  },
+  "optimizer_score": {
+    "computational_pattern": "mean(abs(logf(v[i] + 2^-23))) over i=0..511",
+    "proven_producer": "buffer output passed at caller stack +0x30 to 0x1800B5D00 at 0x1800BC3F9",
+    "unknown": "meaning/equations of array produced by 0x1800B5D00",
+    "branch_labels": {
+      "0.9": "improvement: save updated state",
+      "1.1": "non-improvement <=20%: keep current state without halving step",
+      "1.3": "worsening >20%: restore saved state and halve step"
+    }
+  },
+  "scope_limitations": [
+    "Source-to-filter exact numerical equations not reconstructed.",
+    "The score array is not identified as final Post-FIR taps.",
+    "No fitted CLO generated; no vendor DLL execution or device writes.",
+    "Do not infer Windows Manager and mobile SONICLINK algorithm identity."
+  ]
+}

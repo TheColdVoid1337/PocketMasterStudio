@@ -1,0 +1,44 @@
+{
+  "regions": [
+    {
+      "region": "warm-up",
+      "start_s": 0,
+      "end_s": 5,
+      "input_rms_dbfs": -12.376,
+      "output_rms_dbfs": -43.958
+    },
+    {
+      "region": "quiet",
+      "start_s": 6,
+      "end_s": 21,
+      "input_rms_dbfs": -54.34,
+      "output_rms_dbfs": -45.012
+    },
+    {
+      "region": "loud",
+      "start_s": 23,
+      "end_s": 28,
+      "input_rms_dbfs": -8.01,
+      "output_rms_dbfs": -36.197
+    },
+    {
+      "region": "sweep",
+      "start_s": 30,
+      "end_s": 50,
+      "input_rms_dbfs": -26.433,
+      "output_rms_dbfs": -36.989
+    },
+    {
+      "region": "dynamic",
+      "start_s": 50,
+      "end_s": 70,
+      "input_rms_dbfs": -16.945,
+      "output_rms_dbfs": -41.186
+    }
+  ],
+  "output_onset_after_6s_samples_at_44100": 18,
+  "input_fs": 44100,
+  "output_fs": 48000,
+  "all_channels_identical": true,
+  "note": "600-sample threshold and time offsets from static DLL code; resampling approximation from scipy"
+}

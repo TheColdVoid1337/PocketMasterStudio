@@ -1,0 +1,35 @@
+{
+  "disclaimer": "preprocessed synthetic test only; does not reproduce Windows Manager WAV frontend",
+  "fitter": {
+    "fitted_sse": 0.04071168601512909,
+    "initial_sse": 0.09264456480741501,
+    "initialization": {
+      "initial_nrate": 12.593692779541016,
+      "initial_prate": 14.6077241897583,
+      "negative_slope": 0.8646440505981445,
+      "negative_threshold_count": 184,
+      "nmax": 0.06865691393613815,
+      "pmax": 0.06396826356649399,
+      "positive_slope": 0.9344307780265808,
+      "positive_threshold_count": 157
+    },
+    "native_envelope_samples": 1200,
+    "native_four_parameters": [
+      0.06396826356649399,
+      0.06865691393613815,
+      17.529266357421875,
+      15.112428665161133
+    ],
+    "negative_multiplier": 1.1999998092651367,
+    "num_blocks": 600,
+    "positive_multiplier": 1.1999998092651367
+  },
+  "input_duration_sec": 60,
+  "input_sample_rate": 1000,
+  "synthetic_generator": {
+    "nmax": 0.09,
+    "nrate": 12.0,
+    "pmax": 0.075,
+    "prate": 16.0
+  }
+}

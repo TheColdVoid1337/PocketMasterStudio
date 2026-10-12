@@ -1,0 +1,525 @@
+{
+  "assertions": [
+    {
+      "address": "0x1800bc753",
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190f96]        # 0x18024d6f0"
+    },
+    {
+      "address": "0x1800bc802",
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190a67]        # 0x18024d270"
+    },
+    {
+      "address": "0x1800bc8b1",
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190c78]        # 0x18024d530"
+    },
+    {
+      "address": "0x1800bc94d",
+      "opcode": "lea    rdx,[rsp+0x50]"
+    },
+    {
+      "address": "0x1800bc955",
+      "opcode": "mov    DWORD PTR [rsp+0x20],r12d"
+    },
+    {
+      "address": "0x1800bc95a",
+      "opcode": "mov    r8d,0x32"
+    },
+    {
+      "address": "0x1800bc96d",
+      "opcode": "call   0x1800b5a30"
+    },
+    {
+      "address": "0x1800bcc79",
+      "opcode": "call   0x1800be700"
+    },
+    {
+      "address": "0x1800bcff2",
+      "opcode": "call   0x1800b82b0"
+    },
+    {
+      "address": "0x1800bd4f6",
+      "opcode": "call   0x18017e10a"
+    },
+    {
+      "address": "0x1800bd50f",
+      "opcode": "mov    QWORD PTR [rdi+0x20],rax"
+    },
+    {
+      "address": "0x1800bd513",
+      "opcode": "mov    QWORD PTR [rdi+0x28],rax"
+    },
+    {
+      "address": "0x1800bd517",
+      "opcode": "mov    QWORD PTR [rdi+0x30],rax"
+    },
+    {
+      "address": "0x1800bd5bb",
+      "opcode": "cvtpd2ps xmm0,xmm1"
+    },
+    {
+      "address": "0x1800bd5c2",
+      "opcode": "mulsd  xmm1,xmm7"
+    },
+    {
+      "address": "0x1800bd808",
+      "opcode": "call   0x180027e60"
+    },
+    {
+      "address": "0x1800bd828",
+      "opcode": "call   0x1800be700"
+    },
+    {
+      "address": "0x1800bd83c",
+      "opcode": "mov    QWORD PTR [rdi+0x20c98],rax"
+    },
+    {
+      "address": "0x1800bd843",
+      "opcode": "mov    QWORD PTR [rdi+0x20ca0],rax"
+    },
+    {
+      "address": "0x1800bd84a",
+      "opcode": "mov    QWORD PTR [rdi+0x20ca8],rax"
+    },
+    {
+      "address": "0x1800be72a",
+      "opcode": "call   0x1800284f0"
+    },
+    {
+      "address": "0x1800be76d",
+      "opcode": "call   0x180028690"
+    },
+    {
+      "address": "0x1800be81f",
+      "opcode": "jmp    0x1800285b0"
+    },
+    {
+      "address": "0x1800b83f3",
+      "opcode": "mulsd  xmm0,QWORD PTR [rip+0x194485]        # 0x18024c880"
+    },
+    {
+      "address": "0x1800b83fb",
+      "opcode": "cvttsd2si eax,xmm0"
+    },
+    {
+      "address": "0x1800b83ca",
+      "opcode": "call   0x18017e11c"
+    },
+    {
+      "address": "0x1800bee25",
+      "opcode": "call   0x1800bd490"
+    },
+    {
+      "address": "0x1800bee89",
+      "opcode": "call   0x1800bc6b0"
+    },
+    {
+      "address": "0x1800bc753",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190f96]        # 0x18024d6f0",
+      "source_coefficient_index": 0
+    },
+    {
+      "address": "0x1800bc75a",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190f9f]        # 0x18024d700",
+      "source_coefficient_index": 4
+    },
+    {
+      "address": "0x1800bc766",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190ad3]        # 0x18024d240",
+      "source_coefficient_index": 8
+    },
+    {
+      "address": "0x1800bc772",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190a97]        # 0x18024d210",
+      "source_coefficient_index": 12
+    },
+    {
+      "address": "0x1800bc77e",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190f1b]        # 0x18024d6a0",
+      "source_coefficient_index": 16
+    },
+    {
+      "address": "0x1800bc789",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x1909b0]        # 0x18024d140",
+      "source_coefficient_index": 20
+    },
+    {
+      "address": "0x1800bc794",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190995]        # 0x18024d130",
+      "source_coefficient_index": 24
+    },
+    {
+      "address": "0x1800bc79f",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190e8a]        # 0x18024d630",
+      "source_coefficient_index": 28
+    },
+    {
+      "address": "0x1800bc7aa",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190eff]        # 0x18024d6b0",
+      "source_coefficient_index": 32
+    },
+    {
+      "address": "0x1800bc7b5",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190f04]        # 0x18024d6c0",
+      "source_coefficient_index": 36
+    },
+    {
+      "address": "0x1800bc7c0",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190ec9]        # 0x18024d690",
+      "source_coefficient_index": 40
+    },
+    {
+      "address": "0x1800bc7cb",
+      "frequency_branch": 44100,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190efe]        # 0x18024d6d0",
+      "source_coefficient_index": 44
+    },
+    {
+      "address": "0x1800bc7d6",
+      "frequency_branch": 44100,
+      "opcode": "movss  xmm0,DWORD PTR [rip+0x18fd16]        # 0x18024c4f4",
+      "source_coefficient_index": 48
+    },
+    {
+      "address": "0x1800bc7e2",
+      "frequency_branch": 44100,
+      "opcode": "movss  xmm1,DWORD PTR [rip+0x18fd2a]        # 0x18024c514",
+      "source_coefficient_index": 49
+    },
+    {
+      "address": "0x1800bc802",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190a67]        # 0x18024d270",
+      "source_coefficient_index": 0
+    },
+    {
+      "address": "0x1800bc809",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190f30]        # 0x18024d740",
+      "source_coefficient_index": 4
+    },
+    {
+      "address": "0x1800bc815",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x1909e4]        # 0x18024d200",
+      "source_coefficient_index": 8
+    },
+    {
+      "address": "0x1800bc821",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190988]        # 0x18024d1b0",
+      "source_coefficient_index": 12
+    },
+    {
+      "address": "0x1800bc82d",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190dec]        # 0x18024d620",
+      "source_coefficient_index": 16
+    },
+    {
+      "address": "0x1800bc838",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190e21]        # 0x18024d660",
+      "source_coefficient_index": 20
+    },
+    {
+      "address": "0x1800bc843",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190dc6]        # 0x18024d610",
+      "source_coefficient_index": 24
+    },
+    {
+      "address": "0x1800bc84e",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x19092b]        # 0x18024d180",
+      "source_coefficient_index": 28
+    },
+    {
+      "address": "0x1800bc859",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190910]        # 0x18024d170",
+      "source_coefficient_index": 32
+    },
+    {
+      "address": "0x1800bc864",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x1908b5]        # 0x18024d120",
+      "source_coefficient_index": 36
+    },
+    {
+      "address": "0x1800bc86f",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190dca]        # 0x18024d640",
+      "source_coefficient_index": 40
+    },
+    {
+      "address": "0x1800bc87a",
+      "frequency_branch": 48000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190dff]        # 0x18024d680",
+      "source_coefficient_index": 44
+    },
+    {
+      "address": "0x1800bc885",
+      "frequency_branch": 48000,
+      "opcode": "movss  xmm0,DWORD PTR [rip+0x19059f]        # 0x18024ce2c",
+      "source_coefficient_index": 48
+    },
+    {
+      "address": "0x1800bc891",
+      "frequency_branch": 48000,
+      "opcode": "movss  xmm1,DWORD PTR [rip+0x18fc77]        # 0x18024c510",
+      "source_coefficient_index": 49
+    },
+    {
+      "address": "0x1800bc8b1",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190c78]        # 0x18024d530",
+      "source_coefficient_index": 0
+    },
+    {
+      "address": "0x1800bc8b8",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190e71]        # 0x18024d730",
+      "source_coefficient_index": 4
+    },
+    {
+      "address": "0x1800bc8c4",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190e95]        # 0x18024d760",
+      "source_coefficient_index": 8
+    },
+    {
+      "address": "0x1800bc8d0",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190e39]        # 0x18024d710",
+      "source_coefficient_index": 12
+    },
+    {
+      "address": "0x1800bc8dc",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190dfd]        # 0x18024d6e0",
+      "source_coefficient_index": 16
+    },
+    {
+      "address": "0x1800bc8e7",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190942]        # 0x18024d230",
+      "source_coefficient_index": 20
+    },
+    {
+      "address": "0x1800bc8f2",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x1908f7]        # 0x18024d1f0",
+      "source_coefficient_index": 24
+    },
+    {
+      "address": "0x1800bc8fd",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x1908cc]        # 0x18024d1d0",
+      "source_coefficient_index": 28
+    },
+    {
+      "address": "0x1800bc908",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x190911]        # 0x18024d220",
+      "source_coefficient_index": 32
+    },
+    {
+      "address": "0x1800bc913",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190d36]        # 0x18024d650",
+      "source_coefficient_index": 36
+    },
+    {
+      "address": "0x1800bc91e",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm0,XMMWORD PTR [rip+0x19082b]        # 0x18024d150",
+      "source_coefficient_index": 40
+    },
+    {
+      "address": "0x1800bc929",
+      "frequency_branch": 96000,
+      "opcode": "movaps xmm1,XMMWORD PTR [rip+0x190d40]        # 0x18024d670",
+      "source_coefficient_index": 44
+    },
+    {
+      "address": "0x1800bc934",
+      "frequency_branch": 96000,
+      "opcode": "movss  xmm0,DWORD PTR [rip+0x1904f8]        # 0x18024ce34",
+      "source_coefficient_index": 48
+    },
+    {
+      "address": "0x1800bc940",
+      "frequency_branch": 96000,
+      "opcode": "movss  xmm1,DWORD PTR [rip+0x1904e8]        # 0x18024ce30",
+      "source_coefficient_index": 49
+    }
+  ],
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "identical_DI_WAVs_between_models": true,
+  "instruction_checks": 70,
+  "raw_probe_audit": [
+    {
+      "full_reference_FIR_RMS": 0.8273444422665993,
+      "full_reference_FIR_peak": 8.96198558807373,
+      "raw_DI_WAV_sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a",
+      "reference_output_RMS": 0.03403386437838542,
+      "reference_output_WAV_sha256": "c7e80f001e906bba2d91ab3b2fdc1ca7cf66d40ff6e87148f009be77b7b303e1",
+      "reference_output_peak": 0.155670166015625,
+      "reference_output_rate": 48000,
+      "sample_rate": 44100,
+      "samples": 3087000,
+      "samples_first8": [
+        7.227203604998067e-05,
+        0.00025362244923599064,
+        0.0006017184350639582,
+        0.0009746457217261195,
+        0.001236808835528791,
+        0.0013478914042934775,
+        0.0013439799658954144,
+        0.001277772244066
+      ],
+      "segments": {
+        "final": {
+          "duration_s": 20,
+          "peak": 6.981627941131592,
+          "rms": 0.4952761187483655,
+          "start_s": 50
+        },
+        "loud": {
+          "duration_s": 5,
+          "peak": 8.96198558807373,
+          "rms": 2.844402434616542,
+          "start_s": 23
+        },
+        "quiet": {
+          "duration_s": 15,
+          "peak": 3.4859349727630615,
+          "rms": 0.00942951291397542,
+          "start_s": 6
+        },
+        "third": {
+          "duration_s": 20,
+          "peak": 2.592115879058838,
+          "rms": 0.3298327437705778,
+          "start_s": 30
+        }
+      },
+      "source_zip_name": "Sonicake Manager Files.zip"
+    },
+    {
+      "full_reference_FIR_RMS": 0.8273444422665993,
+      "full_reference_FIR_peak": 8.96198558807373,
+      "raw_DI_WAV_sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a",
+      "reference_output_RMS": 0.010280964270310892,
+      "reference_output_WAV_sha256": "d85c9c923e8f76a8119c3a374c2e673ce4187ac1bb9fba8bd2c50b18a7c32613",
+      "reference_output_peak": 0.07623291015625,
+      "reference_output_rate": 48000,
+      "sample_rate": 44100,
+      "samples": 3087000,
+      "samples_first8": [
+        7.227203604998067e-05,
+        0.00025362244923599064,
+        0.0006017184350639582,
+        0.0009746457217261195,
+        0.001236808835528791,
+        0.0013478914042934775,
+        0.0013439799658954144,
+        0.001277772244066
+      ],
+      "segments": {
+        "final": {
+          "duration_s": 20,
+          "peak": 6.981627941131592,
+          "rms": 0.4952761187483655,
+          "start_s": 50
+        },
+        "loud": {
+          "duration_s": 5,
+          "peak": 8.96198558807373,
+          "rms": 2.844402434616542,
+          "start_s": 23
+        },
+        "quiet": {
+          "duration_s": 15,
+          "peak": 3.4859349727630615,
+          "rms": 0.00942951291397542,
+          "start_s": 6
+        },
+        "third": {
+          "duration_s": 20,
+          "peak": 2.592115879058838,
+          "rms": 0.3298327437705778,
+          "start_s": 30
+        }
+      },
+      "source_zip_name": "Sonicake Manager(1).zip"
+    }
+  ],
+  "reason": "Native input audio preparation and B82B0 spectral buffer operation not fully implemented; no vendor FIR used.",
+  "research_only": true,
+  "tables": {
+    "44100": {
+      "first_8_taps": [
+        2.3682100772857666,
+        3.574280023574829,
+        3.095710039138794,
+        -0.39239901304244995,
+        -3.1509499549865723,
+        -3.830709934234619,
+        -2.215640068054199,
+        -0.8829950094223022
+      ],
+      "l2": 7.69533459676742,
+      "max_abs": 3.830709934234619,
+      "sha256_le_float32": "26d0ef65904d77f33bd7266fc58ca84ba272a748fa20828d88de49559201a96f",
+      "sum": -0.08689140132628381,
+      "tap_count": 50
+    },
+    "48000": {
+      "first_8_taps": [
+        2.3698089122772217,
+        3.5321993827819824,
+        3.3860063552856445,
+        0.5711528062820435,
+        -2.4945120811462402,
+        -3.850381851196289,
+        -3.1638450622558594,
+        -1.5117536783218384
+      ],
+      "l2": 8.02400235168759,
+      "max_abs": 3.850381851196289,
+      "sha256_le_float32": "5c1fac3bdb3cd21e2a453830e9e65bf7ef488f6763dccc65dcad30d0a030a1c1",
+      "sum": -0.02520411356817931,
+      "tap_count": 50
+    },
+    "96000": {
+      "first_8_taps": [
+        2.3698089122772217,
+        3.1448822021484375,
+        3.5321993827819824,
+        3.6847987174987793,
+        3.3860065937042236,
+        2.2971389293670654,
+        0.5711528062820435,
+        -1.1757426261901855
+      ],
+      "l2": 11.273363367811285,
+      "max_abs": 3.850382089614868,
+      "sha256_le_float32": "d7fe5608e816606da4edfaa2e4620718468d33bb11f52dcb5be383ab80e632c7",
+      "sum": -0.9660231424495578,
+      "tap_count": 50
+    }
+  },
+  "vendor_initial_A_B": "NOT_COMPUTED"
+}

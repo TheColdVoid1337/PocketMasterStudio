@@ -1,0 +1,80 @@
+{
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "status": "static only; DLL NOT executed",
+  "verified_instructions_count": 31,
+  "instructions": {
+    "iter_powf": "1800bb46e:\tcall   0x18017e158",
+    "iter_clamp_ceiling_5": "1800bb479:\tmovaps xmm0,xmm11",
+    "iter_clamp_floor_0_2": "1800bb48c:\tmov    DWORD PTR [rdi],0x3e4ccccd",
+    "iter_exponent_decay_0_9": "1800bb4be:\tmulss  xmm12,DWORD PTR [rip+0x19118d]        # 0x18024c654",
+    "iter_elementwise_multiply": "1800bb575:\tmulps  xmm1,xmm0",
+    "iter_elementwise_divide": "1800bb6e1:\tdivps  xmm1,xmm0",
+    "iter_first_frequency_helper": "1800bb4d9:\tcall   0x1800b7670",
+    "iter_further_convolution": "1800bbb5b:\tcall   0x1800b5a30",
+    "iter_nonlinearity": "1800bbcc9:\tcall   0x1800be700",
+    "iter_filter_design_a": "1800bc055:\tcall   0x1800b82b0",
+    "iter_filter_design_b": "1800bc3c5:\tcall   0x1800b82b0",
+    "iter_filter_512_check": "1800bc437:\tcmp    rdi,0x200",
+    "iter_filter_512_scale": "1800bc440:\tmulss  xmm7,DWORD PTR [rip+0x1900a8]        # 0x18024c4f0",
+    "iter_logf": "1800bc41c:\tcall   0x18017e14c",
+    "iter_close_step": "1800bc5c2:\tjne    0x1800bb440",
+    "finish_0_1sec_support": "1800b9bcb:\tmulsd  xmm0,xmm12",
+    "finish_saturator": "1800ba019:\tcall   0x1800be700",
+    "finish_cosf_taper": "1800ba820:\tcall   0x18017e11c",
+    "finish_sqrt_magnitude": "1800ba97b:\tcall   0x18017e170",
+    "finish_stable_spectral_ratio": "1800bac9a:\tdivpd  xmm3,xmm2",
+    "finish_ratio_clip_upper": "1800baeb3:\tmov    DWORD PTR [r14+rax*4],0x41200000",
+    "finish_ratio_clip_lower": "1800baec6:\tmov    DWORD PTR [r14+rax*4],0x3dcccccd",
+    "finish_complex_transform": "1800ba8a3:\tcall   0x1800b4cf0",
+    "finish_filter_step": "1800baef9:\tcall   0x1800b7e10",
+    "finish_output_amplitude_norm": "1800bb0e2:\tdivss  xmm7,xmm0",
+    "hamming_cosf": "1800b83ca:\tcall   0x18017e11c",
+    "hamming_multiply_046": "1800b83cf:\tmulss  xmm0,xmm9",
+    "hamming_subtract_054": "1800b83d8:\tsubss  xmm1,xmm0",
+    "circular_modulus": "1800b4de6:\tidiv   r10d",
+    "circular_complex_imag_sign": "1800b4e25:\tsubss  xmm6,xmm5",
+    "basis_inv_N": "1800b5322:\tdivss  xmm7,xmm0"
+  },
+  "constants": {
+    "ten_percent_second": 0.1,
+    "iter_exponent_decay": 0.8999999761581421,
+    "iter_ceil": 5.0,
+    "iter_floor": 0.2,
+    "finish_ratio_ceil": 10.0,
+    "finish_ratio_floor": 0.1,
+    "hamming_a": 0.5400000214576721,
+    "hamming_b": 0.46000000834465027,
+    "hamming_2pi": 6.2831854820251465,
+    "eval_sample_count_reciprocal": 0.001953125,
+    "freq_ratio_eps": 1.1920928955078125e-07
+  },
+  "import_thunks": {
+    "powf": "0x18017e158",
+    "logf": "0x18017e14c",
+    "sqrtf": "0x18017e170",
+    "cosf": "0x18017e11c"
+  },
+  "branches": {
+    "spectral_finisher": [
+      "0x1800b9b70",
+      "0x1800bb210"
+    ],
+    "iterative_fit": [
+      "0x1800bb210",
+      "0x1800bc6b0"
+    ],
+    "spectral_helper": [
+      "0x1800b82b0",
+      "0x1800b8400"
+    ],
+    "complex_circular_convolution": [
+      "0x1800b4cf0",
+      "0x1800b4eb0"
+    ],
+    "basis_helper": [
+      "0x1800b52e0",
+      "0x1800b5400"
+    ]
+  },
+  "caveat": "Identified local mathematical operations, NOT full end-to-end equivalent or exact filter mapping."
+}

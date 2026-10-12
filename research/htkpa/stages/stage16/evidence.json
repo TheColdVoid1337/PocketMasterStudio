@@ -1,0 +1,387 @@
+{
+  "asserted": "source-pinned workspace topology and spectral feedback scratch identities",
+  "code_pin_count": 74,
+  "code_pins": {
+    "accept_branch": {
+      "instruction": "comiss xmm0,xmm7",
+      "va": "0x1800bc459"
+    },
+    "accept_save_post": {
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x200]",
+      "va": "0x1800bc4b2"
+    },
+    "accept_save_pre": {
+      "instruction": "mov    rdx,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bc495"
+    },
+    "anneal_0_9": {
+      "instruction": "mulss  xmm12,DWORD PTR [rip+0x19118d]        # 0x18024c654",
+      "va": "0x1800bb4be"
+    },
+    "caller_iteration_call": {
+      "instruction": "call   0x1800bb210",
+      "va": "0x1800bf0c9"
+    },
+    "caller_iteration_lookup": {
+      "instruction": "mov    eax,DWORD PTR [rsp+rdx*4+0xc4]",
+      "va": "0x1800bf0a3"
+    },
+    "caller_post_pointer": {
+      "instruction": "mov    rax,QWORD PTR [r14+0x24410]",
+      "va": "0x1800bf070"
+    },
+    "caller_pre_pointer": {
+      "instruction": "mov    rax,QWORD PTR [r14+0x24408]",
+      "va": "0x1800bf07c"
+    },
+    "caller_selector_dispatch": {
+      "instruction": "movsxd rdx,DWORD PTR [rsp+rbx*4+0xa8]",
+      "va": "0x1800bf050"
+    },
+    "caller_three_stages": {
+      "instruction": "cmp    rbx,0x3",
+      "va": "0x1800bf0d1"
+    },
+    "condition1": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb4d9"
+    },
+    "condition2": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb4f8"
+    },
+    "condition3": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bb812"
+    },
+    "feedback_condition": {
+      "instruction": "call   0x1800b7670",
+      "va": "0x1800bc33d"
+    },
+    "feedback_denominator_from_v2": {
+      "instruction": "add    rax,r13",
+      "va": "0x1800bc07e"
+    },
+    "feedback_denominator_v2": {
+      "instruction": "movsd  xmm0,QWORD PTR [r8-0x8]",
+      "va": "0x1800bc107"
+    },
+    "feedback_num_read": {
+      "instruction": "movsd  xmm0,QWORD PTR [rax+r8*1-0x8]",
+      "va": "0x1800bc0f3"
+    },
+    "feedback_numerator_from_v5": {
+      "instruction": "lea    r9,[rdi+rdx*4]",
+      "va": "0x1800bc081"
+    },
+    "feedback_ratio_div": {
+      "instruction": "divpd  xmm3,xmm2",
+      "va": "0x1800bc11c"
+    },
+    "feedback_ratio_float_to_double": {
+      "instruction": "cvtps2pd xmm3,xmm0",
+      "va": "0x1800bc104"
+    },
+    "feedback_ratio_reg": {
+      "instruction": "addpd  xmm2,xmm5",
+      "va": "0x1800bc118"
+    },
+    "feedback_ratio_scale_den": {
+      "instruction": "mulpd  xmm2,xmm4",
+      "va": "0x1800bc114"
+    },
+    "feedback_ratio_scale_num": {
+      "instruction": "mulpd  xmm3,xmm4",
+      "va": "0x1800bc10d"
+    },
+    "feedback_ratio_write_v2": {
+      "instruction": "movsd  QWORD PTR [rdx+r8*1-0x8],xmm0",
+      "va": "0x1800bc12e"
+    },
+    "finalizer_once": {
+      "instruction": "call   0x1800b9b70",
+      "va": "0x1800bf11e"
+    },
+    "iteration_loop": {
+      "instruction": "jne    0x1800bb440",
+      "va": "0x1800bc5c2"
+    },
+    "malloc_allocate": {
+      "instruction": "call   QWORD PTR [rip+0xd06c9]        # 0x18018b940",
+      "va": "0x1800bb271"
+    },
+    "malloc_audio_length": {
+      "instruction": "add    r11d,r9d",
+      "va": "0x1800bb264"
+    },
+    "malloc_curve_length": {
+      "instruction": "cvttss2si r14d,DWORD PTR [rsp+0x1c8]",
+      "va": "0x1800bb23b"
+    },
+    "malloc_iteration_count": {
+      "instruction": "mov    edi,DWORD PTR [rsp+0x1c0]",
+      "va": "0x1800bb245"
+    },
+    "malloc_post_length": {
+      "instruction": "mov    eax,DWORD PTR [rcx+0x20ed8]",
+      "va": "0x1800bb232"
+    },
+    "malloc_pre_length": {
+      "instruction": "add    r10d,DWORD PTR [rcx+0x20ed4]",
+      "va": "0x1800bb259"
+    },
+    "memcpy_source_b": {
+      "instruction": "mov    rdx,QWORD PTR [rbx+0x24330]",
+      "va": "0x1800bb347"
+    },
+    "memcpy_v2_from_v0": {
+      "instruction": "mov    rdx,r12",
+      "va": "0x1800bb35d"
+    },
+    "memcpy_v9_from_v0": {
+      "instruction": "mov    rdx,r12",
+      "va": "0x1800bb376"
+    },
+    "post_destination": {
+      "instruction": "mov    r13,QWORD PTR [rsp+0x200]",
+      "va": "0x1800bc342"
+    },
+    "post_synthesize": {
+      "instruction": "call   0x1800b68f0",
+      "va": "0x1800bc35c"
+    },
+    "pow_ceil": {
+      "instruction": "movaps xmm0,xmm11",
+      "va": "0x1800bb479"
+    },
+    "pow_compute": {
+      "instruction": "call   0x18017e158",
+      "va": "0x1800bb46e"
+    },
+    "pow_floor": {
+      "instruction": "mov    DWORD PTR [rdi],0x3e4ccccd",
+      "va": "0x1800bb48c"
+    },
+    "pre_destination": {
+      "instruction": "mov    rdi,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bb821"
+    },
+    "pre_synthesize": {
+      "instruction": "call   0x1800b68f0",
+      "va": "0x1800bb836"
+    },
+    "reject_branch": {
+      "instruction": "comisd xmm1,xmm0",
+      "va": "0x1800bc510"
+    },
+    "reject_factor_1_2": {
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x19049c]        # 0x18024c9a8",
+      "va": "0x1800bc504"
+    },
+    "reject_restore_post": {
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x200]",
+      "va": "0x1800bc55c"
+    },
+    "reject_restore_pre": {
+      "instruction": "mov    rcx,QWORD PTR [rsp+0x1f8]",
+      "va": "0x1800bc53f"
+    },
+    "reject_step_half": {
+      "instruction": "mulsd  xmm0,QWORD PTR [rip+0x1902dc]        # 0x18024c880",
+      "va": "0x1800bc59c"
+    },
+    "render_current_1": {
+      "instruction": "call   0x1800b5a30",
+      "va": "0x1800bbb5b"
+    },
+    "render_current_2": {
+      "instruction": "call   0x1800b5a30",
+      "va": "0x1800bc381"
+    },
+    "saturate_current": {
+      "instruction": "call   0x1800be700",
+      "va": "0x1800bbcc9"
+    },
+    "score_average": {
+      "instruction": "mulss  xmm7,DWORD PTR [rip+0x1900a8]        # 0x18024c4f0",
+      "va": "0x1800bc440"
+    },
+    "score_initial_100": {
+      "instruction": "movss  DWORD PTR [rsp+0x1c8],xmm0",
+      "va": "0x1800bb2a1"
+    },
+    "score_interpolate": {
+      "instruction": "call   0x1800b5d00",
+      "va": "0x1800bc3f9"
+    },
+    "score_load_output": {
+      "instruction": "movss  xmm0,DWORD PTR [r13+rdi*4+0x0]",
+      "va": "0x1800bc410"
+    },
+    "score_log": {
+      "instruction": "call   0x18017e14c",
+      "va": "0x1800bc41c"
+    },
+    "scratch_audio": {
+      "instruction": "lea    r15,[rcx+rax*4]",
+      "va": "0x1800bb32a"
+    },
+    "scratch_post_backup": {
+      "instruction": "mov    QWORD PTR [rsp+0x68],rcx",
+      "va": "0x1800bb325"
+    },
+    "scratch_pre_backup": {
+      "instruction": "mov    QWORD PTR [rsp+0x60],rax",
+      "va": "0x1800bb319"
+    },
+    "scratch_score": {
+      "instruction": "mov    QWORD PTR [rsp+0x50],rax",
+      "va": "0x1800bb33d"
+    },
+    "scratch_v1": {
+      "instruction": "mov    QWORD PTR [rsp+0x90],rax",
+      "va": "0x1800bb2b8"
+    },
+    "scratch_v10": {
+      "instruction": "mov    QWORD PTR [rsp+0x80],rax",
+      "va": "0x1800bb309"
+    },
+    "scratch_v2": {
+      "instruction": "mov    QWORD PTR [rsp+0x1d8],r13",
+      "va": "0x1800bb2c7"
+    },
+    "scratch_v2_times_v0": {
+      "instruction": "mulps  xmm1,xmm0",
+      "va": "0x1800bb575"
+    },
+    "scratch_v3": {
+      "instruction": "mov    QWORD PTR [rsp+0xa0],rax",
+      "va": "0x1800bb2d2"
+    },
+    "scratch_v4": {
+      "instruction": "mov    QWORD PTR [rsp+0x58],rax",
+      "va": "0x1800bb2dd"
+    },
+    "scratch_v5": {
+      "instruction": "mov    QWORD PTR [rsp+0x98],rax",
+      "va": "0x1800bb2e5"
+    },
+    "scratch_v6": {
+      "instruction": "mov    QWORD PTR [rsp+0x1a0],rax",
+      "va": "0x1800bb2f0"
+    },
+    "scratch_v9": {
+      "instruction": "mov    QWORD PTR [rsp+0x70],rax",
+      "va": "0x1800bb301"
+    },
+    "source_context_curve_a": {
+      "instruction": "mov    rdx,QWORD PTR [rbx+0x24328]",
+      "va": "0x1800bb289"
+    },
+    "source_context_curve_b": {
+      "instruction": "mov    rdx,QWORD PTR [rbx+0x24330]",
+      "va": "0x1800bb347"
+    },
+    "source_secondary_divided_v0": {
+      "instruction": "divps  xmm1,xmm0",
+      "va": "0x1800bb6e1"
+    },
+    "spectral_feedback_estimate": {
+      "instruction": "call   0x1800b82b0",
+      "va": "0x1800bc055"
+    },
+    "spectral_score_estimate": {
+      "instruction": "call   0x1800b82b0",
+      "va": "0x1800bc3c5"
+    },
+    "spectral_shape_aux": {
+      "instruction": "call   0x1800b6220",
+      "va": "0x1800bb7e3"
+    }
+  },
+  "constants": {
+    "feedback_epsilon": {
+      "va": "0x18024d1e0",
+      "value": 1.1920928955078125e-07
+    },
+    "feedback_scale": {
+      "va": "0x18024d5a0",
+      "value": 1000000.0
+    },
+    "initial_score": {
+      "va": "0x18024cd78",
+      "value": 100.0
+    },
+    "iteration_anneal": {
+      "va": "0x18024c654",
+      "value": 0.8999999761581421
+    },
+    "pow_ceiling": {
+      "va": "0x18024ccd0",
+      "value": 5.0
+    },
+    "pow_floor": {
+      "va": "0x18024c7e0",
+      "value": 0.2
+    },
+    "reject_score_ratio": {
+      "va": "0x18024c9a8",
+      "value": 1.2
+    },
+    "reject_step_scale": {
+      "va": "0x18024c880",
+      "value": 0.5
+    },
+    "unit_magnitude": {
+      "va": "0x18024c6a0",
+      "value": 1.0
+    }
+  },
+  "constants_count": 9,
+  "demonstration_offsets_float32": {
+    "rendered_audio": 7424,
+    "saved_post": 5376,
+    "saved_pre": 5248,
+    "score_per_iteration": 55424,
+    "temp_pre_curve": 5120,
+    "v0": 0,
+    "v1": 512,
+    "v2": 1024,
+    "v3": 1536,
+    "v4": 2048,
+    "v5": 2560,
+    "v6": 3072,
+    "v7": 3584,
+    "v8": 4096,
+    "v9": 4608
+  },
+  "demonstration_total_float32": 55429,
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "not_asserted": "native byte-exact HTKPA, complete curve conditioning, vendor FIR coefficient reconstruction",
+  "stage": 16,
+  "synthetic_check_count": 22,
+  "synthetic_checks": [
+    "curve_slots_zero_to_nine",
+    "temp_pre_at_10L",
+    "saved_pre_after_temp",
+    "saved_post_after_pre_backup",
+    "render_buffer_after_post",
+    "score_pointer_after_audio",
+    "malloc_formula",
+    "all_regions_in_bounds",
+    "all_regions_disjoint",
+    "layout_stable_with_other_shapes",
+    "v2_multiplicative_chain",
+    "feedback_ratio_uses_v5_over_v2",
+    "feedback_no_clipping_built_in",
+    "feedback_zero_numerator",
+    "score_improvement_saves",
+    "score_worse_by_30_percent_restores",
+    "score_worse_by_15_percent_keeps",
+    "score_equal_keeps",
+    "exact_score_20_percent_keeps",
+    "pow_step_drops_10_percent",
+    "rejected_step_is_halved",
+    "original_context_immutable_in_layout"
+  ]
+}

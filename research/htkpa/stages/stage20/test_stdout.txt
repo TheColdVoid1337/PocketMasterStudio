@@ -1,0 +1,1 @@
+STAGE20 PASSED 106 independent checks, 3 sample rates, 2 cutoff responses

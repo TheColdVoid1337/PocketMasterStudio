@@ -1,0 +1,176 @@
+{
+  "address_checks": 35,
+  "constants": {
+    "epsilon": 1.1920928955078125e-07,
+    "inverse_transform_unity": 1.0,
+    "pi2": 6.2831854820251465,
+    "power_base": 10.0,
+    "scale_control": -100.0,
+    "scale_to_power": 0.05000000074505806
+  },
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "limitations": [
+    "No DLL execution",
+    "No exact full native FFT byte parity",
+    "No recovered official FIR from WAV",
+    "No produced CLO"
+  ],
+  "math_tests": [
+    "guard threshold is max-100dB = 1e-5",
+    "guard keeps large amplitudes",
+    "log handles all-zero vector with epsilon",
+    "first-half mirror has exact N-i-1 indexing",
+    "first-half mirror odd-length",
+    "fold = complex real sum, imaginary difference",
+    "fold zeroes unselected tail",
+    "fold handles odd length without Nyquist",
+    "complex exponential is unit at zero",
+    "complex exponential represents exp(a+i*b)",
+    "trig basis uses period N",
+    "inverse transform constant spectrum gives impulse",
+    "inverse direct O(N²) agrees with numpy ifft real"
+  ],
+  "pins": {
+    "0x1800b48f9": {
+      "assembly": "subss  xmm2,xmm0",
+      "id": "inverse_real_difference"
+    },
+    "0x1800b49e7": {
+      "assembly": "mulss  xmm3,xmm4",
+      "id": "inverse_one_over_n"
+    },
+    "0x1800b4c62": {
+      "assembly": "mulss  xmm6,xmm8",
+      "id": "transform_one_over_n_real"
+    },
+    "0x1800b4c6d": {
+      "assembly": "mulss  xmm7,xmm8",
+      "id": "transform_one_over_n_imag"
+    },
+    "0x1800b530a": {
+      "assembly": "movss  xmm7,DWORD PTR [rip+0x1979de]        # 0x18024ccf0",
+      "id": "trig_2pi_constant"
+    },
+    "0x1800b5322": {
+      "assembly": "divss  xmm7,xmm0",
+      "id": "trig_2pi_over_n"
+    },
+    "0x1800b5421": {
+      "assembly": "call   0x18017e15e",
+      "id": "trig_sin_call"
+    },
+    "0x1800b5436": {
+      "assembly": "call   0x18017e116",
+      "id": "trig_cos_call"
+    },
+    "0x1800b6a16": {
+      "assembly": "call   0x1800b72e0",
+      "id": "parent_complex_synthesis"
+    },
+    "0x1800b6a50": {
+      "assembly": "call   0x1800b52e0",
+      "id": "parent_basis"
+    },
+    "0x1800b6a66": {
+      "assembly": "call   0x1800b47f0",
+      "id": "parent_inverse"
+    },
+    "0x1800b6b9d": {
+      "assembly": "divss  xmm2,xmm0",
+      "id": "parent_dc_subtract_setup"
+    },
+    "0x1800b6d0e": {
+      "assembly": "divss  xmm7,xmm0",
+      "id": "parent_energy_restore"
+    },
+    "0x1800b6edb": {
+      "assembly": "addss  xmm0,DWORD PTR [rdx+0x8]",
+      "id": "fold_real_add"
+    },
+    "0x1800b6eeb": {
+      "assembly": "subss  xmm1,DWORD PTR [rdx+0xc]",
+      "id": "fold_imag_sub"
+    },
+    "0x1800b710c": {
+      "assembly": "xorps  xmm0,XMMWORD PTR [rip+0x1964ed]        # 0x18024d600",
+      "id": "fold_nyquist_imag_sign"
+    },
+    "0x1800b7256": {
+      "assembly": "mulss  xmm8,DWORD PTR [rip+0x1952c1]        # 0x18024c520",
+      "id": "guard_exponent_times_point05"
+    },
+    "0x1800b726f": {
+      "assembly": "call   0x18017e152",
+      "id": "guard_pow10"
+    },
+    "0x1800b727a": {
+      "assembly": "mulsd  xmm0,xmm1",
+      "id": "guard_relative_to_peak"
+    },
+    "0x1800b729f": {
+      "assembly": "comiss xmm2,xmm0",
+      "id": "guard_compare_floor"
+    },
+    "0x1800b72a4": {
+      "assembly": "movaps xmm1,xmm2",
+      "id": "guard_replace_tiny_value"
+    },
+    "0x1800b733b": {
+      "assembly": "call   0x1800b7150",
+      "id": "log_scale_guard_call"
+    },
+    "0x1800b73bb": {
+      "assembly": "call   0x18017e14c",
+      "id": "logf_scalar"
+    },
+    "0x1800b7450": {
+      "assembly": "call   0x1800b5d00",
+      "id": "linear_regrid"
+    },
+    "0x1800b748f": {
+      "assembly": "mov    eax,DWORD PTR [r14+rax*4]",
+      "id": "reverse_partner_load"
+    },
+    "0x1800b7493": {
+      "assembly": "mov    DWORD PTR [r8-0x18],eax",
+      "id": "reverse_partner_store"
+    },
+    "0x1800b7534": {
+      "assembly": "call   0x1800b52e0",
+      "id": "trigonometric_basis"
+    },
+    "0x1800b754a": {
+      "assembly": "call   0x1800b4a50",
+      "id": "transform_log_curve"
+    },
+    "0x1800b7569": {
+      "assembly": "call   0x1800b6e30",
+      "id": "conjugate_folding"
+    },
+    "0x1800b7590": {
+      "assembly": "call   0x1800b4f60",
+      "id": "transform_back"
+    },
+    "0x1800b75d5": {
+      "assembly": "call   0x18017e12e",
+      "id": "expf_magnitude"
+    },
+    "0x1800b75e1": {
+      "assembly": "call   0x18017e11c",
+      "id": "cosf_phase"
+    },
+    "0x1800b75ea": {
+      "assembly": "movss  DWORD PTR [rdi+rbx*1-0x4],xmm0",
+      "id": "complex_real_write"
+    },
+    "0x1800b75f4": {
+      "assembly": "call   0x18017e164",
+      "id": "sinf_phase"
+    },
+    "0x1800b7601": {
+      "assembly": "movss  DWORD PTR [rdi+rbx*1-0x8],xmm0",
+      "id": "complex_imag_write"
+    }
+  },
+  "stage": "12"
+}

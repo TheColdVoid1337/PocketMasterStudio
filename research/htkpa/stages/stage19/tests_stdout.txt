@@ -1,0 +1,17 @@
+test_50_float32_each (__main__.Stage19Tests.test_50_float32_each) ... ok
+test_all_table_instructions_pinned (__main__.Stage19Tests.test_all_table_instructions_pinned) ... ok
+test_audio_convolution_first_sample (__main__.Stage19Tests.test_audio_convolution_first_sample) ... ok
+test_constant_steady_state_sum (__main__.Stage19Tests.test_constant_steady_state_sum) ... ok
+test_correct_binary (__main__.Stage19Tests.test_correct_binary) ... ok
+test_different_rate_tables (__main__.Stage19Tests.test_different_rate_tables) ... ok
+test_impulse_is_taps (__main__.Stage19Tests.test_impulse_is_taps) ... ok
+test_no_nan (__main__.Stage19Tests.test_no_nan) ... ok
+test_reference_zip_models (__main__.Stage19Tests.test_reference_zip_models) ... ok
+test_source_same_for_two_models (__main__.Stage19Tests.test_source_same_for_two_models) ... ok
+test_three_native_banks (__main__.Stage19Tests.test_three_native_banks) ... ok
+test_zero_audio_zero (__main__.Stage19Tests.test_zero_audio_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.330s
+
+OK

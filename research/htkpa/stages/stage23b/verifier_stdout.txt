@@ -1,0 +1,1 @@
+PASS 125 native code pins, 7 PE constants, 10 synthetic tests. Real native gains NOT_COMPUTED

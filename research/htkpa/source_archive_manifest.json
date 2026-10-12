@@ -1,0 +1,1213 @@
+{
+  "version": 1,
+  "date": "2026-10-12",
+  "source_archives": {
+    "1": "Stage1_source.zip",
+    "16": "Stage16_source.zip",
+    "14": "Stage14_source.zip",
+    "13": "Stage13_source.zip",
+    "12": "Stage12_source.zip",
+    "18": "Stage18_source.zip",
+    "9": "Stage9_source.zip",
+    "3": "Stage3_source.zip",
+    "6": "Stage6_source.zip",
+    "20": "Stage20_source.zip",
+    "8": "Stage8_source.zip",
+    "4": "Stage4_source.zip",
+    "17": "Stage17_source.zip",
+    "2": "Stage2_source.zip",
+    "10": "Stage10_source.zip",
+    "19": "Stage19_source.zip",
+    "7": "Stage7_source.zip",
+    "11": "Stage11_source.zip",
+    "15": "Stage15_source.zip",
+    "21": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+    "22": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+    "23": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+    "231": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+    "232": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+    "230": "Stage23_Source_Gate_PRECHECK_v0_1.zip"
+  },
+  "missing_stages": [
+    5
+  ],
+  "files": [
+    {
+      "stage": "stage01",
+      "path": "docs/htkpa/source_archive/stage01/README.md",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/README.md",
+      "bytes": 967,
+      "sha256": "a43f8b4a34c8a8a85c210a379d442349cacb34704fe0c5eaedcb0212c64ce9cc"
+    },
+    {
+      "stage": "stage01",
+      "path": "docs/htkpa/source_archive/stage01/RESEARCH_REPORT.md",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/RESEARCH_REPORT.md",
+      "bytes": 8469,
+      "sha256": "fbf39924682241f4bdd50a41406484039372476db9392c64b5791143db83a00a"
+    },
+    {
+      "stage": "stage01",
+      "path": "research/htkpa/stages/stage01/inspect_htkpa_static.py",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/inspect_htkpa_static.py",
+      "bytes": 6045,
+      "sha256": "d541080cd3e5f110c08f6e6fe82d856ce71f7fd8b26807fb08d7f868e8922606"
+    },
+    {
+      "stage": "stage01",
+      "path": "research/htkpa/stages/stage01/inspect_probe_wav.py",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/inspect_probe_wav.py",
+      "bytes": 3138,
+      "sha256": "9a0daeb4db04cb0eb311db2297d28e052956edce23c7f9006fc96a1056439783"
+    },
+    {
+      "stage": "stage01",
+      "path": "research/htkpa/stages/stage01/probe_wav_regions.json",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/probe_wav_regions.json",
+      "bytes": 973,
+      "sha256": "c88e7eb410b5b8ab29b980c0d09a5225527ad6cb14c0c470e58e133d892515ef"
+    },
+    {
+      "stage": "stage01",
+      "path": "research/htkpa/stages/stage01/static_evidence.json",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/static_evidence.json",
+      "bytes": 2630,
+      "sha256": "5123d86a0abcc407fa78ecf9e352a2264165cb07f7b900709ff2c4a4c129abf3"
+    },
+    {
+      "stage": "stage01",
+      "path": "research/htkpa/stages/stage01/summary.txt",
+      "source": "Stage1_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_1/summary.txt",
+      "bytes": 973,
+      "sha256": "c88e7eb410b5b8ab29b980c0d09a5225527ad6cb14c0c470e58e133d892515ef"
+    },
+    {
+      "stage": "stage02",
+      "path": "docs/htkpa/source_archive/stage02/README.md",
+      "source": "Stage2_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_2/README.md",
+      "bytes": 1280,
+      "sha256": "3d59f70f76bc543d023e420819e7bf4d72888b87f29edf63559efe1ee548be2c"
+    },
+    {
+      "stage": "stage02",
+      "path": "research/htkpa/stages/stage02/evidence_direct.json",
+      "source": "Stage2_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_2/evidence_direct.json",
+      "bytes": 3890,
+      "sha256": "5e0873a5d57ba313486e789f9c861e14d5e06249216e0396ee511d571e26c134"
+    },
+    {
+      "stage": "stage02",
+      "path": "research/htkpa/stages/stage02/verify_stage2.py",
+      "source": "Stage2_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_2/verify_stage2.py",
+      "bytes": 7471,
+      "sha256": "1dec3da78d7490b149b164f55f6235191f250147aeebe81908d3e4e8eab6d33b"
+    },
+    {
+      "stage": "stage02",
+      "path": "docs/htkpa/source_archive/stage02/RESEARCH_REPORT.md",
+      "source": "Stage2_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_2/RESEARCH_REPORT.md",
+      "bytes": 8703,
+      "sha256": "ae9d977ed9ad8c0ba6a892eb21a5b39a5de9afcadb825aec2691df233fe181d7"
+    },
+    {
+      "stage": "stage02",
+      "path": "research/htkpa/stages/stage02/saturator_control_pairs.json",
+      "source": "Stage2_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_2/saturator_control_pairs.json",
+      "bytes": 947,
+      "sha256": "c682e0a2f4d567f33872313db9b431c07755b97e38a20be79194e4892e0a06f9"
+    },
+    {
+      "stage": "stage03",
+      "path": "docs/htkpa/source_archive/stage03/README.md",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/README.md",
+      "bytes": 941,
+      "sha256": "d3b32fa7e5c63a3d19b7a767b9af2b2577044971c5ec074616d330ff178d0486"
+    },
+    {
+      "stage": "stage03",
+      "path": "docs/htkpa/source_archive/stage03/RESEARCH_REPORT.md",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/RESEARCH_REPORT.md",
+      "bytes": 10314,
+      "sha256": "2a662ab1973593b1b59c27d96aae9e1de9bf3e740c9835518878bfc2d7d7f235"
+    },
+    {
+      "stage": "stage03",
+      "path": "research/htkpa/stages/stage03/verify_stage3.py",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/verify_stage3.py",
+      "bytes": 6544,
+      "sha256": "08fbece5447bf61c52ee152a650ee708c237a0b7a19f847332b20191739e5f3a"
+    },
+    {
+      "stage": "stage03",
+      "path": "research/htkpa/stages/stage03/reproduce_primitives.py",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/reproduce_primitives.py",
+      "bytes": 2360,
+      "sha256": "3269a1d0d09b545cd3c44b1776fea0460f7342f6c2e60164e9c3cd619267eb8b"
+    },
+    {
+      "stage": "stage03",
+      "path": "research/htkpa/stages/stage03/test_primitives.py",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/test_primitives.py",
+      "bytes": 1248,
+      "sha256": "e215ad054dafbbc9377b8f2845eb5b9d5c2d3080bf3f5e1b21d5cb2d3e67f36a"
+    },
+    {
+      "stage": "stage03",
+      "path": "research/htkpa/stages/stage03/evidence.json",
+      "source": "Stage3_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_3/evidence.json",
+      "bytes": 3275,
+      "sha256": "55ea598372a234983ea95eb9fd002bb2dbc597454138163833bf87d4035ab982"
+    },
+    {
+      "stage": "stage04",
+      "path": "docs/htkpa/source_archive/stage04/README.md",
+      "source": "Stage4_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_4/README.md",
+      "bytes": 1123,
+      "sha256": "7e37535a6e099771ef41006334cf829dcad010d57c0ba3923b6ed0a2590a157a"
+    },
+    {
+      "stage": "stage04",
+      "path": "docs/htkpa/source_archive/stage04/RESEARCH_REPORT.md",
+      "source": "Stage4_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_4/RESEARCH_REPORT.md",
+      "bytes": 7348,
+      "sha256": "3049de749afc6df2b43a079f8a172dad07a7bd4b7276a641a69645fdcd20fe8f"
+    },
+    {
+      "stage": "stage04",
+      "path": "research/htkpa/stages/stage04/static_validation.json",
+      "source": "Stage4_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_4/static_validation.json",
+      "bytes": 4150,
+      "sha256": "a0ff6b07a387e87e7ccdca43d3df350bc69aeaa8623293fde557640c3556fab3"
+    },
+    {
+      "stage": "stage04",
+      "path": "research/htkpa/stages/stage04/verify_stage4.py",
+      "source": "Stage4_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_4/verify_stage4.py",
+      "bytes": 7480,
+      "sha256": "edd50d421670637a1c4fafe0d4fbcdffedd9c40f582587b66ace1e73d19e14dd"
+    },
+    {
+      "stage": "stage06",
+      "path": "docs/htkpa/source_archive/stage06/README.md",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/README.md",
+      "bytes": 1475,
+      "sha256": "762f4fa7061c68ecefa41ca3f92223d495b77d9cfe9844e0f91588d440a411a6"
+    },
+    {
+      "stage": "stage06",
+      "path": "docs/htkpa/source_archive/stage06/RESEARCH_REPORT.md",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/RESEARCH_REPORT.md",
+      "bytes": 8540,
+      "sha256": "f5b828ab7ca54d9828efa85c19351de55fa437282292e34e704427753b4ab581"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/minimum_phase.py",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/minimum_phase.py",
+      "bytes": 1670,
+      "sha256": "5639a3d33f74717f45fa147a0838e2c909f7ce0c2d841c7475b503bcae35bf6b"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/verify_stage6.py",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/verify_stage6.py",
+      "bytes": 5086,
+      "sha256": "465b656ef8e885a857512acb2bd8ce3cb34f7ee4fb04481f8162cced8eab8cb5"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/test_minimum_phase.py",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/test_minimum_phase.py",
+      "bytes": 1270,
+      "sha256": "6f83971bf56dc7f87de8174de526370782314878f9e3e4719bf243145da6020d"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/create_experimental_candidate.py",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/create_experimental_candidate.py",
+      "bytes": 2063,
+      "sha256": "4c3458abeb248b516bea29194e15b24d1cca382fc96fa8037e49a30a233d53ef"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/evidence.json",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/evidence.json",
+      "bytes": 4670,
+      "sha256": "ca32a25d121e65e004e90340b3e2c218a5c4a01bd024bfc22615337c21522c41"
+    },
+    {
+      "stage": "stage06",
+      "path": "research/htkpa/stages/stage06/verification_stdout.txt",
+      "source": "Stage6_source.zip",
+      "zip_member": "HTKPA_DLL_RE_Stage6_v0_6/verification_stdout.txt",
+      "bytes": 551,
+      "sha256": "5bdb9746766b86cfe26935ae42efd892b4f089d186d601232cdb4c5849144055"
+    },
+    {
+      "stage": "stage07",
+      "path": "docs/htkpa/source_archive/stage07/README.md",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/README.md",
+      "bytes": 2049,
+      "sha256": "4e2248d59cec871afe3b0b3c263c65518cafbbec9c030171f36601af36db2d76"
+    },
+    {
+      "stage": "stage07",
+      "path": "docs/htkpa/source_archive/stage07/RESEARCH_REPORT.md",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/RESEARCH_REPORT.md",
+      "bytes": 9170,
+      "sha256": "a8c92d5081cce97867dcd837016a1d69c2f9124601a8700cb4652268722c9095"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/spectral_lab.py",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/spectral_lab.py",
+      "bytes": 7897,
+      "sha256": "c9b3a88c09e568f28c2314f1addf9ac9459d35b36e75f3d3d23654cbad142052"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/test_spectral_lab.py",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/test_spectral_lab.py",
+      "bytes": 1880,
+      "sha256": "586342e5016f01b2d478fbe5195d6f222d45a26b7d5c24f328b6f92e2ae9fc2d"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/nam_only_validation.json",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/nam_only_validation.json",
+      "bytes": 4307,
+      "sha256": "98fc7889841d388214b619d32a892f310902ac4118e78312f23a02dd08da0918"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/native_window_metrics.json",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/native_window_metrics.json",
+      "bytes": 12795,
+      "sha256": "6d5afd6861ca014c061cff89e8ff14d6bc12b6706e97ebabb5f77c6d5e6aeb7a"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/phase_candidate_holdout.json",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/phase_candidate_holdout.json",
+      "bytes": 3264,
+      "sha256": "16fd66b131855dd54120523a67157a1bc430599811d07c4aa365d53298eefa2b"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/2203_experiment/fitting_report.json",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/2203_experiment/fitting_report.json",
+      "bytes": 1689,
+      "sha256": "0930cdf6ee9796627c637d93ad6511b9c4cf7b2d5ed21810592a1e39a484b31b"
+    },
+    {
+      "stage": "stage07",
+      "path": "research/htkpa/stages/stage07/sc20_experiment/fitting_report.json",
+      "source": "Stage7_source.zip",
+      "zip_member": "HTKPA_Stage7/sc20_experiment/fitting_report.json",
+      "bytes": 1653,
+      "sha256": "41e090175c0529e3598ea648fa914f0b93ec1dda587121a108831db8202d8d3a"
+    },
+    {
+      "stage": "stage08",
+      "path": "docs/htkpa/source_archive/stage08/README.md",
+      "source": "Stage8_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_8/README.md",
+      "bytes": 1056,
+      "sha256": "d9055f41e17df2f8241df74f18bf14766f1cf0fee8d8b1745b87187935c4490b"
+    },
+    {
+      "stage": "stage08",
+      "path": "docs/htkpa/source_archive/stage08/RESEARCH_REPORT.md",
+      "source": "Stage8_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_8/RESEARCH_REPORT.md",
+      "bytes": 8950,
+      "sha256": "d66f83a79b6ca6b6fc670e4e0bdaf472db057655c924bee83fd867afe374ee8e"
+    },
+    {
+      "stage": "stage08",
+      "path": "research/htkpa/stages/stage08/verify_stage8.py",
+      "source": "Stage8_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_8/verify_stage8.py",
+      "bytes": 11907,
+      "sha256": "9f6b277cdc01da0eb9c86efc3fb09d348b5af9e989454e5257ad1d303668f3fc"
+    },
+    {
+      "stage": "stage08",
+      "path": "research/htkpa/stages/stage08/evidence.json",
+      "source": "Stage8_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_8/evidence.json",
+      "bytes": 11217,
+      "sha256": "7a4867f45e68b749d46a5e4a7107b36ec0252b74b2879b6a543b2b5a3c6c40d4"
+    },
+    {
+      "stage": "stage09",
+      "path": "docs/htkpa/source_archive/stage09/README.md",
+      "source": "Stage9_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_9/README.md",
+      "bytes": 1140,
+      "sha256": "20108f04cd533eaf66947e8e7e4ca3ff4125163991d9c0ec888f1b8c1aebd40e"
+    },
+    {
+      "stage": "stage09",
+      "path": "docs/htkpa/source_archive/stage09/RESEARCH_REPORT.md",
+      "source": "Stage9_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_9/RESEARCH_REPORT.md",
+      "bytes": 7100,
+      "sha256": "8adc80cc849e1ab68ad0a2e73f98ad63e662ef9b0a24cda320946e709fe49ea1"
+    },
+    {
+      "stage": "stage09",
+      "path": "research/htkpa/stages/stage09/evidence.json",
+      "source": "Stage9_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_9/evidence.json",
+      "bytes": 5631,
+      "sha256": "14edadaeede7845e26c3de8926bd5b64e6d5bee935b9174a72cc162a6e26cf98"
+    },
+    {
+      "stage": "stage09",
+      "path": "research/htkpa/stages/stage09/source_first_stage9.py",
+      "source": "Stage9_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_9/source_first_stage9.py",
+      "bytes": 7857,
+      "sha256": "6013f2a064d57b583b092748551ce8916fe46e8980b48226b494aaf46396c311"
+    },
+    {
+      "stage": "stage10",
+      "path": "docs/htkpa/source_archive/stage10/README.md",
+      "source": "Stage10_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_10/README.md",
+      "bytes": 961,
+      "sha256": "328ee2788bf9ea61be4e576a1c63854a048b048ae06cd28011debd8557c0332d"
+    },
+    {
+      "stage": "stage10",
+      "path": "docs/htkpa/source_archive/stage10/RESEARCH_REPORT.md",
+      "source": "Stage10_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_10/RESEARCH_REPORT.md",
+      "bytes": 7209,
+      "sha256": "ab7bcaca1420f6c4884ecf6be728b40a4d58f7db05b106dfbf079eb6f163a3bc"
+    },
+    {
+      "stage": "stage10",
+      "path": "research/htkpa/stages/stage10/verify_stage10.py",
+      "source": "Stage10_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_10/verify_stage10.py",
+      "bytes": 8735,
+      "sha256": "d36730f32e637bb10ad3516a419eb6490e890eae4705e00333e274d2bc497afe"
+    },
+    {
+      "stage": "stage10",
+      "path": "research/htkpa/stages/stage10/evidence.json",
+      "source": "Stage10_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_10/evidence.json",
+      "bytes": 6885,
+      "sha256": "4e4ca04b671ab1ec245822ab214741170ec8d3a734c3457746ced6206afab5c9"
+    },
+    {
+      "stage": "stage11",
+      "path": "docs/htkpa/source_archive/stage11/README.md",
+      "source": "Stage11_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_11/README.md",
+      "bytes": 1148,
+      "sha256": "a5548dd8c8990a8d5e753a4defefe15d8582015958a74417df9e386e0aaf6f4b"
+    },
+    {
+      "stage": "stage11",
+      "path": "docs/htkpa/source_archive/stage11/RESEARCH_REPORT.md",
+      "source": "Stage11_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_11/RESEARCH_REPORT.md",
+      "bytes": 8722,
+      "sha256": "1535730d8f9822fc0f166ab6606af5aec985798686c2be6678654beca806d2f7"
+    },
+    {
+      "stage": "stage11",
+      "path": "research/htkpa/stages/stage11/verify_stage11.py",
+      "source": "Stage11_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_11/verify_stage11.py",
+      "bytes": 7963,
+      "sha256": "ca37a679b6aadd5a7ffab6f634e227aeb720bc82b3c6e860bf71472fcab149ec"
+    },
+    {
+      "stage": "stage11",
+      "path": "research/htkpa/stages/stage11/evidence.json",
+      "source": "Stage11_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_11/evidence.json",
+      "bytes": 5645,
+      "sha256": "e48ed2e0708204497808f091c052eb0c15b1e58857c6750521f5d1e713a37609"
+    },
+    {
+      "stage": "stage12",
+      "path": "docs/htkpa/source_archive/stage12/README.md",
+      "source": "Stage12_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_12/README.md",
+      "bytes": 890,
+      "sha256": "c4f1976a79fdeed4a26871cabb98558cc43ecb210c98311c652b3aba5d147f94"
+    },
+    {
+      "stage": "stage12",
+      "path": "docs/htkpa/source_archive/stage12/RESEARCH_REPORT.md",
+      "source": "Stage12_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_12/RESEARCH_REPORT.md",
+      "bytes": 7335,
+      "sha256": "1bbcb9f5676c632b84dcf6441e632267e8c725c1bd0eabcee0662f40d436db26"
+    },
+    {
+      "stage": "stage12",
+      "path": "research/htkpa/stages/stage12/evidence.json",
+      "source": "Stage12_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_12/evidence.json",
+      "bytes": 4845,
+      "sha256": "0daec7751e318b09f178cfa1f3d457c6d82195d3b6b3f1156348b994a1c9f0d7"
+    },
+    {
+      "stage": "stage12",
+      "path": "research/htkpa/stages/stage12/verify_stage12.py",
+      "source": "Stage12_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_12/verify_stage12.py",
+      "bytes": 8931,
+      "sha256": "d6cef2eef885d44884bc6aa5b96b9676655cd7e6503e7db3fd2f4b5186f01b98"
+    },
+    {
+      "stage": "stage13",
+      "path": "docs/htkpa/source_archive/stage13/README.md",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/README.md",
+      "bytes": 1449,
+      "sha256": "59d0e975a250ecc86d5541a878ee12870a81d49f1497f8039d6aa536363956a6"
+    },
+    {
+      "stage": "stage13",
+      "path": "docs/htkpa/source_archive/stage13/RESEARCH_REPORT.md",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/RESEARCH_REPORT.md",
+      "bytes": 7326,
+      "sha256": "0651a871bcd0cf1e7b0a810d92baff206f27ad05d3a65d3aca59a62350b968bb"
+    },
+    {
+      "stage": "stage13",
+      "path": "research/htkpa/stages/stage13/verify_stage13.py",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/verify_stage13.py",
+      "bytes": 10931,
+      "sha256": "5162cc5cf05708f6effc8e1b6acf2e72e106d2d8e2dd93d563de7df218f9da84"
+    },
+    {
+      "stage": "stage13",
+      "path": "research/htkpa/stages/stage13/make_example.py",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/make_example.py",
+      "bytes": 1768,
+      "sha256": "a0763f54643f3ee6bcf543acac913d37bcc818ae9c9c831598a61c0b861825b6"
+    },
+    {
+      "stage": "stage13",
+      "path": "research/htkpa/stages/stage13/evidence.json",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/evidence.json",
+      "bytes": 6264,
+      "sha256": "8bfb6c6d109ee6c78b9d30c7e040fb597372845f8b1298cad33d9b07933caa3f"
+    },
+    {
+      "stage": "stage13",
+      "path": "research/htkpa/stages/stage13/synthetic_example.json",
+      "source": "Stage13_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_13/synthetic_example.json",
+      "bytes": 1007,
+      "sha256": "62a80872283cab1f49b7e1efa9ebda8d1ed954f1b845d3097a4382ec9fed1253"
+    },
+    {
+      "stage": "stage14",
+      "path": "docs/htkpa/source_archive/stage14/README.md",
+      "source": "Stage14_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_14/README.md",
+      "bytes": 1410,
+      "sha256": "af58820686aa6c167cdf6ef47fabcff1b5b1dd89c0b3c69c5b4c7142c74c5e94"
+    },
+    {
+      "stage": "stage14",
+      "path": "docs/htkpa/source_archive/stage14/RESEARCH_REPORT.md",
+      "source": "Stage14_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_14/RESEARCH_REPORT.md",
+      "bytes": 9639,
+      "sha256": "2a0236c7de7b2ac7d21e4f7c849192ed35f4f62772190fd060be13b17008fc89"
+    },
+    {
+      "stage": "stage14",
+      "path": "research/htkpa/stages/stage14/verify_stage14.py",
+      "source": "Stage14_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_14/verify_stage14.py",
+      "bytes": 7594,
+      "sha256": "eff5d52bd9cfa64bd4afb4e8b3f7bb6f09638c2483fb0b026f39d362526d20fd"
+    },
+    {
+      "stage": "stage14",
+      "path": "research/htkpa/stages/stage14/evidence.json",
+      "source": "Stage14_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_14/evidence.json",
+      "bytes": 6718,
+      "sha256": "40d4b76ee73ed818debbf32fb98c00df9e0061feecb18a0d6d1523bd240ff022"
+    },
+    {
+      "stage": "stage15",
+      "path": "docs/htkpa/source_archive/stage15/README.md",
+      "source": "Stage15_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_15/README.md",
+      "bytes": 1317,
+      "sha256": "993b19aaa5df8f06f16f57ddf1042f4721f51cfbdca95fc16b6fd9d54ae293b7"
+    },
+    {
+      "stage": "stage15",
+      "path": "docs/htkpa/source_archive/stage15/RESEARCH_REPORT.md",
+      "source": "Stage15_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_15/RESEARCH_REPORT.md",
+      "bytes": 9369,
+      "sha256": "0e3b107c3ecd1130a907f53a73ef7e3d48692166825d4b8b8b3e09c08f01296e"
+    },
+    {
+      "stage": "stage15",
+      "path": "research/htkpa/stages/stage15/verify_stage15.py",
+      "source": "Stage15_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_15/verify_stage15.py",
+      "bytes": 9870,
+      "sha256": "6e4b5bf6039e0c7b13b24c6b15bd051ff5d26a8ac82e92632d0260da82fb79f4"
+    },
+    {
+      "stage": "stage15",
+      "path": "research/htkpa/stages/stage15/evidence.json",
+      "source": "Stage15_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_15/evidence.json",
+      "bytes": 6685,
+      "sha256": "5c5f236c0bc6ec5fad5b9e6418d36aafa00b7845c05c4070faeddc3d6c7c4802"
+    },
+    {
+      "stage": "stage16",
+      "path": "docs/htkpa/source_archive/stage16/README.md",
+      "source": "Stage16_source.zip",
+      "zip_member": "HTKPA_Stage16/README.md",
+      "bytes": 773,
+      "sha256": "132f2dbd07e3ff281ac37d543d78481fe9b7d6a988c9f7bb890285e605f43762"
+    },
+    {
+      "stage": "stage16",
+      "path": "docs/htkpa/source_archive/stage16/RESEARCH_REPORT.md",
+      "source": "Stage16_source.zip",
+      "zip_member": "HTKPA_Stage16/RESEARCH_REPORT.md",
+      "bytes": 8760,
+      "sha256": "4afe907bb9aea96487c0d31b0f1de4a1c43817f4d5bb7b81378a46d2065eea13"
+    },
+    {
+      "stage": "stage16",
+      "path": "research/htkpa/stages/stage16/verify_stage16.py",
+      "source": "Stage16_source.zip",
+      "zip_member": "HTKPA_Stage16/verify_stage16.py",
+      "bytes": 10211,
+      "sha256": "6f3da1e800f16f7c9118a2e9d706073b707114bcc142ad960d40f52daf3dd27d"
+    },
+    {
+      "stage": "stage16",
+      "path": "research/htkpa/stages/stage16/evidence.json",
+      "source": "Stage16_source.zip",
+      "zip_member": "HTKPA_Stage16/evidence.json",
+      "bytes": 10556,
+      "sha256": "bc778ec7ca5092b62f9f11a06a809821154fa289a9aa33d6fbb7ac22c39e5280"
+    },
+    {
+      "stage": "stage17",
+      "path": "docs/htkpa/source_archive/stage17/README.md",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/README.md",
+      "bytes": 1927,
+      "sha256": "709cc670a178370c4d91a0be758606d6f81374784112f6450ed394b337c13c3e"
+    },
+    {
+      "stage": "stage17",
+      "path": "docs/htkpa/source_archive/stage17/RESEARCH_REPORT.md",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/RESEARCH_REPORT.md",
+      "bytes": 8971,
+      "sha256": "1eb752c8b0501d973dadbfd22eb5f8374fcc87bf82ce59affe2dda19aa2543ca"
+    },
+    {
+      "stage": "stage17",
+      "path": "research/htkpa/stages/stage17/stage17_source_first.py",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/stage17_source_first.py",
+      "bytes": 11876,
+      "sha256": "c51b9fd62ebccc07d31d250e00b774b385a44a7fe4ca514f9830111598e665ce"
+    },
+    {
+      "stage": "stage17",
+      "path": "research/htkpa/stages/stage17/vendor_parity_gate.py",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/vendor_parity_gate.py",
+      "bytes": 3559,
+      "sha256": "f0aa01714864b3581d94d513dcbd91d60265e3c73de55762b8f8ebfc6c8c4d61"
+    },
+    {
+      "stage": "stage17",
+      "path": "research/htkpa/stages/stage17/evidence.json",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/evidence.json",
+      "bytes": 9199,
+      "sha256": "9b0220696c674bca8a496d19a191a3e085bc352f886d882055baee5d57fd241b"
+    },
+    {
+      "stage": "stage17",
+      "path": "research/htkpa/stages/stage17/vendor_reference_baseline.json",
+      "source": "Stage17_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_17/vendor_reference_baseline.json",
+      "bytes": 1207,
+      "sha256": "d5a7f71da1592f99cf58d51da777f0109f0787fc44a687e3ef7d1ed2f4d2a005"
+    },
+    {
+      "stage": "stage18",
+      "path": "docs/htkpa/source_archive/stage18/README.md",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/README.md",
+      "bytes": 1768,
+      "sha256": "ab10841d5b2e3a43330dfe3b49d6be61bd67c07d323e7da5acdec0d89ea562d6"
+    },
+    {
+      "stage": "stage18",
+      "path": "docs/htkpa/source_archive/stage18/RESEARCH_REPORT.md",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/RESEARCH_REPORT.md",
+      "bytes": 8451,
+      "sha256": "f1683b15e9567df2a40bc2bd59558d042f347e02a4b2df5f766a360b221cd733"
+    },
+    {
+      "stage": "stage18",
+      "path": "research/htkpa/stages/stage18/requirements.txt",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/requirements.txt",
+      "bytes": 12,
+      "sha256": "a83a2a4ed7ab2e022b9b8a83cfa2b8cf52cc243006c597e8b96f90a8365590ac"
+    },
+    {
+      "stage": "stage18",
+      "path": "research/htkpa/stages/stage18/stage18_source_first.py",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/stage18_source_first.py",
+      "bytes": 17570,
+      "sha256": "170f1abb6e26583e0875e423a2627fa9ece942857a01b84eeff8a845c95e1b58"
+    },
+    {
+      "stage": "stage18",
+      "path": "research/htkpa/stages/stage18/demo_stage18.py",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/demo_stage18.py",
+      "bytes": 1440,
+      "sha256": "960c3a839fe3abc9e57d7f9308cae2e4b6c19bc36e2235438141935260a50591"
+    },
+    {
+      "stage": "stage18",
+      "path": "research/htkpa/stages/stage18/evidence.json",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/evidence.json",
+      "bytes": 9098,
+      "sha256": "c334edaaede0db5200c6d60b8010e10519028ee3261729190861dc6dea7c1775"
+    },
+    {
+      "stage": "stage18",
+      "path": "research/htkpa/stages/stage18/synthetic_demo.json",
+      "source": "Stage18_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_18/synthetic_demo.json",
+      "bytes": 1583,
+      "sha256": "77a5aa7686c5155183fab163a9f0349b9dbe4f68821e99f936181f6ad2469eec"
+    },
+    {
+      "stage": "stage19",
+      "path": "docs/htkpa/source_archive/stage19/README.md",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/README.md",
+      "bytes": 1775,
+      "sha256": "1d963727d8d7ee6906a7ff8cf9b2f1bdd56fe1775101b4336eb95c6ba34695ec"
+    },
+    {
+      "stage": "stage19",
+      "path": "docs/htkpa/source_archive/stage19/RESEARCH_REPORT.md",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/RESEARCH_REPORT.md",
+      "bytes": 7874,
+      "sha256": "43cd5a84b8922f69f65033ba098d061edb0d53d0a46308725f0f502613bc3f4c"
+    },
+    {
+      "stage": "stage19",
+      "path": "research/htkpa/stages/stage19/stage19_source_first.py",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/stage19_source_first.py",
+      "bytes": 9302,
+      "sha256": "a7671a8a85bcb30c590e63578e409b47c5cf9967830a29abe30bc348da3f8414"
+    },
+    {
+      "stage": "stage19",
+      "path": "research/htkpa/stages/stage19/test_stage19.py",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/test_stage19.py",
+      "bytes": 3256,
+      "sha256": "28e816b8fe4c3f0620750bd795e778458d5de51eb91fb906355dc045de571ac9"
+    },
+    {
+      "stage": "stage19",
+      "path": "research/htkpa/stages/stage19/plot_stage19.py",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/plot_stage19.py",
+      "bytes": 1009,
+      "sha256": "041e7fae31a139b6a28eff09746dc8c17b01a5d11c33c2b576417924f74e5cf5"
+    },
+    {
+      "stage": "stage19",
+      "path": "research/htkpa/stages/stage19/evidence.json",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/evidence.json",
+      "bytes": 15572,
+      "sha256": "5877958f56dbf2766496d46b35ed9e2ea7db58989f432a5d7e9caba36567055e"
+    },
+    {
+      "stage": "stage19",
+      "path": "research/htkpa/stages/stage19/tests_stdout.txt",
+      "source": "Stage19_source.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_19/tests_stdout.txt",
+      "bytes": 1083,
+      "sha256": "2ea59ec5a32605a96dbc5beb56cd99dc46a2d6c63ba31dcc3946e83bdcf09642"
+    },
+    {
+      "stage": "stage20",
+      "path": "docs/htkpa/source_archive/stage20/README.md",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/README.md",
+      "bytes": 984,
+      "sha256": "a9cfdf06598ca54f85f60a5919bc953c9cc50f509fecdb52e4ab9451901e9958"
+    },
+    {
+      "stage": "stage20",
+      "path": "docs/htkpa/source_archive/stage20/RESEARCH_REPORT.md",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/RESEARCH_REPORT.md",
+      "bytes": 5479,
+      "sha256": "76ec6087c3e6e599fcc8ae816015114f93c95fa083ba0deac43570d15722c40b"
+    },
+    {
+      "stage": "stage20",
+      "path": "research/htkpa/stages/stage20/stage20_iir_source.py",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/stage20_iir_source.py",
+      "bytes": 8594,
+      "sha256": "d7ba756491877be564464a3198a84dfaeb92f2ab73d4813c50764b9b79a90ce3"
+    },
+    {
+      "stage": "stage20",
+      "path": "research/htkpa/stages/stage20/test_stage20.py",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/test_stage20.py",
+      "bytes": 5196,
+      "sha256": "9172f5a8a5d1ff6476d61fc803c8fa16f20623085173b43d60a1ceb36de3b744"
+    },
+    {
+      "stage": "stage20",
+      "path": "research/htkpa/stages/stage20/test_stdout.txt",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/test_stdout.txt",
+      "bytes": 74,
+      "sha256": "d6ea7007ab2844ce97bf59e9797cb4f41ca7e1a06a22f384ec63b693ca783408"
+    },
+    {
+      "stage": "stage20",
+      "path": "research/htkpa/stages/stage20/evidence.json",
+      "source": "Stage20_source.zip",
+      "zip_member": "HTKPA_Stage20/evidence.json",
+      "bytes": 2664,
+      "sha256": "ad19bd408c788f80f90cf140899c56e6ce5e6db6cf884e2627fefc11500226d0"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/stage21_saturator_source.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/stage21_saturator_source.py",
+      "bytes": 19768,
+      "sha256": "3070b9dddd4de478e570ad17f6c2f5d49e6c6a36796cef745d5b111d1c3e05d7"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/native_repack_trace.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/native_repack_trace.py",
+      "bytes": 5464,
+      "sha256": "2910830d8ed7fa6c1df5643e410cc7f54108d709d015bbc47677f6b89910b631"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/audit_official_reference.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/audit_official_reference.py",
+      "bytes": 2129,
+      "sha256": "b6688dbdfc04e72ff415e30ad3308d5df7c870c08d1665acfd223d34d911fe9a"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/evidence.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/evidence.json",
+      "bytes": 3713,
+      "sha256": "fe1e9bcf8cc18ce8c94d260612960773ccf1c474d48ddd6d3c862854e7705658"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/reference_audit.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/reference_audit.json",
+      "bytes": 1732,
+      "sha256": "d7b96e7d236e33bc0a54283f85883fac680c07a5abb9d28d94d90d790cff0818"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/synthetic_full_fit.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/synthetic_full_fit.json",
+      "bytes": 1012,
+      "sha256": "c000467affc679a51976cec0a609715191e6b130f8abd93b2cb4eff4db7dee42"
+    },
+    {
+      "stage": "stage21",
+      "path": "research/htkpa/stages/stage21/verification_stdout.txt",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/verification_stdout.txt",
+      "bytes": 307,
+      "sha256": "351a44aae9f442189f8b020050b99986c677ab3de8fde106bc50c9b2b1e1f657"
+    },
+    {
+      "stage": "stage21",
+      "path": "docs/htkpa/source_archive/stage21/README.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/README.md",
+      "bytes": 2023,
+      "sha256": "d547b742b0fe4e4c6658ce75d8453f740e73764a7deaf47213c2d0704e691c0b"
+    },
+    {
+      "stage": "stage21",
+      "path": "docs/htkpa/source_archive/stage21/RESEARCH_REPORT.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage21_v0_21(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_21/RESEARCH_REPORT.md",
+      "bytes": 9374,
+      "sha256": "52fd546382e7f257a686d22e28aff328b19a9773649cb6b2956c0ae8c5246a72"
+    },
+    {
+      "stage": "stage22",
+      "path": "research/htkpa/stages/stage22/stage22_pre_fit_trace.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/stage22_pre_fit_trace.py",
+      "bytes": 9261,
+      "sha256": "08bc3b8210d8b542dc2333a62dd0713bcc301dde85019d915c5e05088640b7ab"
+    },
+    {
+      "stage": "stage22",
+      "path": "research/htkpa/stages/stage22/stage21_saturator_source.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/stage21_saturator_source.py",
+      "bytes": 19768,
+      "sha256": "3070b9dddd4de478e570ad17f6c2f5d49e6c6a36796cef745d5b111d1c3e05d7"
+    },
+    {
+      "stage": "stage22",
+      "path": "docs/htkpa/source_archive/stage22/README.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/README.md",
+      "bytes": 1386,
+      "sha256": "d605d03cc787124def34435f4ba432756c1a2d48735b3f99743aeba62049f521"
+    },
+    {
+      "stage": "stage22",
+      "path": "docs/htkpa/source_archive/stage22/RESEARCH_REPORT.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/RESEARCH_REPORT.md",
+      "bytes": 5744,
+      "sha256": "21953949db44fb737aed7fb08aa571300635f5cbd9ae8fde7fd48c67dfd348f0"
+    },
+    {
+      "stage": "stage22",
+      "path": "research/htkpa/stages/stage22/evidence.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/evidence.json",
+      "bytes": 3667,
+      "sha256": "d4c4edbd29674ddd3ab9a161192b579647bb9f58a441b00a8c52970a6faaedbb"
+    },
+    {
+      "stage": "stage22",
+      "path": "research/htkpa/stages/stage22/verification_stdout.txt",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage22_v0_22(1).zip",
+      "zip_member": "HTKPA_DLL_RE_v0_22/verification_stdout.txt",
+      "bytes": 344,
+      "sha256": "90f683f3e5ca93209ba871a65db5920d967fadae967b5efd61ea6df2419ef6d4"
+    },
+    {
+      "stage": "stage23",
+      "path": "docs/htkpa/source_archive/stage23/README.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/README.md",
+      "bytes": 1072,
+      "sha256": "f19a0eaaaa54823389583d31b648fcb934a0793548b2dcc6ab2b5e1b47aed02e"
+    },
+    {
+      "stage": "stage23",
+      "path": "docs/htkpa/source_archive/stage23/RESEARCH_REPORT.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/RESEARCH_REPORT.md",
+      "bytes": 8352,
+      "sha256": "ae8881809f90f7683aab39da25298a20a3f7831eccc1d95d37eccf51a49e66e1"
+    },
+    {
+      "stage": "stage23",
+      "path": "research/htkpa/stages/stage23/evidence.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/evidence.json",
+      "bytes": 5329,
+      "sha256": "37eaf5cce083481322560fe7848bd0b92abebe5fb4006c38e63cf270f2e3469d"
+    },
+    {
+      "stage": "stage23",
+      "path": "research/htkpa/stages/stage23/readonly_diagnostic.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/readonly_diagnostic.json",
+      "bytes": 1964,
+      "sha256": "27a257784eb93135cd6bb32cfc9bd304a2e5f1b39e2442e1a02f912f6ea3241b"
+    },
+    {
+      "stage": "stage23",
+      "path": "research/htkpa/stages/stage23/stage21_saturator_source.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/stage21_saturator_source.py",
+      "bytes": 19768,
+      "sha256": "3070b9dddd4de478e570ad17f6c2f5d49e6c6a36796cef745d5b111d1c3e05d7"
+    },
+    {
+      "stage": "stage23",
+      "path": "research/htkpa/stages/stage23/stage23_loader_source_trace.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/stage23_loader_source_trace.py",
+      "bytes": 7905,
+      "sha256": "37ff472bfb1d71a19df9aa37ec8e0f46b9310a5275fc6b22f5e1a9d58e3503ec"
+    },
+    {
+      "stage": "stage23",
+      "path": "research/htkpa/stages/stage23/stage23_readonly_diagnostic.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_SOURCE_CHECKPOINT_v0_23.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23/stage23_readonly_diagnostic.py",
+      "bytes": 2840,
+      "sha256": "f4a0e26ee76ba26c8a83ce47fbfb8fedb1edc9ea5fb18d204400840944156edd"
+    },
+    {
+      "stage": "stage23_preflight",
+      "path": "docs/htkpa/source_archive/stage23_preflight/README.md",
+      "source": "Stage23_Source_Gate_PRECHECK_v0_1.zip",
+      "zip_member": "Stage23_Source_Gate/README.md",
+      "bytes": 2615,
+      "sha256": "31956a29db407f8e45170052b63a326fdd02e91c8051ab8d34c6f307f5644951"
+    },
+    {
+      "stage": "stage23_preflight",
+      "path": "docs/htkpa/source_archive/stage23_preflight/STAGE23_PRECHECK_REPORT.md",
+      "source": "Stage23_Source_Gate_PRECHECK_v0_1.zip",
+      "zip_member": "Stage23_Source_Gate/STAGE23_PRECHECK_REPORT.md",
+      "bytes": 3981,
+      "sha256": "be7628acfd37633eb42ffebda380aaf7f942398b17ccd83ff505015b09ca2378"
+    },
+    {
+      "stage": "stage23_preflight",
+      "path": "research/htkpa/stages/stage23_preflight/stage23_source_gate.py",
+      "source": "Stage23_Source_Gate_PRECHECK_v0_1.zip",
+      "zip_member": "Stage23_Source_Gate/stage23_source_gate.py",
+      "bytes": 12133,
+      "sha256": "edf8d885747431eed2538c59ce954ced0870700b11fbaf08eb54d3a36a6ef6df"
+    },
+    {
+      "stage": "stage23_preflight",
+      "path": "research/htkpa/stages/stage23_preflight/test_stage23_source_gate.py",
+      "source": "Stage23_Source_Gate_PRECHECK_v0_1.zip",
+      "zip_member": "Stage23_Source_Gate/test_stage23_source_gate.py",
+      "bytes": 2675,
+      "sha256": "e9c2d6ca96a0a0861e8e029aaad7b3807110edf9b11b157ee802213de27aac5e"
+    },
+    {
+      "stage": "stage23b",
+      "path": "research/htkpa/stages/stage23b/stage23_resampler_branch_source.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/stage23_resampler_branch_source.py",
+      "bytes": 14859,
+      "sha256": "72a8595c6bb3be2fa004acbf99db7c58c2ccb621b272a6e2f6e502d0a9576bee"
+    },
+    {
+      "stage": "stage23b",
+      "path": "research/htkpa/stages/stage23b/evidence.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/evidence.json",
+      "bytes": 10461,
+      "sha256": "36b5b4800f48ab47bb5eecc8ef1442fe2f83b988187045d9a109fda5b539c209"
+    },
+    {
+      "stage": "stage23b",
+      "path": "research/htkpa/stages/stage23b/verifier_stdout.txt",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/verifier_stdout.txt",
+      "bytes": 94,
+      "sha256": "f5d4004c58f800f2ed9c03f94217c2f29c458fdb7fb3e1fd16763c326f19f524"
+    },
+    {
+      "stage": "stage23b",
+      "path": "research/htkpa/stages/stage23b/stage21_check.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/stage21_check.json",
+      "bytes": 3713,
+      "sha256": "fe1e9bcf8cc18ce8c94d260612960773ccf1c474d48ddd6d3c862854e7705658"
+    },
+    {
+      "stage": "stage23b",
+      "path": "research/htkpa/stages/stage23b/stage22_check.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/stage22_check.json",
+      "bytes": 3667,
+      "sha256": "d4c4edbd29674ddd3ab9a161192b579647bb9f58a441b00a8c52970a6faaedbb"
+    },
+    {
+      "stage": "stage23b",
+      "path": "docs/htkpa/source_archive/stage23b/RESEARCH_REPORT.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/RESEARCH_REPORT.md",
+      "bytes": 8275,
+      "sha256": "058438368e6b65ae862955f28c1e7edaf332cdbef97eeba74a0280ecdd499ec1"
+    },
+    {
+      "stage": "stage23b",
+      "path": "docs/htkpa/source_archive/stage23b/README.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b.zip",
+      "zip_member": "Sonicake_HTKPA_DLL_RE_Stage23_CONTINUATION_v0_23b/README.md",
+      "bytes": 1276,
+      "sha256": "0022e82a667ef4054e0607761300a910e6f6659eee3730194e1211d28324a38c"
+    },
+    {
+      "stage": "stage23c",
+      "path": "docs/htkpa/source_archive/stage23c/README.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/README.md",
+      "bytes": 1978,
+      "sha256": "48c7eea9297fda1e1357317ddaa847e09e40e59a49a6c576f9abde3de06fa45b"
+    },
+    {
+      "stage": "stage23c",
+      "path": "docs/htkpa/source_archive/stage23c/RESEARCH_REPORT.md",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/RESEARCH_REPORT.md",
+      "bytes": 7651,
+      "sha256": "b3d04f91ddf8284247adfafbcf7224dc6997881aaf0d1f294ac4500d5e902d5e"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/pe_bytes.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/pe_bytes.py",
+      "bytes": 899,
+      "sha256": "8036a1fc9dc869898f5bdcdb858f75455589579356a03244a573d5850ca671bb"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/stage23_polyphase_source.py",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/stage23_polyphase_source.py",
+      "bytes": 9519,
+      "sha256": "a9f0c18c3684f97cf9e224c09320dadfa115c0859fe9d0e70d304f15cd39bb76"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/evidence.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/evidence.json",
+      "bytes": 6167,
+      "sha256": "16c9b523288bd3fda904439dc2671e5e9c3ec89a866deea52e1a1e07aec5ae83"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/evidence_repeat.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/evidence_repeat.json",
+      "bytes": 6167,
+      "sha256": "16c9b523288bd3fda904439dc2671e5e9c3ec89a866deea52e1a1e07aec5ae83"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/stage21_reverified.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/stage21_reverified.json",
+      "bytes": 3713,
+      "sha256": "fe1e9bcf8cc18ce8c94d260612960773ccf1c474d48ddd6d3c862854e7705658"
+    },
+    {
+      "stage": "stage23c",
+      "path": "research/htkpa/stages/stage23c/stage22_reverified.json",
+      "source": "Sonicake_HTKPA_DLL_RE_Stage23C_SOURCE_CHECKPOINT_v0_23c.zip",
+      "zip_member": "HTKPA_DLL_RE_v0_23c/stage22_reverified.json",
+      "bytes": 3667,
+      "sha256": "d4c4edbd29674ddd3ab9a161192b579647bb9f58a441b00a8c52970a6faaedbb"
+    }
+  ],
+  "source_archive_sha256": {
+    "1": "9c6f5d186aef96c94f87e3323940dab01f3e5a661c77f7e21e520db3b49120c8",
+    "2": "1a4d5f1fa3faea3ba05984fa34736ada717187b716e494083df54c62d743c356",
+    "3": "5456055b370c831c417eb62aa59af546aad9cb9bd10688b5da012df1eb9d7b6b",
+    "4": "0a65ad5b2ed79ad6ca6711ea6d0ada87b3c551ff5f38c024807e5672b1b7f30f",
+    "6": "6497cd9f477a667e96a28faa94e0c43a706a9fe67291060d41ed3a1ba026c9b9",
+    "7": "3746530dc0017e11ca6305ab47e47e8a47c2e0991dc8db32b6f18b5935d0b9ab",
+    "8": "ae7e09420388d113627e9b6aa896d23729c8288f55d3c88afc7ed15278d32c60",
+    "9": "98de3afffbd7bde9375d2385fb424ade83da13925f3eb84940b73886a9d5c225",
+    "10": "b5d97cfcbf7adaba6b9498108c79fe3ccf4a78122826a0888eb248cc450710be",
+    "11": "d09bd98ac417da7e6d88d6ac0f6501f11650fcdb3c7c11da63d12c416ba786c7",
+    "12": "182e5a47e7e104a3304f8cfee23ddf9bce7a2ec0e38169662aa4fb1ba82a44ef",
+    "13": "477ea316fbb0df4190c227e5da9692efb89507975a78c2a89205fe8890c82e45",
+    "14": "4b90ee51568fed9b223651c2ec5ac6059735963144ab7017424bd0661cc4af0d",
+    "15": "4371e516f6d8b31237afc67a3654d066148a5e67f7c22eddaeb7efecb6ee6e92",
+    "16": "695bf2bca0b11674fa13f11faf93de6b299e03c8888cd1d3a5988ef8cf2ba602",
+    "17": "680307bb0505a629bc8e19280071ba019907de4e35c2f97c62e87a0bbdd61ee3",
+    "18": "041022030f95da0aa82727c76b0cd6c9e3334c7e0598bf71baf965fac12f4b88",
+    "19": "a8f27a10eaef57409df62883c851b178003a69adf2ab71f22560af20406420a6",
+    "20": "961c574f255775f43cd56b6fabb38b566800a410e23ca919b852b9e32b42e04a"
+  },
+  "exclusions": "Proprietary DLL, captured WAV/NAM/CLO and generated plot PNGs, raw assembly dumps and compiled pyc files are intentionally not published.",
+  "source_stage5_missing_reason": "Stage05 ZIP exists as prior Project Library record but its stored raw snapshot is unavailable/expired to this chat. Stage05 conceptual report already exists under docs/NAM_CLO_HTKPA_DLL_RE_STAGE5.md.",
+  "source_root": "repository root",
+  "expected_paths_count": 144
+}

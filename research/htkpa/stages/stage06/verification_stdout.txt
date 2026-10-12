@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "proofs": 20,
+  "cases": {
+    "official_2203": {
+      "post_cosine": 0.998563,
+      "pre_cosine": 1.0
+    },
+    "void_2203": {
+      "post_cosine": -0.243669,
+      "pre_cosine": 1.0
+    },
+    "official_sc20": {
+      "post_cosine": 0.999589,
+      "pre_cosine": 1.0
+    },
+    "void_sc20": {
+      "post_cosine": -0.040724,
+      "pre_cosine": 1.0
+    },
+    "v01_2203": {
+      "post_cosine": -0.297339,
+      "pre_cosine": 1.0
+    },
+    "v02c_2203": {
+      "post_cosine": -0.226487,
+      "pre_cosine": 1.0
+    }
+  }
+}

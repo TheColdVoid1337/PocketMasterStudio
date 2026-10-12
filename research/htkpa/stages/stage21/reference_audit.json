@@ -1,0 +1,54 @@
+{
+  "identical_source_DI": true,
+  "initial_A_B": "NOT_COMPUTED",
+  "models": {
+    "JCM800_2203": {
+      "DI": {
+        "channels": 2,
+        "duration_seconds": 70.0,
+        "frames": 3087000,
+        "sample_rate": 44100,
+        "sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a"
+      },
+      "clo_sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+      "model_output": {
+        "channels": 2,
+        "duration_seconds": 70.0,
+        "frames": 3360000,
+        "sample_rate": 48000,
+        "sha256": "c7e80f001e906bba2d91ab3b2fdc1ca7cf66d40ff6e87148f009be77b7b303e1"
+      },
+      "vendor_only_gains": {
+        "nmax": 0.06251806020736694,
+        "nrate": 356.1883544921875,
+        "pmax": 0.05869760736823082,
+        "prate": 425.43896484375
+      }
+    },
+    "JCM800_SC20": {
+      "DI": {
+        "channels": 2,
+        "duration_seconds": 70.0,
+        "frames": 3087000,
+        "sample_rate": 44100,
+        "sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a"
+      },
+      "clo_sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a",
+      "model_output": {
+        "channels": 2,
+        "duration_seconds": 70.0,
+        "frames": 3360000,
+        "sample_rate": 48000,
+        "sha256": "d85c9c923e8f76a8119c3a374c2e673ce4187ac1bb9fba8bd2c50b18a7c32613"
+      },
+      "vendor_only_gains": {
+        "nmax": 0.012697473168373108,
+        "nrate": 253.91091918945312,
+        "pmax": 0.010616911575198174,
+        "prate": 450.9261779785156
+      }
+    }
+  },
+  "native_parameters_recomputed": "NOT_COMPUTED",
+  "purpose": "READ_ONLY vendor-file verification; params MUST NOT be used as fitter input"
+}

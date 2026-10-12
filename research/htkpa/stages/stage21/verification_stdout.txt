@@ -1,0 +1,4 @@
+PASSED pinned instructions=75 constants=8 mathematical_assertions=77
+STRICT GATE: full native saturation fit from WAV = NOT_COMPUTED
+Native pointer/address traces PASS for B=4,5,7,8,9,10,12; exact 4B reordering proven
+VERIFIED matched 70s source DI, 2 vendor CLO SHA pins; independent gain fit NOT_COMPUTED

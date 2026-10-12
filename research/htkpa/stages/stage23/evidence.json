@@ -1,0 +1,127 @@
+{
+  "stage": 23,
+  "status": "SOURCE_PROVEN_LOADER_AND_RESAMPLER_DISPATCH__EXACT_RESAMPLER_AND_REAL_FITTER_PARITY_OPEN",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "source_evidence": {
+    "pin_count": 40,
+    "pin_values": {
+      "0x18000f9a7": "movss  xmm1,dword ptr [rip+0x23d441]        # 0x18024cdf0",
+      "0x18000f9b6": "call   0x1800bfe00",
+      "0x18000f9e5": "call   0x1800bf9f0",
+      "0x18000fa1b": "call   0x1800bf5e0",
+      "0x18000fa41": "call   0x1800be830",
+      "0x1800100da": "movsd  xmm2,qword ptr [rip+0x23cc16]        # 0x18024ccf8",
+      "0x1800100eb": "call   0x18000d4a0",
+      "0x18001016d": "call   0x18000f940",
+      "0x180010453": "movaps xmm1,xmm6",
+      "0x18001045d": "call   0x1800bfe00",
+      "0x180010489": "call   0x1800bf9f0",
+      "0x1800104bd": "call   0x1800bf5e0",
+      "0x1800104e1": "call   0x1800be830",
+      "0x18000d775": "cvtsd2ss xmm2,xmm6",
+      "0x18000d779": "movsd  xmm1,qword ptr [r14+0x8]",
+      "0x18000d786": "call   0x18000ce00",
+      "0x18000cf9b": "movss  xmm0,dword ptr [rax+rcx*1]",
+      "0x18000cfa0": "cvtps2pd xmm0,xmm0",
+      "0x18000cfd3": "cvtss2sd xmm2,xmm8",
+      "0x18000cfdb": "cvtss2sd xmm1,xmm9",
+      "0x18000cff3": "call   0x180011b60",
+      "0x18000d03e": "divss  xmm0,xmm9",
+      "0x18000d16b": "cvtpd2ps xmm0,xmm0",
+      "0x18000d17f": "movss  dword ptr [rcx+rdx*4],xmm0",
+      "0x1800bf617": "mov    rax,qword ptr [rcx+0x243e8]",
+      "0x1800bfa27": "mov    rax,qword ptr [rcx+0x243e0]",
+      "0x1800bf6f2": "movss  xmm0,dword ptr [rdi+0x20ec0]",
+      "0x1800bf6fd": "ucomisd xmm2,xmm0",
+      "0x1800bfb02": "movss  xmm0,dword ptr [rdi+0x20ec0]",
+      "0x1800bfb0d": "ucomisd xmm2,xmm0",
+      "0x1800bf890": "mov    rcx,qword ptr [rdi+0x243f0]",
+      "0x1800bf897": "mov    eax,dword ptr [rdx+r15*1]",
+      "0x1800bf89b": "mov    dword ptr [rdx+rcx*1],eax",
+      "0x1800bfca0": "mov    rcx,qword ptr [rdi+0x243f0]",
+      "0x1800bfca7": "mov    eax,dword ptr [rdx+r15*1]",
+      "0x1800bfcab": "mov    dword ptr [rdx+rcx*1],eax",
+      "0x1800bf8be": "mov    byte ptr [rdi+0x243da],0x1",
+      "0x1800bfcce": "mov    byte ptr [rdi+0x243d9],0x1",
+      "0x1800bede4": "call   0x1800bdbe0",
+      "0x1800bee25": "call   0x1800bd490"
+    },
+    "constants": {
+      "fixed_context_fs_float": 44100.0,
+      "upstream_target_resample_fs_double": 44100.0
+    },
+    "disassembly_sha256": "2a3891d99f580588dafc595815267168618d59a7c8e337449ab409817233c371"
+  },
+  "synthetic_tests": 5,
+  "source_graph": [
+    "Path A: 0x1000DA target 44100 rate -> 0x1000EB converter 0xD4A0 -> 0x1016D caller 0xF940",
+    "0xF940 context initialized with PE 44100.0f -> source loader BF9F0 -> target loader BF5E0 -> BE830",
+    "D4A0 calls native float resampler CE00, whose 11B60 constructor creates the multi-stage filter state",
+    "0xBF9F0 raw f32 sample copying from decoded first channel to +0x243E0",
+    "0xBF5E0 raw f32 sample copying from decoded first channel to +0x243E8",
+    "both native file loaders reject header Fs != context+0x20EC0",
+    "Path B: 0x10453 copies caller-provided rate xmm6 -> 0x1045D context BFE00 -> loaders -> BE830"
+  ],
+  "open_gates": [
+    "prove normal export chooses Path A or B for captures",
+    "bit/numeric reconstruction CE00/11B60 resampler response",
+    "actual decoder PCM16 amplitude scaling and any upstream ref gain transformations",
+    "native 70s float32 reference mean/trend exact rounding",
+    "four fitted gains on real audio and heldout parity"
+  ],
+  "real_native_fitter_gains": "NOT_COMPUTED",
+  "production_changes": false,
+  "hardware_changes": false,
+  "capture_2203": {
+    "archive": "Sonicake Manager Files(1).zip",
+    "files": {
+      "wavs/nam_input_wav.wav": {
+        "sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a",
+        "sample_rate": 44100,
+        "channels": 2,
+        "sample_width_bytes": 2,
+        "frames": 3087000
+      },
+      "wavs/outputFile.wav": {
+        "sha256": "c7e80f001e906bba2d91ab3b2fdc1ca7cf66d40ff6e87148f009be77b7b303e1",
+        "sample_rate": 48000,
+        "channels": 2,
+        "sample_width_bytes": 2,
+        "frames": 3360000
+      }
+    },
+    "official_gains_heldout_only": {
+      "pmax": 0.05869760736823082,
+      "nmax": 0.06251806020736694,
+      "prate": 425.43896484375,
+      "nrate": 356.1883544921875
+    },
+    "clo_sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7"
+  },
+  "capture_SC20": {
+    "archive": "Sonicake Manager(1)(1).zip",
+    "files": {
+      "wavs/nam_input_wav.wav": {
+        "sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a",
+        "sample_rate": 44100,
+        "channels": 2,
+        "sample_width_bytes": 2,
+        "frames": 3087000
+      },
+      "wavs/outputFile.wav": {
+        "sha256": "d85c9c923e8f76a8119c3a374c2e673ce4187ac1bb9fba8bd2c50b18a7c32613",
+        "sample_rate": 48000,
+        "channels": 2,
+        "sample_width_bytes": 2,
+        "frames": 3360000
+      }
+    },
+    "official_gains_heldout_only": {
+      "pmax": 0.010616911575198174,
+      "nmax": 0.012697473168373108,
+      "prate": 450.9261779785156,
+      "nrate": 253.91091918945312
+    },
+    "clo_sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a"
+  }
+}

@@ -1,0 +1,482 @@
+[
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.8219165942084539,
+    "train_cor": 0.7351828108555074,
+    "cosine_official_post_512": 0.9529579853611801
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.876045624079693,
+    "train_cor": 0.8075086677493202,
+    "cosine_official_post_512": 0.9581931879794843
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.3777390111195216,
+    "train_cor": 0.37773119842797703,
+    "cosine_official_post_512": 0.8461536634851899
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.38295820494843,
+    "train_cor": 0.38268022611431285,
+    "cosine_official_post_512": 0.8522224724179878
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.8194962952061904,
+    "train_cor": 0.7337379570284782,
+    "cosine_official_post_512": 0.9486493935364205
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.8692328489570715,
+    "train_cor": 0.794344334138269,
+    "cosine_official_post_512": 0.9579516290356659
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.37769968598013925,
+    "train_cor": 0.37778036737169246,
+    "cosine_official_post_512": 0.8423887652646697
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.3842904984315737,
+    "train_cor": 0.3839076435497425,
+    "cosine_official_post_512": 0.8536253654044242
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.8281857973068265,
+    "train_cor": 0.7269923658415988,
+    "cosine_official_post_512": 0.9231402356535496
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.8576857348154704,
+    "train_cor": 0.7724631072151894,
+    "cosine_official_post_512": 0.9532495166567991
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.3802997157256392,
+    "train_cor": 0.3804569923757272,
+    "cosine_official_post_512": 0.821161608841241
+  },
+  {
+    "model": "2203",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.38536019829884116,
+    "train_cor": 0.38477433639890024,
+    "cosine_official_post_512": 0.8523202662102131
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.4779662353375305,
+    "train_cor": 0.523729312341473,
+    "cosine_official_post_512": 0.928340308963448
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.8226120239021837,
+    "train_cor": 0.7009749207977101,
+    "cosine_official_post_512": 0.9227416789946873
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.4194033236077342,
+    "train_cor": 0.3865168905156377,
+    "cosine_official_post_512": 0.822413132066779
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.4288453447471718,
+    "train_cor": 0.39356647663581723,
+    "cosine_official_post_512": 0.8286443625751415
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.47753901466630555,
+    "train_cor": 0.5233206852016113,
+    "cosine_official_post_512": 0.9222797863417103
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.4745807258051591,
+    "train_cor": 0.5142373101430823,
+    "cosine_official_post_512": 0.9293077365226792
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.4199882883408797,
+    "train_cor": 0.3870809708038927,
+    "cosine_official_post_512": 0.8163485173308483
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.4309485784820748,
+    "train_cor": 0.39540995060628625,
+    "cosine_official_post_512": 0.8359437733893379
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.47415762432525715,
+    "train_cor": 0.5206923229834285,
+    "cosine_official_post_512": 0.883462476765624
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.48439255409266724,
+    "train_cor": 0.5288765741971866,
+    "cosine_official_post_512": 0.9215270394236258
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.4194185774127727,
+    "train_cor": 0.38710302724788237,
+    "cosine_official_post_512": 0.781258037744492
+  },
+  {
+    "model": "2203",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.4361385978981794,
+    "train_cor": 0.3996111765999021,
+    "cosine_official_post_512": 0.8332513006797401
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.4901343733015313,
+    "train_cor": 0.60987549611745,
+    "cosine_official_post_512": 0.9031367051528304
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.49495147102348913,
+    "train_cor": 0.621597503555483,
+    "cosine_official_post_512": 0.9241243692238621
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.15957940836568066,
+    "train_cor": 0.2679174905055748,
+    "cosine_official_post_512": 0.7330412786535537
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.16329848871931923,
+    "train_cor": 0.26948839118872386,
+    "cosine_official_post_512": 0.7109175653201211
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.4918811519211011,
+    "train_cor": 0.6131350900131337,
+    "cosine_official_post_512": 0.9059707878817315
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.5025267430274328,
+    "train_cor": 0.6292209549793834,
+    "cosine_official_post_512": 0.927624565163316
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.15704824009501747,
+    "train_cor": 0.2637386007684189,
+    "cosine_official_post_512": 0.7326160474214406
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.1639298227441446,
+    "train_cor": 0.2703434973100599,
+    "cosine_official_post_512": 0.7151067806421645
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.4586062347133385,
+    "train_cor": 0.6026917524642191,
+    "cosine_official_post_512": 0.8806029140281847
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.5154897278165219,
+    "train_cor": 0.6350426829359896,
+    "cosine_official_post_512": 0.9200933882264858
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.1581526756095231,
+    "train_cor": 0.26548694429236874,
+    "cosine_official_post_512": 0.7174846665487189
+  },
+  {
+    "model": "sc20",
+    "pre": "vendor-pre-diagnostic",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.16711877686922808,
+    "train_cor": 0.27532409756828785,
+    "cosine_official_post_512": 0.7119739395613259
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.5106725184924221,
+    "train_cor": 0.6225844348864892,
+    "cosine_official_post_512": 0.888652152880456
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.5265360933786789,
+    "train_cor": 0.6444572404754219,
+    "cosine_official_post_512": 0.9178557637993975
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.16276438547988095,
+    "train_cor": 0.249566679781164,
+    "cosine_official_post_512": 0.7436349679725698
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 4800,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.16948573204231016,
+    "train_cor": 0.2603897210639484,
+    "cosine_official_post_512": 0.7125501560515021
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.5036893518276879,
+    "train_cor": 0.61930983080084,
+    "cosine_official_post_512": 0.8943068470047055
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.5418923157271552,
+    "train_cor": 0.6541888434895525,
+    "cosine_official_post_512": 0.9153410210867663
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.16021042245577483,
+    "train_cor": 0.2462874908582166,
+    "cosine_official_post_512": 0.7433014082223892
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 8192,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.170766574350797,
+    "train_cor": 0.26203694874103195,
+    "cosine_official_post_512": 0.7162152447803974
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "psd",
+    "holdout_cor": 0.5042580723666319,
+    "train_cor": 0.6193691776766611,
+    "cosine_official_post_512": 0.8667043547553919
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 0.0,
+    "method": "cross",
+    "holdout_cor": 0.5526717915460132,
+    "train_cor": 0.6573679791900929,
+    "cosine_official_post_512": 0.9026885699735739
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "psd",
+    "holdout_cor": 0.16090156510059084,
+    "train_cor": 0.24701307667298752,
+    "cosine_official_post_512": 0.7281445271089018
+  },
+  {
+    "model": "sc20",
+    "pre": "void-pre-deployable",
+    "nperseg": 16384,
+    "spectral_sigma_hz": 480.0,
+    "method": "cross",
+    "holdout_cor": 0.17525726491988305,
+    "train_cor": 0.2678050125683365,
+    "cosine_official_post_512": 0.7153269399941689
+  }
+]

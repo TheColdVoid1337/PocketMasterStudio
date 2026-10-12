@@ -1,0 +1,60 @@
+[
+  {
+    "model": "2203",
+    "status": "NON_PARITY_DIAGNOSTIC",
+    "source_WAV_fs": 44100,
+    "target_WAV_fs": 48000,
+    "target_conversion": "UNVERIFIED scipy.signal.resample_poly 147/160",
+    "reference_trend": "UNVERIFIED float64 OLS",
+    "alignment_samples_44k1": 0,
+    "fit_samples_44k1": 220500,
+    "diagnostic_gains_NOT_NATIVE": {
+      "pmax": 0.15556006133556366,
+      "nmax": 0.15544408559799194,
+      "prate": 0.9721687436103821,
+      "nrate": 0.7953119874000549
+    },
+    "official_CLO_READ_ONLY": {
+      "pmax": 0.05869760736823082,
+      "nmax": 0.06251806020736694,
+      "prate": 425.43896484375,
+      "nrate": 356.1883544921875
+    },
+    "relative_error_percent": {
+      "pmax": 165.01942465845408,
+      "nmax": 148.63868949611918,
+      "prate": -99.77149043130842,
+      "nrate": -99.7767158927658
+    },
+    "comment": "This experiment explicitly does NOT reconstruct CE00/11B60. Large deviations are expected; no calibration to oracle."
+  },
+  {
+    "model": "SC20",
+    "status": "NON_PARITY_DIAGNOSTIC",
+    "source_WAV_fs": 44100,
+    "target_WAV_fs": 48000,
+    "target_conversion": "UNVERIFIED scipy.signal.resample_poly 147/160",
+    "reference_trend": "UNVERIFIED float64 OLS",
+    "alignment_samples_44k1": 18,
+    "fit_samples_44k1": 220500,
+    "diagnostic_gains_NOT_NATIVE": {
+      "pmax": 0.07493998855352402,
+      "nmax": 0.06842917948961258,
+      "prate": 0.63178551197052,
+      "nrate": 0.7006366848945618
+    },
+    "official_CLO_READ_ONLY": {
+      "pmax": 0.010616911575198174,
+      "nmax": 0.012697473168373108,
+      "prate": 450.9261779785156,
+      "nrate": 253.91091918945312
+    },
+    "relative_error_percent": {
+      "pmax": 605.8548808919999,
+      "nmax": 438.9196620635995,
+      "prate": -99.85989158695492,
+      "nrate": -99.72406201075118
+    },
+    "comment": "This experiment explicitly does NOT reconstruct CE00/11B60. Large deviations are expected; no calibration to oracle."
+  }
+]
