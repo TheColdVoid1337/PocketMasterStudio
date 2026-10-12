@@ -1,0 +1,41 @@
+{
+  "stage": "Stage23Y",
+  "date": "2026-10-13",
+  "status": "SOURCE_PINNED_NATIVE_COMPARISON__PARAMETER_DIVERGENCE_UNRESOLVED",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "private_native_buffer_sha256": "649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770",
+  "recomputed_stage23i_candidate_sha256": "ff4b587594a156df2fe8fd34a7a639eeb09e3cc9a59fcfba93afa17737d241be",
+  "stage23y_source_git_blob": "33829b602287d3db5f74604c705b41d2863d32dd",
+  "new_original_pe_instruction_pins": 15,
+  "source_derived_candidate_half_length": 708,
+  "source_derived_candidate_pre_floor_half_length": 708.9209756461122,
+  "source_derived_candidate_window_parameter": 125,
+  "source_derived_candidate_sinc_angle_radians": 1.5428478841482018,
+  "active_coefficients_different": 1417,
+  "max_abs_native_vs_stage23i_error": 0.0000016025453961367097,
+  "rms_across_4096_doubles": 2.8553058553229254e-7,
+  "source_candidate_envelope_vs_native": {
+    "index_100": {
+      "stage23i": 0.28799151367229714,
+      "native_derived": 0.8219161709328713
+    },
+    "index_400": {
+      "stage23i": 3.7562479487614387e-10,
+      "native_derived": 0.032414042431654966
+    },
+    "index_600": {
+      "stage23i": 5.813277303936883e-26,
+      "native_derived": 0.00010283663816851371
+    }
+  },
+  "static_sources": [
+    "0x18000B838",
+    "0x18000B8D0-0x18000B8F9",
+    "0x18000B981",
+    "0x180008FD0-0x180009023",
+    "0x180014810"
+  ],
+  "interpretation": "The published Stage23I candidate reproduces bit-for-bit, but its window envelope decays far faster than the user-private native buffer. This is not a normal f64 rounding mismatch. Exact generator runtime fields and/or input provenance remain unknown; no coefficients are fitted or patched.",
+  "unresolved_next": "Verify the actual context passed at 0x180014810 and first 0x180008FD0: f64 [+0],[+0xc0],[+0xc8],[+0xd0], u32 [+0x58], input/output array before Stage23I normalization at 0x18000B9C0, plus filter identity.",
+  "limits": "No new original Windows execution; native bytes inspected offline from user-provided private stage23w_native.zip. No full FIR/Gains/CLO parity. No raw taps or original DLL committed."
+}
