@@ -1,0 +1,15 @@
+{
+  "status": "NATIVE_HIT",
+  "block": 0,
+  "array_doubles": 4096,
+  "array_hashes": {
+    "input_post_fft": "d15e7b139d3ea92cb5e7b201907d344dfba64193cd5cd29d6dc9f9e1091eff8d",
+    "coeff_post_fft": "2fbd0bb69f5fa2436ef922c073b97abbdecb4a95487ad4978303e3d7aef2f2a9",
+    "after_spectral_multiply": "28ffa8f6048f55a1e2bd04ea53b0d8cbe9db99150ca6f6e8bd7c7f144c60692a"
+  },
+  "complex_max_abs_error": 5.107001935026589e-16,
+  "lane_max_abs_error": 0.0006777608545014361,
+  "complex_relation": "confirmed within floating-point rounding; not bitwise claimed",
+  "lane_relation": "contradicted",
+  "second_coeff_snapshot": "excluded: its timestamp is later than the paired block-1 spectra"
+}
