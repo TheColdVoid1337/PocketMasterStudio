@@ -292,3 +292,15 @@ Trace manager ingestion and native float32 buffer population under `context+0x24
 Read the complete Stage2–20 primary reports and historical errata in [the canonical full handoff](POCKET_MASTER_HTKPA_HANDOFF_2026-10-12.md). This paste edition includes the entire most recent Stage21 and Stage22 reports and an actionable Stage23 task.
 
 **When the user says «поехали», proceed directly to Stage23 DLL audio import and original f32 saturation-fit buffers.**
+
+
+---
+
+## 2026-10-12 handoff preservation checkpoint (verified AFTER the hanging sessions)
+
+**Reason for this checkpoint:** Some prior research runs appeared to hang and disappeared from the visible conversation history. The GitHub source-of-truth and local artifact archive were inspected independently before moving to a new chat. **The research itself is not lost.** This document is in GitHub `main` and the companion maximal research edition remains at [`docs/POCKET_MASTER_HTKPA_HANDOFF_2026-10-12.md`](POCKET_MASTER_HTKPA_HANDOFF_2026-10-12.md). The canonical Stage21 and Stage22 reports are in `docs/NAM_CLO_HTKPA_DLL_RE_STAGE21.md` and `...STAGE22.md`.
+
+- The previously hidden sessions completed Stage 21 and Stage 22; latest independently observed research commit **`f8c037776588666312e22ba1ef6c1004adda5dff`**, *before* later handoff-document-only commits. The new chat should discover the fresh head on `main`, not assume `f8c0377` is the perpetual HEAD.
+- Re-execution on the actual SHA-pinned Windows `5868USB.dll`, **not execution of the DLL itself**, succeeded: Stage21 verifier **75 native instruction checks + 8 constants + 77 mathematical assertions**; Stage22 verifier **43 native address checks + 7 constants + 53 assertions**. **Actual 4-gain fit from WAV = NOT_COMPUTED.**
+- Local fallback artifacts verified byte-readably (they are not GitHub blobs): `POCKET_MASTER_HANDOFF_2026-10-12_MAX.md` (161,034 bytes, SHA-256 `3f152e8cd7cb0477ac270f46bd4f5c9cadc0a87531ec5102cd68d480940ee8ed`), `POCKET_MASTER_HANDOFF_2026-10-12_PASTE.md` (73,210 bytes, SHA-256 `e551874617b0372c40baa21375cf59d49334beb5ee02fd8553002a6b2382e87c`), and `POCKET_MASTER_PORTABLE_HANDOFF_2026-10-12.zip` (1,226,962 bytes, SHA-256 `cc8d596985add761be6c780c0347d64e0c96c2633209dd4c8081d903fa89b664`). The portable archive passed ZIP integrity and contains the two MDs plus **all 22 stage research ZIPs**, but deliberately **not** the original proprietary DLL/NAM/vendor WAV/vendor CLO. It may include clearly labelled **UNVALIDATED** generated candidate data inside Stage 6; those are not official vendor files.
+- **Next action after the user says `Поехали`: Stage 23, DLL-first native WAV import/resampling/sample scaling and buffer provenance `context+0x243E0/+0x243E8`. Then use the previously source-verified Stage21 fitter on exact 23–28-second pre-fit audio windows, without assuming IIR precedes the fitter; compare four independently generated gains against official JCM800 2203 and SC20 CLO parameters as held-out validation.** No guessing, no production JS edits, no pedal writes.
