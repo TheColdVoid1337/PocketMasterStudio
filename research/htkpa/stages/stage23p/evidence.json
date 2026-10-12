@@ -1,0 +1,18 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "instruction_pins": 45,
+  "all_4096_double_stage_calls": [
+    {"stride_doubles": 8, "first_special_butterflies": 8, "outer_indices": 63, "first_general_j": 1, "last_general_j": 63, "general_butterflies": 504, "total_butterflies": 512},
+    {"stride_doubles": 32, "first_special_butterflies": 32, "outer_indices": 15, "first_general_j": 1, "last_general_j": 15, "general_butterflies": 480, "total_butterflies": 512},
+    {"stride_doubles": 128, "first_special_butterflies": 128, "outer_indices": 3, "first_general_j": 1, "last_general_j": 3, "general_butterflies": 384, "total_butterflies": 512},
+    {"stride_doubles": 512, "first_special_butterflies": 512, "outer_indices": 0, "first_general_j": null, "last_general_j": null, "general_butterflies": 0, "total_butterflies": 512}
+  ],
+  "general_outer_indices": 81,
+  "sse_per_general_butterfly": 66,
+  "general_butterflies_across_four_stages": 1368,
+  "synthetic_dft4_cases": 2592,
+  "maximum_abs_error": 5.760335218184685e-15,
+  "critical_fix": "AD52 doubles cos(2theta), AB76 doubles sin(2theta)",
+  "scope": "source-executed general branches only; full FFT and native DLL RAM parity OPEN",
+  "evidence_provenance": "Measured on original PE using local 215-line Stage23P interpreter; committed source is a slightly condensed equivalent and should be rerun independently."
+}
