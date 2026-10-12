@@ -1,0 +1,9 @@
+# HTKPA Stage 23D — decoder normalization addendum
+
+**2026-10-12. Static read-only research, no native numerical parity.** Original pinned DLL SHA256: `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`.
+
+The source-derived WAV normalization helper `0x1801417F0` loads f32 **4.656612873077393e-10 = 2^-31** from `0x18024C4C4` at code `0x180141804`. At `0x180141860–0x18014186F`, it converts signed 32-bit integer audio words via `cvtdq2ps`, multiplies by the constant, and stores f32 values; the scalar path at `0x180141945–0x180141956` does the same. Caller `0x1801421C0` invokes the helper at `0x1801422D1` conditionally on `[r14+0x24]==0` at `0x1801422B9`. **Actual branch-state reachability on the saved WAVs has not been proven.**
+
+Read-only numerical validation of all **four** matching user capture WAVs: for PCM16 samples, cast signed 16-bit to signed 32-bit and shift left by 16, then cast to f32 and multiply by exactly `2^-31`. The resulting full arrays were elementwise identical to `soundfile.read(dtype='float32')` on both DI and reference WAVs of both Marshall 2203 and SC20 (maximum error = **0.0**). This validates the algebra for left-justified PCM16 but not the native execution path and not any later gain scaling.
+
+**Current Stage23 gate:** model-derived Fs=48000 for both user NAMs established in [Stage23D](NAM_CLO_HTKPA_DLL_RE_STAGE23D.md). Generic 44.1→48k DI resampling still gives grossly wrong sat gains and is only a negative diagnostic. Native resampler, buffer histories and real four gains remain **OPEN / NOT_COMPUTED**. No vendor DLL execution, CLO generation, production JS or pedal changes.
