@@ -1,5 +1,7 @@
 # HTKPA / NAM → CLO — current research status (Stage23O)
 
+**Research-cycle log:** [append-only RE_LOG](../research/htkpa/RE_LOG.md) is updated after every RE cycle (including failed hypotheses) with evidence, remaining unknowns and the next disassembly range. The fuller status on this page is refreshed during deliberate DOC-SYNC passes.
+
 **13 October 2026 · DOCUMENTATION SYNC checkpoint · source-first reverse engineering.** This is the **current entry point** for Sonicake Windows Manager `5868USB.dll` research, updating the stopping point described by the older [Stage23C review](NAM_CLO_HTKPA_INTERIM_REVIEW_2026-10-12.md), [source recovery](NAM_CLO_HTKPA_SOURCE_RECOVERY_2026-10-12.md) and [historical handoff](POCKET_MASTER_HTKPA_HANDOFF_2026-10-12.md). Historical stage reports and their dated conclusions remain intact; read them as snapshots, not current acceptance claims.
 
 **Original DLL identity:** 2,902,016-byte Windows x64 PE `5868USB.dll`, SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`, image base `0x180000000`. Research uses static PE bytes and `objdump`, with small source-derived Python simulations. **The Windows vendor DLL has NOT been executed or sampled in RAM** for the current FIR/FFT reconstructions.
