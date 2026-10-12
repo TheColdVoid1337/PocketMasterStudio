@@ -48,3 +48,11 @@ Separate user-facing package `Sonicake_HTKPA_DLL_RE_Stage19_v0_19.zip` contains 
 **Still not achieved:** initial real-WAV **A/B arrays**, full optimizer 2→1→3, or coefficient comparison of new independent vendor Pre/Post FIR. The gate remains `NOT_COMPUTED` for A/B and `NOT_TESTED` for official FIR parity — no CLO emitted. Next source-first steps must reproduce the **biquad coefficient constructor**, the four-gain audio fitting procedure `0x1800BDBE0`, native resampling/alignment and the STFT buffer conventions in `0x1800B82B0`, then connect to the working Stage-18 A/B function. Do **not** substitute a generic Welch fit or secretly use official CLO coefficients as fit targets.
 
 The user-auditioned JCM800 2203 v0.2 C and production PocketMasterStudio Void Mod converter remain unchanged.
+
+
+## Stage 20 IIR correction — coefficient count, native cutoffs and live selectors (2026-10-12)
+
+Stage 19's phrase *"six consecutive double coefficients"* (and any implication of two *non-neutral* biquads) was too broad. Static source trace of `0x1800BD490` proves exactly **five** doubles per section: `[b0,b1,b2,a1,a2]`, with live offsets `context+0x232D8…0x232F8` (first) and `+0x23300…0x23320` (second). The native context initializer sets two alternative filter banks to identity `[1,0,0,0,0]`. The sample-rate constructor `0x1800BFF17–0x1800C0216` computes two **other**, non-identity banks, whose measured *discrete* −3 dB cutoff frequencies are **approximately 40 and 20 Hz**, not 20 and 10 Hz. In the traced native selection modes, the **first IIR section is neutral** and the second is either neutral or the 40/20-Hz section. Mode-2's branch exists but its reachability during normal NAM conversion is not shown.
+
+The independent Stage-20 bounded SSE interpreter reproduces all **ten native context coefficient stores** for 44.1/48/96 kHz; 106 isolated tests pass. See [Stage 20](NAM_CLO_HTKPA_DLL_RE_STAGE20.md) for code proof, coefficient table, sample-rounding rules and strict non-parity caveats. The remaining four-gain saturator fitting and real-WAV A/B generation are **NOT COMPUTED**.
+
