@@ -3,10 +3,13 @@
   "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "tooling": "Windows 11 x64; Sonicake Manager 1.0.1; Python 3.13 x64; Frida 17.6.1",
   "runtime_base": "0x7ff87e390000", "preferred_image_base": "0x180000000",
-  "captured_branches": {"filter_constructor_0x18000b996": "hit; filter flag becomes 1", "multiply_select_0x18000c56e": "hit; filter flag 1", "lane_0x18000c5b0": "hit; pair-wise real coefficient formula verified", "complex_0x18000c5f0": "not hit"},
-  "observed_filter_flags": [1], "captured_arrays": ["private 4096-f64 FIR arrays"], "numerical_checks": ["pair-wise lane max error 0.0", "inverse max error 1.1926223897340549e-18", "post FFT rfft error 4.336808689942018e-19"], "block_counts": [0,1972,2680],
-  "private_run_relative_dir": "stage23w_native/20261013_device_conversion",
-  "blocker": "Manager loaded the pinned DLL and exposed Clone Manage after device connection, but no conversion ran. Clone Import may write to device, so it was not clicked through blindly.",
-  "limitations": ["No FIR site hit", "No filter object, buffer or f64 RAM dump", "No native spectrum conclusion"],
-  "next_targets": ["Observe genuine conversion at 0x1800e1f70/0x1800abeb0", "On first 0x18000c56e hit read filter+0x34 and +0x50", "Capture arrays around 0x18000bac1, 0x18000c484, 0x18000c668 and 0x18000c684"]
+  "captured_branches": {"filter_constructor_0x18000b996": "hit; native filter flag is set to 1", "multiply_select_0x18000c56e": "hit; native filter flag 1", "lane_0x18000c5b0": "hit; pairwise real-coefficient formula verified bitwise", "complex_0x18000c5f0": "not hit"},
+  "observed_filter_flags": [1],
+  "captured_arrays": ["private 4096-f64 coefficient, packed-input, product and inverse arrays; hashes only in native_analysis.json"],
+  "numerical_checks": ["pairwise lane max error 0.0", "naive elementwise max error 0.0006777608545014361", "coefficient post-FFT rfft max error 5.142739455391301e-19", "inverse max error 9.75781955236954e-19"],
+  "block_counts": [0, 1972, 2680],
+  "private_run_relative_dir": "stage23w_native/20261013_flag_capture_restart",
+  "private_additional_runs": ["stage23w_native/20261013_packed_capture", "stage23w_native/20261013_discard_capture"],
+  "limitations": ["Coefficient and packed-input snapshots are from adjacent retained captures with the same live filter and coefficient pointer", "state+0x2c output-period field was not captured in the retained output-route trace", "No PCM/resampler, gain, CLO or device-output parity claim"],
+  "next_targets": ["Compare Stage23I static 1417-tap buffer to native coeff_pre_fft", "Disassemble 0x18000c6fc-0x18000c861 and capture state+0x2c", "Continue native WAV decoder and resampler investigation after FIR coefficient comparison"]
 }

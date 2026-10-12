@@ -123,7 +123,7 @@ function install(module) {{
   }});
   attach('emit_boundary', function() {{
     const state=this.context.rsi;
-    sendEvent('emit_boundary', {{state:hex(state), skip:u32(state.add(0x84)), output_shift:u32(state.add(0x54)), work:hex(ptrAt(state,0x70)), previous:hex(ptrAt(state,0x78)), scratch:hex(ptrAt(state,0x68))}});
+    sendEvent('emit_boundary', {{state:hex(state), skip:u32(state.add(0x84)), output_shift:u32(state.add(0x54)), output_period:u32(state.add(0x2c)), work:hex(ptrAt(state,0x70)), previous:hex(ptrAt(state,0x78)), scratch:hex(ptrAt(state,0x68))}});
   }});
   attach('buffer_swap', function() {{ const state=this.context.rsi; sendEvent('buffer_swap', {{state:hex(state), work_before:hex(ptrAt(state,0x70)), previous_before:hex(ptrAt(state,0x78))}}); }});
 }}

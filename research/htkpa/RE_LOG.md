@@ -91,7 +91,7 @@ Avoid re-reporting old stages, lengthy tutorials, version-per-paragraph files, r
 ## 2026-10-13 — Stage23W · native FIR trace
 
 - **NATIVE:** Manager import hit lane branch `C5B0` with filter flag 1, 1417 taps and 4096-double state; complex branch was not hit.
-- **NATIVE proof:** the pair-wise lane formula and native inverse scale 2048 match captured f64 arrays; startup emits 0, 1972, then 2680 doubles via direct memcpy.
+- **NATIVE proof:** the pair-wise lane formula and native inverse scale 2048 match captured f64 arrays; startup emits 0, 1972, then 2680 doubles. `state+0x54=0` reaches `C759`; direct `C824` memcpy still depends on unobserved `state+0x2c`.
 - **Saved:** mandatory handoff, sanitized evidence and reusable Frida tracer; raw arrays/JSONL stay private.
 - **NEXT:** static constructor coefficients versus native 1417-tap buffer, no fitting.
 - **Stage23V WSL verification (2026-10-13):** user pulled `main` to `e1101ec` and ran the **published** `research/htkpa/stages/stage23v/fir_stream_blocks_source.py` via `.venv/bin/python` on the SHA-pinned DLL. PASS: **62 instruction pins**, 1340 input frames/2680 interpolated doubles per full block, 708-element scratch, initial skip 3388; first-four-block emissions `[0,1972,2680,2680]`, total `7332`; one combined versus four separated processing calls yielded identical output/state **in the synthetic passthrough model**. The saved trace matches expected values. This does **not** verify actual FFT/FIR sample content, vendor RAM parity or resolve filter flag `+0x34`. Stage23W remains OPEN.

@@ -1,27 +1,35 @@
-# HTKPA Stage23W — Windows-native trace handoff
+# HTKPA Stage23W — Windows-native FIR handoff
 
-**Executive result:** **NATIVE_HIT / PARTIAL.** A real Manager import reaches `0x18000C5B0` (lane path), with `filter+0x34=1`, `state+0x34=4096`, 1417 taps and phase 11. For every packed pair `k>=1`, native output is exactly `y[2k]=x[2k]*h[2k]`, `y[2k+1]=x[2k+1]*h[2k]`; all 4096 captured doubles match bitwise. The old complex conclusion was invalid: it used a pre-repacking array and an incorrect lane oracle.
+## Executive result
 
-**Provenance:** 2026-10-13 Asia/Bangkok; Windows 11 x64, Sonicake Manager 1.0.1, Python 3.13 x64, Frida 17.6.1. DLL SHA-256: `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. Preferred base `0x180000000`; retained 120-second device-connected run base `0x7ff87e390000`; `live_va = base + (static_va - 0x180000000)`.
+**NATIVE_HIT / PARTIAL.** A real Sonicake Manager import reaches the FIR lane branch at `0x18000C5B0`; the live filter byte `+0x34` is `1`, its coefficient pointer is live at `+0x50`, and the complex branch `0x18000C5F0` was not hit. The Stage23S conflict is resolved for this filter: the native coefficient spectrum is effectively real, so the lane loop correctly uses one real coefficient for both packed entries.
 
-**How to reproduce:** install Frida only under `research/_LOCAL_FILES/stage23w_native/.venv`, verify the DLL SHA, then run `research/htkpa/stages/stage23w/native_trace.py` with Manager EXE, loaded DLL, ignored output directory and `--pid <Manager PID>`. It is read-only and captures 4096-f64 arrays only after range checks. Private retained manifest: `stage23w_native/20261013_device_conversion/manifest.private.json`; it contains no dumps.
+For packed bins `k >= 1`, native f64 output is bitwise `y[2k]=x[2k]*h[2k]`, `y[2k+1]=x[2k+1]*h[2k]`; all 4096 doubles of a paired block match. The remaining open question is whether the independent Stage23I static coefficient reconstruction matches the native pre-FFT buffer exactly.
 
-**Chronological event table:** a second, JSONL-flushed import hit `B996`, `BAC1/BAC6`, `C468/C489`, `C56E`, `C5B0`, `C668/C689`. `C5F0` was not hit. `filter_A=0x215149be050`, `filter_A+0x50=0x215145ca020`; `state_A=0x2151432f900` alternated two work buffers.
+## Provenance and reproduction
 
-**Filter/FFT state:** private block-0 arrays exist for coefficient/input pre/post FFT, post-multiply and post-inverse (4096 f64 each). The coefficient and input post-FFT arrays are paired with the product. The later `coeff_post_fft_01` is excluded from block-1 comparison because its timestamp is later.
+2026-10-13, Asia/Bangkok; Windows 11 x64; Sonicake Manager 1.0.1; Python 3.13 x64; Frida 17.6.1. Original `5868USB.dll` SHA-256 is `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`; PE preferred base `0x180000000`; a retained runtime base was `0x7ff87e390000`; `live = base + (static - 0x180000000)`.
 
-Native `coeff_pre_fft` has exactly 1417 significant values: indices `0..708` and `3388..4095`; the 2680 positions between are zero and circular symmetry is exact. `coeff_post_fft` matches `conj(rfft(coeff_pre_fft))` in Stage23R packed order within `4.336808689942018e-19`. Its odd pair slots are residuals below `2.71e-19`; the lane loop deliberately applies the real even slot to both components of each pair.
+Use the private Windows venv and attach the reusable tracer to the already running Manager: `research/htkpa/stages/stage23w/native_trace.py --host <Manager.exe> --dll <5868USB.dll> --out research/_LOCAL_FILES/stage23w_native/<session> --pid <pid> --seconds 25`. Wait for `ready.private.json`, then import once. The tracer is observational, range-checks each 32768-byte f64 read, and writes raw arrays/events only under the ignored tree.
 
-For both captured blocks, `after_inverse` equals `2048 * irfft(conj(after_spectral_multiply))` after unpacking the Stage23R layout. Maximum absolute errors are `8.673617379884035e-19` and `1.1926223897340549e-18`; this is native confirmation of the Stage23U inverse sign and scale.
+## Native event and object facts
 
-**Observed 1–4 block flow:** one numerically paired block is analyzed; hashes and result are in `research/htkpa/stages/stage23w/native_analysis.json`. Raw arrays remain private.
+The filter alias `filter_A` was `0x215149be050`, with `filter_A+0x50 = 0x215145ca020`, 1417 taps and phase 11. Its processor alias `state_A` had `state_A+0x34 = 4096`; two work buffers alternated. `C56E` recorded 9218 selections in each retained capture, all with `filter+0x34 = 1`; `C5B0` was hit and `C5F0` was not. The constructor (`B996`), coefficient transform (`BAC1/BAC6`), input transform (`C468/C489`), multiply selection, lane multiply, and inverse boundaries were observed during genuine imports. The private event streams are `stage23w_native/20261013_flag_capture_restart/trace.private.jsonl`, `20261013_packed_capture/trace.private.jsonl`, and `20261013_discard_capture/trace.private.jsonl`.
 
-Native streaming is now observed too: first block emits zero doubles; second emits 1972; later blocks emit 2680. At `C689`, first/second `state+0x84` values are 3388/708; at `C6D2` they are 2680/0. `state+0x38=708`; `state+0x54=0`, selecting direct memcpy from `state+0x78` before `C85D` swaps the two work buffers. The `C759` decimation loop is not used.
+## Filter, spectrum and inverse
 
-**Hypothesis table:** Stage23S lane branch, Stage23T flag lineage, Stage23U inverse source, and Stage23V block flow are **NOT_OBSERVED**. Native DLL load is **CONFIRMED**. No synthetic conclusion is promoted to native evidence.
+`coeff_pre_fft_00` has 1417 significant f64 entries at `0..708` and `3388..4095`, zero in the intervening 2680 entries, exact circular symmetry, and sum `0.0009765624999999992` (approximately `1/1024`). Native `coeff_post_fft_00` equals `conj(rfft(coeff_pre_fft_00))` in Stage23R packing `[Re0, ReNyquist, Re1, Im1, ...]`, maximum error `5.142739455391301e-19`. Odd pair slots have magnitude at most `2.710505431213761e-19`, explaining the flag-1 lane result.
 
-**Open questions and next static targets:** first observe a genuine Manager conversion at exports `0x1800E1F70`/`0x1800ABEB0`. Then record flag/pointer at `0x18000C56E` and snapshots before/after `BAC1`, `C484`, `C668`, `C684`. If normal conversion cannot be made observable, derive app.so `_namConvertCloData` FFI caller ABI plus MSVC string/result and async callback objects from `ABEB0–AC0CB` and `E1F70–E2298`; do not guess a direct call.
+The valid multiplication input is the `C56E` snapshot **after** `C494–C556` repacking, not the earlier `C489` snapshot. Its coefficient snapshot was taken from the same live filter and coefficient pointer in the immediately preceding retained trace. The naive elementwise product misses by `0.0006777608545014361`; the pairwise formula above has maximum error `0.0` and zero nonmatching doubles. Native post-inverse blocks equal `2048 * irfft(conj(packed_product))`; maximum errors are `8.673617379884035e-19` and `9.75781955236954e-19`.
 
-**Verification / limitations:** `python research/htkpa/stages/stage23w/validate_native_evidence.py` validates public fields. Manager initially reported `No Device Connected`; after connection it exposed Clone Manage, but Clone Import may write to hardware and was not driven blindly. No DLL/process-memory patch, device setting change, production change, private sample or RAM data was committed.
+## Streaming and limits
 
-**Links and manifest:** tracer `research/htkpa/stages/stage23w/native_trace.py`; evidence `research/htkpa/stages/stage23w/native_evidence.json`; private manifest above; research commit pending.
+Native first-block emission is zero, then 1972, then 2680 doubles. At `C689`, observed `state+0x84` starts at 3388 then 708; at `C6D2` it is 2680 then 0. `state+0x38 = 708`. `state+0x54 = 0` reaches `C759`; it does **not** alone establish direct `C824` memcpy, because `state+0x2c` controls that final choice. The tracer now records `output_period = state+0x2c`; capture it before making an output-route claim.
+
+Stage23S lane selection, Stage23T flag lineage, Stage23U inverse sign/scale, and Stage23V block counts are native-confirmed for this run. Exact Stage23I coefficient parity, output-route period, PCM/resampler stages, gains, CLO parity, and device-output equivalence remain unproven. No production source, vendor DLL, device setting, raw audio, RAM dump, or proprietary input is committed.
+
+## Next static targets and validation
+
+First run `stage23i/native_fir_coefficients.py` against the SHA-pinned DLL and compare its 4096-double candidate to the native pre-FFT private buffer by f64 error, not FFT appearance. Then disassemble `0x18000C6FC–0x18000C861` around `state+0x54/+0x2c`, with the falsifiable prediction that `+0x2c <= 1` selects `C824`; use one bounded live capture only to read that field. Finally trace the native WAV decoder/resampler only after retaining this FIR conclusion.
+
+Tracked sanitized artifacts are `research/htkpa/stages/stage23w/native_evidence.json`, `native_analysis.json`, `native_trace.py`, `analyze_native_fir.py`, and `validate_native_evidence.py`. Validate with `python research/htkpa/stages/stage23w/validate_native_evidence.py`; analysis requires an interpreter with NumPy and explicit private input/coeff/result roots.
