@@ -1,0 +1,143 @@
+{
+  "baseline_head": "ab63a8f75a9cbc0c0b9d556e5ef2a4c6ff07162f",
+  "scope": "Research hygiene only. Protected private/config/log/dependency trees excluded from content inventory.",
+  "nested_git_checkouts_outside_protected_trees": [],
+  "untracked_nonignored_before_audit": [],
+  "duplicate_python_groups": [
+    {
+      "sha256": "3070b9dddd4de478e570ad17f6c2f5d49e6c6a36796cef745d5b111d1c3e05d7",
+      "paths": [
+        "research/htkpa/stages/stage21/stage21_saturator_source.py",
+        "research/htkpa/stages/stage22/stage21_saturator_source.py",
+        "research/htkpa/stages/stage23/stage21_saturator_source.py"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_SOURCE_SNAPSHOTS"
+    }
+  ],
+  "regenerable_cache_files": [
+    {
+      "path": "research/htkpa/stages/stage23e/__pycache__/stage23e_audio_source.cpython-314.pyc",
+      "sha256": "032bbe5a5b6e0b9b2eecf66abbf9de825f45c88b15861362d67169d3d7524e73",
+      "size_bytes": 19040,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    },
+    {
+      "path": "research/htkpa/stages/stage23e/__pycache__/test_stage23e.cpython-314.pyc",
+      "sha256": "b2230680a56b3f03c883523b4560bb5d09596e94c8fefcef2ed9e01c3e062360",
+      "size_bytes": 7281,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/__pycache__/stage23d_source_provenance.cpython-313.pyc",
+      "sha256": "6611e59a574841475eff9bc59caa42137c97f08043b98320a72a71f6afc95557",
+      "size_bytes": 11667,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/__pycache__/stage23d_source_provenance.cpython-314.pyc",
+      "sha256": "fba59cd411e9df30804c631922eaa3a8404559a10ddb014a576b3a0ea0f7c215",
+      "size_bytes": 12875,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    },
+    {
+      "path": "research/htkpa/stages/stage23d/__pycache__/test_stage23d.cpython-314.pyc",
+      "sha256": "5e11740ed83c3627c6939599f4fe5570b10f481c3bcfcb0bb0ce6c996efd0211",
+      "size_bytes": 2858,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    },
+    {
+      "path": "research/htkpa/stages/stage23c/__pycache__/pe_bytes.cpython-314.pyc",
+      "sha256": "0903c3fa97d77724b288740701cae5794341ae84a08ce39ce409aca5762ec837",
+      "size_bytes": 1999,
+      "status": "ignored",
+      "disposition": "BACKUP_THEN_REMOVE_REGENERABLE_CACHE"
+    }
+  ],
+  "mislocated_research_markdown": [],
+  "proposed_delete_requiring_approval": [],
+  "preserve": [
+    "all original stage sources and evidence, including identical copies",
+    "all source/input archives",
+    "all private models/audio/CLO/logs and hardware baseline",
+    "private disassembly and current-run verification scratch",
+    "config/ and logs/"
+  ],
+  "stale_claims": {
+    "handoff_stage23d_placeholder": "superseded by visible execution update",
+    "source_recovery_stage23c_rate_unknown": "superseded by visible restoration update",
+    "historical_original_reports": "preserved unchanged"
+  },
+  "duplicate_evidence_groups": [
+    {
+      "sha256": "c88e7eb410b5b8ab29b980c0d09a5225527ad6cb14c0c470e58e133d892515ef",
+      "paths": [
+        "research/htkpa/stages/stage01/probe_wav_regions.json",
+        "research/htkpa/stages/stage01/summary.txt"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_EVIDENCE"
+    },
+    {
+      "sha256": "fe1e9bcf8cc18ce8c94d260612960773ccf1c474d48ddd6d3c862854e7705658",
+      "paths": [
+        "research/htkpa/stages/stage21/evidence.json",
+        "research/htkpa/stages/stage23b/stage21_check.json",
+        "research/htkpa/stages/stage23c/stage21_reverified.json",
+        "research/htkpa/stages/stage23d/stage21_reverified.json"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_EVIDENCE"
+    },
+    {
+      "sha256": "d4c4edbd29674ddd3ab9a161192b579647bb9f58a441b00a8c52970a6faaedbb",
+      "paths": [
+        "research/htkpa/stages/stage22/evidence.json",
+        "research/htkpa/stages/stage23b/stage22_check.json",
+        "research/htkpa/stages/stage23c/stage22_reverified.json",
+        "research/htkpa/stages/stage23d/stage22_reverified.json"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_EVIDENCE"
+    },
+    {
+      "sha256": "16c9b523288bd3fda904439dc2671e5e9c3ec89a866deea52e1a1e07aec5ae83",
+      "paths": [
+        "research/htkpa/stages/stage23c/evidence.json",
+        "research/htkpa/stages/stage23c/evidence_repeat.json"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_EVIDENCE"
+    },
+    {
+      "sha256": "02ffe50f98ba53ade3b5ef4895f317c767ea288896f0920098d3f2dd1ec09ba5",
+      "paths": [
+        "research/htkpa/stages/stage23d/evidence.json",
+        "research/htkpa/stages/stage23d/evidence_repeat.json"
+      ],
+      "status": "tracked",
+      "disposition": "KEEP_HISTORICAL_EVIDENCE"
+    }
+  ],
+  "outside_research_caches": {
+    "paths": [
+      "tests/__pycache__/",
+      "tools/__pycache__/"
+    ],
+    "status": "ignored",
+    "disposition": "PRESERVE_OUTSIDE_TASK_SCOPE"
+  },
+  "completed_cleanup": {
+    "removed_cache_files": 6,
+    "removed_bytes": 55720,
+    "backup": "verified ZIP outside checkout; local locator retained privately",
+    "backup_sha256": "9e5f3626a9f235b0b8b4f681fa3c0e9956da9139ee3c3bb7704bfc6be9536067",
+    "tracked_files_deleted": 0,
+    "private_inputs_deleted": 0
+  }
+}

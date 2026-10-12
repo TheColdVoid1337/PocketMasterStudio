@@ -4,6 +4,8 @@
 
 **Latest checkpoint: [Stage23E](NAM_CLO_HTKPA_DLL_RE_STAGE23E.md).** Ordinary PCM16 reader branch and reference pre-detrend padding are now source-pinned; an intermediate mono PCM24 writer boundary is newly identified. Native resampler/quantizer/detrend reconstruction and both real gain sets remain open. Resume at the Stage23E next-minimal-task section, preserving the scope and safety rules below.
 
+**Hygiene completed:** [classified inventory and safe cache cleanup](NAM_CLO_HTKPA_HYGIENE_AUDIT_2026-10-12.md). Historical duplicates and all private inputs are preserved; no pending deletion approval.
+
 **Date:** 2026-10-12  
 **Repository:** `https://github.com/TheColdVoid1337/PocketMasterStudio`  
 **Local WSL checkout:** `/mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod` (verify, do not assume it is the only clone)  
