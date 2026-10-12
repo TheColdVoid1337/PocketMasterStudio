@@ -9,14 +9,14 @@
   "terminal_radix2_scalar_ops_per_case": 14336,
   "terminal_xorps_sign_flips_per_case": 1024,
   "max_precombine_complex_conjugate_error": 4.0194366942304644e-14,
-  "max_terminal_complex_conjugate_fft_error": 0,
+  "max_terminal_complex_conjugate_fft_error": 0.0,
   "max_full_roundtrip_error_vs_2048_x": 4.945377440890297e-12,
   "worst_case": [
     "random_1",
     373
   ],
   "first_error_above_3e_minus_11": null,
-  "negative_control_without_terminal_conjugation_max_error": 4096,
+  "negative_control_without_terminal_conjugation_max_error": 4096.0,
   "proven_synthetic_inverse_gain": 2048,
   "stage23s_rounded_branch_probe": {
     "flag0_sine33_rms": 1.41330776723705,
