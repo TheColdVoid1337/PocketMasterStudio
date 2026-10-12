@@ -1,0 +1,20 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "instruction_pins": 56,
+  "filter_constructor_direct_rdi_flag_writes": [
+    "0x18000b996"
+  ],
+  "filter_source_flag_on_fresh_build": 1,
+  "processor_object_field_0x34": 4096,
+  "filter_object_flag_field_0x34": 1,
+  "filter_spectrum_pointer_field_0x50": "same filter coefficient ring before/after forward FFT",
+  "fft_plan_size_doubles": 4096,
+  "fft_plan_preinverse_coefficient_scale": 0.00048828125,
+  "source_derived_filter_DC_sum_target": 0.0009765625,
+  "inverse_DC_only_output_per_unit_packed_DC": 0.5,
+  "predicted_DC_gain_for_2x_FIR": 2.0,
+  "three_tap_synthetic_sine33_conventional_rms_with_inverse_gain": 1.4133077672370495,
+  "three_tap_synthetic_sine33_flag1_lane_rms_with_inverse_gain": 4.275215239337096e-15,
+  "outstanding_conflict": "flag 1 lane multiplication suppresses quadrature despite 2x DC gain; no native filter RAM or exact runtime provenance",
+  "scope": "static source pins + synthetic math; no Windows native execution or real FIR output parity"
+}
