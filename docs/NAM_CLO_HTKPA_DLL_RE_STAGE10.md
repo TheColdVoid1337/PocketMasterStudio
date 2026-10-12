@@ -49,3 +49,8 @@ We have **not** calculated an exact official Pre-FIR or Post-FIR directly from s
 **Next source-first Stage 11 target**: trace `0x1800BB440..0x1800BBB5B`, both calls to `0x1800B7670` (`0x1800BB4D9`, `0x1800BB4F8`), and `0x1800B68F0`. Establish actual candidate update equations, buffer identities and normalization from machine code **before** writing a fitting implementation or exporting experimental CLOs. Retain the user-preferred JCM800 2203 v0.2 C as subjective control; production JS remains unchanged.
 
 **The Windows Manager algorithm is not proven identical to mobile SONICLINK.**
+
+
+## Erratum added during source-first Stage 19 (2026-10-12): STFT hop is **half a window**, not half a second
+
+The Stage-10 text `Half-second frame hop` / `≈0.5-second hop` was mistaken. `0x1800B8373` assigns the **analysis window length** to `r14d`. `0x1800B83EA–0x1800B83FB` converts that same window length to double, multiplies by PE double `0.5` (`0x18024C880`), then truncates to an integer. Therefore the actual step is **`trunc(window_samples*0.5)`**, a 50%-window hop. For a 4,800-sample window at 48 kHz it is 2,400 samples or 0.05 seconds, **not 0.5 seconds**. Any synthetic STFT fitting code using the previous fixed duration must be corrected before a numerical A/B comparison. This is an evidence-backed correction, not a heuristic. See [Stage 19](NAM_CLO_HTKPA_DLL_RE_STAGE19.md).
