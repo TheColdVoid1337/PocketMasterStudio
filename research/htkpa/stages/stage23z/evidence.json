@@ -1,0 +1,43 @@
+{
+  "stage": "Stage23Z",
+  "status": "SOURCE_CORRECTION_NUMERIC_NATIVE_CHECK",
+  "date": "2026-10-13",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "new_instruction_pins": 24,
+  "pow_import_iat": "0x18018BA08",
+  "pow_thunk": "0x18017E152",
+  "sin_import_iat": "0x18018BA18",
+  "generator": "0x180014810",
+  "generator_exponent": 0.15823713794954866,
+  "generator_bessel_beta": 125,
+  "old_stage23i_candidate_sha256": "ff4b587594a156df2fe8fd34a7a639eeb09e3cc9a59fcfba93afa17737d241be",
+  "corrected_candidate_sha256": "de6c94e0a2783c22095f16694d26c8ae5cf72be1191b75b2d242bf93de3a2f01",
+  "native_check": "private_original_runtime_buffer_compared",
+  "native_coeff_sha256": "649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770",
+  "old_error_max": 0.0000016025453961367097,
+  "old_error_rms": 2.8553058553229254e-7,
+  "corrected_error_max": 9.282550449007586e-10,
+  "corrected_error_rms": 2.1566018388829852e-10,
+  "max_error_improvement_factor": 1726.406341597681,
+  "rms_error_improvement_factor": 1323.983780335565,
+  "active_taps_differ_after_correction": 1417,
+  "source_correction": "Stage23I had sin(gamma)*window; original uses pow(window,gamma) in center and loop with xmm1=generator context+0x20. Window from 0x180008FD0; pow imported via 0x18017E152/0x18018BA08.",
+  "numeric_comparison": {
+    "tap_0": {
+      "native": 0.0004795941502258825,
+      "corrected": 0.00047959349062899365
+    },
+    "tap_100": {
+      "native": -8.682698835334874e-7,
+      "old": -3.042329898979127e-7,
+      "corrected": -8.675218151439783e-7
+    },
+    "tap_400": {
+      "native": 2.4765454708168638e-8,
+      "old": 2.8699000041042856e-16,
+      "corrected": 2.464271765351558e-8
+    }
+  },
+  "limit": "no native Windows DLL execution in this cycle; no Windows CRT/libm/SSE bit parity, exact coefficients, FIR output or gains/CLO parity",
+  "next": "Source-first audit upstream 0x18000B2B8–0x18000B844 (gamma/angle math) and input struct 0x180014810; if still ambiguous request bounded native register snapshots for XMM9 gamma, XMM11 angle, and context+0x20, not coefficient fitting."
+}
