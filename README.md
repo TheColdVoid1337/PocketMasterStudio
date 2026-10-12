@@ -423,3 +423,8 @@ All native `.prst` interactions now live in the **`.prst Lab`** item in the main
 Neither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`, and no data migration or new save format is needed. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.
 
 Older v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.
+
+
+### HTKPA / NAM→CLO reverse-engineering research (separate from the app)
+
+The original Sonicake Manager `5868USB.dll` research and reproducible read-only checkpoints are tracked under `research/htkpa/stages/`. Start with the [current HTKPA research status](docs/NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md) for the latest evidence, reproduction commands and open parity gates. **This research does not mean the original vendor NAM→CLO converter has been reproduced or integrated into the production Studio.** Proprietary capture/model/vendor files are not stored in this repository.
