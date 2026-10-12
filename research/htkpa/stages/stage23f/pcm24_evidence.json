@@ -1,0 +1,21 @@
+{
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "source": {
+    "instruction_pins": 42,
+    "writer_slot_8": "0x18008e0e0",
+    "constants": {
+      "0x18024ced0": -1.0,
+      "0x18024c918": 1.0,
+      "0x18024cd50": 2147483647.0,
+      "0x18024cd90": 6755399441055744.0
+    }
+  },
+  "experiment": {
+    "finite_random_f32_checked": 996082,
+    "int32_oracle_mismatches": 0,
+    "uniform_grid_samples": 100001,
+    "direct_round24_disagreements": 45831,
+    "max_roundtrip_error_grid": 1.1920928955078125e-07,
+    "scope": "source-derived finite-domain arithmetic; no native DLL execution / resampled DI / gains"
+  }
+}
