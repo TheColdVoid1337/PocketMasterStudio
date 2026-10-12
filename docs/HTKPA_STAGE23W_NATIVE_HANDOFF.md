@@ -34,4 +34,6 @@ Stage23S lane selection, Stage23T flag lineage, Stage23U inverse sign/scale, and
 
 Investigate the Stage23I generator's upstream parameters and math-call precision to explain the measured coefficient mismatch. Separately disassemble `0x18000C6FC–0x18000C861` around `state+0x54/+0x2c`, with the falsifiable prediction that `+0x2c <= 1` selects `C824`; use one bounded live capture only to read that field. Continue static WAV decoder/resampler work from Stage23E only with these FIR facts retained.
 
+The first static WAV-writer gate is now source-pinned in `stage23x/pcm24_writer_source.py`: it saturates f32 at `[-1, 1]`, converts with `2147483647.0` plus the native f64 rounding magic, then packs signed `int32 >> 8` as three little-endian bytes. Reload/decoder parity and resampler output remain open.
+
 Tracked sanitized artifacts are `research/htkpa/stages/stage23w/native_evidence.json`, `native_analysis.json`, `native_trace.py`, `analyze_native_fir.py`, and `validate_native_evidence.py`. Validate with `python research/htkpa/stages/stage23w/validate_native_evidence.py`; analysis requires an interpreter with NumPy and explicit private input/coeff/result roots.

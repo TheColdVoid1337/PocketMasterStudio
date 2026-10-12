@@ -1,0 +1,17 @@
+{
+  "scope": "writer quantization and packing only; no DLL execution, WAV write, reload or resampler parity",
+  "source": {
+    "constants": {
+      "0x18024c918": 1.0,
+      "0x18024cd50": 2147483647.0,
+      "0x18024cd90": 6755399441055744.0,
+      "0x18024ced0": -1.0
+    },
+    "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+    "instruction_pins": 16,
+    "writer_vtable_slot_8": "0x18008e0e0"
+  },
+  "stage": "23X",
+  "status": "SOURCE_PINNED_PCM24_WRITER",
+  "tests": 7
+}
