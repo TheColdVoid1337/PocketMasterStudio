@@ -1,5 +1,7 @@
 # HTKPA Stage23E — PCM branch, loader buffers and resampler boundaries
 
+> **Later checkpoint (2026-10-13):** [Current Stage23O status](NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md) records the subsequent PCM24 source path, phase-table stencil, FIR `G=708` / 1417 taps, and incremental FFT reconstruction. In particular, Stage23G traces **zero fractional FIR-to-interpolator initial phase for the selected 44.1→48k branch**, superseding Stage23E's broader "not established as zero" uncertainty. This still does **not** prove exact first emitted sample, group delay, real DI array or native resampler parity. The historical Stage23E observations below remain intact.
+
 2026-10-12. Static-only checkpoint on DLL SHA256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. The DLL was never loaded or executed. Stage23E closes the ordinary PCM16 normalization branch under the successful WAV-reader path and reconstructs the saved reference WAV's **pre-detrend** context buffer. It does not reconstruct the native resampled DI, either final fitter pair, or official gains/FIRs.
 
 ## 1. Reader identity and format-dependent branch
