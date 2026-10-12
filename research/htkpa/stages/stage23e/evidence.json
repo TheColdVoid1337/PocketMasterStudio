@@ -1,0 +1,279 @@
+{
+  "capture_experiment": [
+    {
+      "bits": 16,
+      "block_align": 4,
+      "channels": 2,
+      "chunks": [
+        {
+          "offset": 20,
+          "size": 52,
+          "tag": "JUNK"
+        },
+        {
+          "offset": 80,
+          "size": 16,
+          "tag": "fmt "
+        },
+        {
+          "offset": 104,
+          "size": 12348000,
+          "tag": "data"
+        }
+      ],
+      "decoded_channel_zero_f32_sha256": "301399b1faba968f9e9e5d63056bea9bafddcbc1700f3f68bc9ca9c8f39a453a",
+      "format_tag": 1,
+      "frames": 3087000,
+      "int32_normalization_branch": "TAKEN_UNDER_SUCCESSFUL_WAV_READER_PATH",
+      "model": "2203",
+      "rate": 44100,
+      "reader_float_flag": 0,
+      "role": "DI",
+      "soundfile_all_channels_max_error": 0.0,
+      "wav_sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a"
+    },
+    {
+      "bits": 16,
+      "block_align": 4,
+      "channels": 2,
+      "chunks": [
+        {
+          "offset": 20,
+          "size": 52,
+          "tag": "JUNK"
+        },
+        {
+          "offset": 80,
+          "size": 16,
+          "tag": "fmt "
+        },
+        {
+          "offset": 104,
+          "size": 13440000,
+          "tag": "data"
+        }
+      ],
+      "decoded_channel_zero_f32_sha256": "3ada18a20ece10ad1f989bf644113f99bccf221353cf09bbac2da5075e941d97",
+      "format_tag": 1,
+      "frames": 3360000,
+      "int32_normalization_branch": "TAKEN_UNDER_SUCCESSFUL_WAV_READER_PATH",
+      "model": "2203",
+      "pre_detrend_context_f32_sha256": "712d5b3cdea38067fbfa44b1e792a7e62bc0d48dc1b37ed8a19ad2d93aa4337d",
+      "pre_detrend_context_frames": 3360600,
+      "rate": 48000,
+      "reader_float_flag": 0,
+      "role": "reference",
+      "scope": "reconstruction conditional on this saved WAV being the loaded file",
+      "soundfile_all_channels_max_error": 0.0,
+      "wav_sha256": "c7e80f001e906bba2d91ab3b2fdc1ca7cf66d40ff6e87148f009be77b7b303e1",
+      "zero_tail_frames": 600
+    },
+    {
+      "bits": 16,
+      "block_align": 4,
+      "channels": 2,
+      "chunks": [
+        {
+          "offset": 20,
+          "size": 52,
+          "tag": "JUNK"
+        },
+        {
+          "offset": 80,
+          "size": 16,
+          "tag": "fmt "
+        },
+        {
+          "offset": 104,
+          "size": 12348000,
+          "tag": "data"
+        }
+      ],
+      "decoded_channel_zero_f32_sha256": "301399b1faba968f9e9e5d63056bea9bafddcbc1700f3f68bc9ca9c8f39a453a",
+      "format_tag": 1,
+      "frames": 3087000,
+      "int32_normalization_branch": "TAKEN_UNDER_SUCCESSFUL_WAV_READER_PATH",
+      "model": "SC20",
+      "rate": 44100,
+      "reader_float_flag": 0,
+      "role": "DI",
+      "soundfile_all_channels_max_error": 0.0,
+      "wav_sha256": "9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a"
+    },
+    {
+      "bits": 16,
+      "block_align": 4,
+      "channels": 2,
+      "chunks": [
+        {
+          "offset": 20,
+          "size": 52,
+          "tag": "JUNK"
+        },
+        {
+          "offset": 80,
+          "size": 16,
+          "tag": "fmt "
+        },
+        {
+          "offset": 104,
+          "size": 13440000,
+          "tag": "data"
+        }
+      ],
+      "decoded_channel_zero_f32_sha256": "826aec9a05d67b9bec855961b9ff82c19a14237a1b42e9075ef087cf0e868244",
+      "format_tag": 1,
+      "frames": 3360000,
+      "int32_normalization_branch": "TAKEN_UNDER_SUCCESSFUL_WAV_READER_PATH",
+      "model": "SC20",
+      "pre_detrend_context_f32_sha256": "2481b54f5806694c1a16509abfbb5d0d1b2ff0d64e30bf93e8943f4d5eaf97a3",
+      "pre_detrend_context_frames": 3360600,
+      "rate": 48000,
+      "reader_float_flag": 0,
+      "role": "reference",
+      "scope": "reconstruction conditional on this saved WAV being the loaded file",
+      "soundfile_all_channels_max_error": 0.0,
+      "wav_sha256": "d85c9c923e8f76a8119c3a374c2e673ce4187ac1bb9fba8bd2c50b18a7c32613",
+      "zero_tail_frames": 600
+    }
+  ],
+  "native_gain_parity": {
+    "2203": "NOT_COMPUTED",
+    "SC20": "NOT_COMPUTED"
+  },
+  "open": [
+    "native FIR taps and 673-phase coefficient generator",
+    "full streaming phase and edge reproduction",
+    "24-bit intermediate WAV writer rounding/clipping and reload",
+    "exact f32 target detrend/onset and session provenance"
+  ],
+  "resampler_output_frames_44100_to_48000": 3360000,
+  "source": {
+    "addresses": [
+      "0x180142509",
+      "0x180143512",
+      "0x18014247a",
+      "0x18014248e",
+      "0x18014334a",
+      "0x18014335a",
+      "0x180143361",
+      "0x18008bbe1",
+      "0x18008bbf1",
+      "0x18008bc56",
+      "0x18008bc76",
+      "0x18008bd00",
+      "0x18008bd46",
+      "0x18008be4d",
+      "0x18008be68",
+      "0x18008be78",
+      "0x18008be8d",
+      "0x18008becc",
+      "0x18008bf0c",
+      "0x18008bf0f",
+      "0x18008bf12",
+      "0x18008bf18",
+      "0x18008bf1c",
+      "0x18008bf1e",
+      "0x18008bf27",
+      "0x18008bf2f",
+      "0x18008c17a",
+      "0x18008c17e",
+      "0x18008c193",
+      "0x18008c209",
+      "0x18008c20c",
+      "0x18014171c",
+      "0x18008d4b7",
+      "0x18008d4c1",
+      "0x18008d511",
+      "0x18008d514",
+      "0x18008d58a",
+      "0x1800911c3",
+      "0x1800911d0",
+      "0x1800911d7",
+      "0x1800911da",
+      "0x1800911e1",
+      "0x1800911fb",
+      "0x1800911ff",
+      "0x18014228d",
+      "0x1801422b9",
+      "0x1801422be",
+      "0x1801422d1",
+      "0x180141804",
+      "0x180141869",
+      "0x18014186c",
+      "0x1800bf7f5",
+      "0x1800bf81c",
+      "0x1800bf81f",
+      "0x1800bf827",
+      "0x1800bf85c",
+      "0x1800bf865",
+      "0x1800bf897",
+      "0x1800bf89b",
+      "0x1800bf8b5",
+      "0x1800bfc05",
+      "0x1800bfc2c",
+      "0x1800bfc75",
+      "0x1800a504e",
+      "0x18000d5ed",
+      "0x18000d76d",
+      "0x18000d786",
+      "0x18000cfa0",
+      "0x18000d036",
+      "0x18000d039",
+      "0x18000d03e",
+      "0x18000d043",
+      "0x18000d0b0",
+      "0x18000d10e",
+      "0x18000d13b",
+      "0x18000d16b",
+      "0x18000d17f",
+      "0x180010f22",
+      "0x18001100b",
+      "0x180011013",
+      "0x18000d840",
+      "0x18000d846",
+      "0x18000d858",
+      "0x180142942",
+      "0x180142a14",
+      "0x180142a24",
+      "0x18008dd09",
+      "0x18008dd0c",
+      "0x18000d87f",
+      "0x180142198",
+      "0x1800121d8",
+      "0x180013d3c",
+      "0x180013d49",
+      "0x180013d50",
+      "0x180013d59",
+      "0x180013d5d",
+      "0x180013d6e",
+      "0x18001362b",
+      "0x180013640",
+      "0x18001372a",
+      "0x18001373e",
+      "0x180013c59",
+      "0x180013c62",
+      "0x180013c6b",
+      "0x180013c74",
+      "0x180013c9e",
+      "0x180013cad",
+      "0x180013ce5",
+      "0x180013d03",
+      "0x180013d0a"
+    ],
+    "constants": {
+      "0x18024c4c4": 4.656612873077393e-10,
+      "0x18024ccb0": 4.0,
+      "0x18024cd6c": 70.0,
+      "0x18024cda4": 600.0
+    },
+    "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+    "instruction_pins": 110,
+    "memset_import_verified": true,
+    "vtable_pointers": {
+      "0x1802493b0": "0x18008d3e0",
+      "0x180249c60": "0x180143310"
+    }
+  },
+  "stage": "23E"
+}
