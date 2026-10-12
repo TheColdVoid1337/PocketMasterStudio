@@ -1,3 +1,7 @@
+> **NEW RESEARCH HANDOFF — 2026-10-13 (Stage23O):** [Current HTKPA RE status](NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md) is the canonical *latest* stage register and next-task entry point. The 2026-10-12 historical handoff below deliberately retains its old Stage22/23C dates, counts and notes. Do not restart from Stage23 or infer native FFT/audio/CLO parity from source-pinned synthetic tests.
+
+---
+
 > **CURRENT RESEARCH UPDATE — 2026-10-12 (post-Stage23C):** Original historical handoff below may say Stage22 is latest. It is superseded by Stages **23A, 23B, 23C** and the archival recovery checkpoint. **Read [SOURCE RECOVERY](NAM_CLO_HTKPA_SOURCE_RECOVERY_2026-10-12.md) first**, then [Stage23C](NAM_CLO_HTKPA_DLL_RE_STAGE23C.md) and [INTERIM REVIEW](NAM_CLO_HTKPA_INTERIM_REVIEW_2026-10-12.md). The repository now contains **144 SHA-verified original stage text files (45 Python)** in `research/htkpa/stages/` and original stage-specific reports in `docs/htkpa/source_archive/`. Run `python3 research/htkpa/source_integrity.py` after checkout. **Stage05 original ZIP code is still missing. Stage23 remains OPEN; real four gains and vendor Pre/Post FIR parity NOT computed.** Production remains unchanged.
 
 ---
