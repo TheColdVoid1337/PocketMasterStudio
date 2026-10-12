@@ -1,0 +1,30 @@
+{
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "instruction_pins": 21,
+  "scalar_double_buffer": 4096,
+  "complex_points": 2048,
+  "complex_input_permutation": "11-bit reversal",
+  "complex_internal_sign": "positive; numpy ifft * 2048",
+  "radix4_scalar_strides": [
+    8,
+    32,
+    128,
+    512
+  ],
+  "synthetic_cases": 29,
+  "synthetic_case_categories": {
+    "impulse": 17,
+    "random_complex": 8,
+    "random_real": 4
+  },
+  "max_abs_error": 1.2079226507921703e-13,
+  "worst_case": [
+    "complex_1",
+    703
+  ],
+  "first_error_above_2e_minus_11": null,
+  "negative_control": "omit input bit reversal; impulse 1 then fails max abs >1",
+  "verification_scope": "math-integrated source-derived FFT vs NumPy, no Windows vendor DLL execution or native RAM/CRT/SSE-bit parity",
+  "checkpoint_source": "research/htkpa/stages/stage23q/fft_complex_integration.py",
+  "local_verified_source_note": "Locally tested scratch version; GitHub file may differ in formatting. Re-run the committed script to confirm published bytes."
+}
