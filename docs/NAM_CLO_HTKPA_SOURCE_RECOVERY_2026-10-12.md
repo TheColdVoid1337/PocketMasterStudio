@@ -1,5 +1,7 @@
 # HTKPA research sources — verified relocation and new-chat recovery
 
+> **CURRENT STATUS (2026-10-13, through Stage23O):** [HTKPA current research status](NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md) supersedes this page as a *progress/handoff entry point*. This page preserves the dated **2026-10-12 source-recovery inventory and integrity procedures**. Its Stage23C/23D open-item lists and file counts refer to the historical archive, not all subsequently authored Stage23E–O checkpoints.
+
 **Stage23D restoration update:** 14 additional original text files are now restored and separately manifested; the 144-file historical manifest below remains unchanged. See [restoration and fresh verification](NAM_CLO_HTKPA_STAGE23D_RESTORATION_2026-10-12.md). Stage23D establishes both models' nominal 48k rate; historical Stage23C open items below describe the earlier checkpoint.
 
 **Archival date: 2026-10-12.** Canonical historical Stage reports stay in `docs/`. All newly recovered source code, executable tests, read-only JSON evidence and compact fixtures are in `research/htkpa/stages/`. **No proprietary DLL, Manager installer, NAM, WAV, CLO, firmware, full disassembly or personal capture was added to GitHub.** Production Void Mod remains unchanged.
