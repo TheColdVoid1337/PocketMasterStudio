@@ -22,6 +22,8 @@ The filter alias `filter_A` was `0x215149be050`, with `filter_A+0x50 = 0x215145c
 
 The valid multiplication input is the `C56E` snapshot **after** `C494–C556` repacking, not the earlier `C489` snapshot. Its coefficient snapshot was taken from the same live filter and coefficient pointer in the immediately preceding retained trace. The naive elementwise product misses by `0.0006777608545014361`; the pairwise formula above has maximum error `0.0` and zero nonmatching doubles. Native post-inverse blocks equal `2048 * irfft(conj(packed_product))`; maximum errors are `8.673617379884035e-19` and `9.75781955236954e-19`.
 
+The Stage23I static candidate has the same 4096 layout, 1417 active entries and gain sum, but does **not** equal this native buffer: max f64 error `1.6025453961367097e-06`, RMS `2.8553058553229254e-07`, and all 1417 active entries differ. Its SHA-256 is `ff4b587594a156df2fe8fd34a7a639eeb09e3cc9a59fcfba93afa17737d241be`; native is `649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770`. Treat Stage23I as source-derived, not native coefficient parity.
+
 ## Streaming and limits
 
 Native first-block emission is zero, then 1972, then 2680 doubles. At `C689`, observed `state+0x84` starts at 3388 then 708; at `C6D2` it is 2680 then 0. `state+0x38 = 708`. `state+0x54 = 0` reaches `C759`; it does **not** alone establish direct `C824` memcpy, because `state+0x2c` controls that final choice. The tracer now records `output_period = state+0x2c`; capture it before making an output-route claim.
@@ -30,6 +32,6 @@ Stage23S lane selection, Stage23T flag lineage, Stage23U inverse sign/scale, and
 
 ## Next static targets and validation
 
-First run `stage23i/native_fir_coefficients.py` against the SHA-pinned DLL and compare its 4096-double candidate to the native pre-FFT private buffer by f64 error, not FFT appearance. Then disassemble `0x18000C6FC–0x18000C861` around `state+0x54/+0x2c`, with the falsifiable prediction that `+0x2c <= 1` selects `C824`; use one bounded live capture only to read that field. Finally trace the native WAV decoder/resampler only after retaining this FIR conclusion.
+Investigate the Stage23I generator's upstream parameters and math-call precision to explain the measured coefficient mismatch. Separately disassemble `0x18000C6FC–0x18000C861` around `state+0x54/+0x2c`, with the falsifiable prediction that `+0x2c <= 1` selects `C824`; use one bounded live capture only to read that field. Continue static WAV decoder/resampler work from Stage23E only with these FIR facts retained.
 
 Tracked sanitized artifacts are `research/htkpa/stages/stage23w/native_evidence.json`, `native_analysis.json`, `native_trace.py`, `analyze_native_fir.py`, and `validate_native_evidence.py`. Validate with `python research/htkpa/stages/stage23w/validate_native_evidence.py`; analysis requires an interpreter with NumPy and explicit private input/coeff/result roots.

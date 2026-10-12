@@ -7,9 +7,10 @@
   "observed_filter_flags": [1],
   "captured_arrays": ["private 4096-f64 coefficient, packed-input, product and inverse arrays; hashes only in native_analysis.json"],
   "numerical_checks": ["pairwise lane max error 0.0", "naive elementwise max error 0.0006777608545014361", "coefficient post-FFT rfft max error 5.142739455391301e-19", "inverse max error 9.75781955236954e-19"],
+  "stage23i_static_coefficient_comparison": {"same_layout_and_gain_sum": true, "max_abs_error": 1.6025453961367097e-06, "rms_error": 2.8553058553229254e-07, "nonmatching_active_doubles": 1417, "candidate_sha256": "ff4b587594a156df2fe8fd34a7a639eeb09e3cc9a59fcfba93afa17737d241be", "native_sha256": "649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770"},
   "block_counts": [0, 1972, 2680],
   "private_run_relative_dir": "stage23w_native/20261013_flag_capture_restart",
   "private_additional_runs": ["stage23w_native/20261013_packed_capture", "stage23w_native/20261013_discard_capture"],
   "limitations": ["Coefficient and packed-input snapshots are from adjacent retained captures with the same live filter and coefficient pointer", "state+0x2c output-period field was not captured in the retained output-route trace", "No PCM/resampler, gain, CLO or device-output parity claim"],
-  "next_targets": ["Compare Stage23I static 1417-tap buffer to native coeff_pre_fft", "Disassemble 0x18000c6fc-0x18000c861 and capture state+0x2c", "Continue native WAV decoder and resampler investigation after FIR coefficient comparison"]
+  "next_targets": ["Explain Stage23I-to-native coefficient mismatch from generator inputs or precision", "Disassemble 0x18000c6fc-0x18000c861 and capture state+0x2c", "Continue static native WAV decoder and resampler investigation"]
 }
