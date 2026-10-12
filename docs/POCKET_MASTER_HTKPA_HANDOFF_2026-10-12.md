@@ -290,3 +290,412 @@ Trace manager ingestion and native float32 buffer population under `context+0x24
 # CHRONOLOGICAL SOURCE-PROOF APPENDICES — Stages 2–20
 
 Below follow actual GitHub research documents; historical errata are overridden by the summary above and later Stage documents.
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 2
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE2.md
+
+# Sonicake HTKPA static reverse engineering — Stage 2 (2026-10-12)
+
+**Scope:** user-supplied Windows `5868USB.dll`; PE disassembly and import table only. No execution of DLL, no changes to production JS-only converter, no pedal writes. Pinned SHA-256: `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. VAs assume PE base `0x180000000`.
+
+## Confirmed findings
+
+- **Exact saturator family** at `0x180028690`: when `x>0`, `Pmax*(1-exp(-Prate*x))`; otherwise `Nmax*(exp(Nrate*x)-1)`. `expf` is an import at IAT RVA `0x18B9A8` via thunk `0x18017E12E`. The actual DLL uses float32 operations in this scalar function. **Same mathematical function as our current SonicMaster-based implementation**, not necessarily same numerical fitting or rounding.
+- **Four-gain fit routine** at `0x1800BDBE0`. The caller passes pointers to context `+0x243F8`, `+0x243FC`, `+0x24400`, `+0x24404`, which are the four nonlinear fields later packed into CLO. The routine bins signal amplitude statistics separately by polarity, computes nonlinear predictions and squared residuals, searches positive and negative rate scale factors over approximately **0.8–1.2 in 0.05 steps**, then writes four results (`0x1800BE661`, `0x1800BE676`, `0x1800BE682`, `0x1800BE68F`). Binning, normalization and exact optimizer are not fully reconstructed.
+- **Recursive audio preprocessing** in `0x1800BD490`: two-state second-order filtering with feedback coefficient banks `+0x232F0/+0x232F8` and `+0x23318/+0x23320`, and feedforward banks `+0x232D8/+0x232E0/+0x232E8` and `+0x23300/+0x23308/+0x23310`. Arithmetic is consistent with two second-order direct-form-II sections. Their exact purpose is unknown; this is not evidence that the final CLO has IIR in place of FIR.
+- **Sample-rate-specific coefficient tables** at `0x1800BC6B0`, checking 44100, 48000 and 96000 Hz. The type of filter/resampler/window represented by those tables is not yet known.
+- **Three differently parameterized stages**, not necessarily coordinate-descent repetitions: at `0x1800BEE9F`, `0x1800BEEAA`, `0x1800BEEB5`, selector values **2 → 1 → 3** are stored. The dispatcher indexes distinct pointers/lengths and calls `0x1800BB210` three times. `0x1800B9B70` follows and participates in final filter construction.
+
+## Matching reference pairs
+
+For the **same** source models, measured nonlinear gains (little-endian float32 starting at CLO byte 104):
+
+| NAM | Implementation | Pos Max | Neg Max | Pos Rate | Neg Rate |
+| --- | --- | ---: | ---: | ---: | ---: |
+| JCM800 2203 Crunch | Windows Sonicake Manager | 0.058698 | 0.062518 | 425.44 | 356.19 |
+| JCM800 2203 Crunch | Void baseline | 0.207526 | 0.207998 | 764.80 | 764.80 |
+| SC20 Full Rig | Windows Sonicake Manager | 0.010617 | 0.012697 | 450.93 | 253.91 |
+| SC20 Full Rig | Void baseline | 0.054729 | 0.056443 | 877.18 | 1182.64 |
+
+Gain values cannot be used alone to determine output loudness: FIR scaling and input drive differ. Mobile SONICLINK is **not proven** numerically identical to Windows Manager.
+
+## Reproducibility / acceptance
+
+Stage-2 standalone read-only Python verifier `verify_stage2.py` was run against the DLL both with live GNU `objdump` output and a cached disassembly. **30 static instruction checks plus expf import** passed. Evidence JSON was byte-identical in both runs. The full technical report, verifier, machine-readable evidence and gain comparison were distributed as `Sonicake_HTKPA_DLL_RE_Stage2_v0_2.zip` with the user. The proprietary DLL and captured WAV/CLO are excluded from this Git repository.
+
+## Remaining work
+
+Trace `0x1800BB210` (different selector-specific arrays), `0x1800B9B70` and `0x1800B82B0` until the concrete Pre-FIR/Post-FIR design equations can be independently reproduced from the matching input/output WAVs and checked against both official CLOs. Reconstruct all context coefficient initialization and exact gain-fitting normalization, then separately prototype a single-70s-probe **pure-JS opt-in** pipeline. The working JS converter and the positively auditioned JCM800 2203 v0.2 C remain untouched.
+
+**No claim of bit-exact vendor CLO reconstruction or sound-quality equivalence.**
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 3
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE3.md
+
+# Sonicake HTKPA reverse engineering — Stage 3 (2026-10-12)
+
+**Static research only.** This work analyzes the user's Windows Sonicake Manager `5868USB.dll` (SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`) without executing it. Virtual addresses assume PE64 image base `0x180000000`. The binary, vendor WAV/CLO captures and proprietary inputs are **not distributed or committed**. Production JS-only Void Mod is **unchanged**.
+
+This stage follows `0x1800BB210` (the three-selector fitting dispatcher calls this repeatedly) and `0x1800B9B70`, plus helpers `0x1800B82B0`, `0x1800B4CF0`, and `0x1800B52E0`.
+
+## Confirmed local mathematics
+
+1. **Iterated power-law correction** in `0x1800BB210`. A call to imported `powf` at `0x1800BB46E` computes `powf(base[i], exponent_scale * q[i])` and clamps output to **[0.2, 5]** (`0x1800BB479`, `0x1800BB48C`). The scalar exponent scale is multiplied by **0.9** in the iteration (`0x1800BB4BE`; constant VA `0x18024C654`). The procedure multiplies/divides per-element arrays (`0x1800BB575`, `0x1800BB6E1`), invokes convolution/filter helpers, applies the original asymmetric exponential saturator `0x1800BE700` at `0x1800BBCC9`, and invokes `0x1800B82B0` **twice** (`0x1800BC055` and `0x1800BC3C5`). **Exact state-array identities and the complete update rule remain unresolved.**
+
+2. **512-element logged metric** at `0x1800BC410..0x1800BC440`: `mean(abs(logf(v[i] + 2^-23)))` over 512 values. The bound `0x200`, `logf` import, absolute-value mask, and multiplier `1/512` (`0x18024C4F0`) are explicit. The *source* of this array has not been proven: its length matching the pedal's transmitted 512 Post-FIR taps is **not enough** to identify it with those taps.
+
+3. **Exact Hamming window** in `0x1800B82B0`:
+   `w[n] = 0.54 - 0.46*cos(2*pi*n/(N-1))`.
+   Direct assembly: cosine `0x1800B83CA`, multiply by 0.46 `0x1800B83CF`, subtract from 0.54 `0x1800B83D8`. Coefficients at `0x18024C5B0` (0.46), `0x18024C5D4` (0.54), and `0x18024CCF0` (2π). It remains to be shown exactly how this taper feeds the final CLO filters.
+
+4. **Spectral magnitudes and regularized ratio** inside `0x1800B9B70`. Consecutive `(re,im)` pairs are converted by `sqrtf(re² + im²)`, including `0x1800BA97B`. The ratio code near `0x1800BAC70..0x1800BAD2E` has local scalar form:
+   `r[k] = 1e6 * M_a[k] / (1e6 * M_b[k] + 2^-23)`,
+   explicitly clipped to **[0.1, 10]** (`0x1800BAEB3`, `0x1800BAEC6`). Exact assignments of `M_a` and `M_b` to full pipeline buffers, and their later normalization, **are not yet known**. Further output balancing computes RMS-like squared-energy ratios (`0x1800BB010..0x1800BB0E2`).
+
+5. **Sample-rate-dependent temporary support** near `0x1800B9BCB` is `ceil(0.1*sample_rate)` (~4410 at 44.1kHz, 4800 at 48kHz). This does **not** identify a final output filter length. The routine also has cosine tapering near `0x1800BA820`, complex-data processing via `0x1800B4CF0`, and trigonometric basis generation in `0x1800B52E0`. The complex helper uses modulo indexing and real/imaginary cross-terms, consistent with circular complex convolution.
+
+## Significance and limits
+
+Stage 3 supports a **multi-stage adaptive, frequency-domain nonlinear fitting** interpretation of official Windows HTKPA, beyond a single linear Post-FIR refit. In particular, Sonicake's local DSP includes Hamming tapering, bounded spectral gain, a 512-element logged control/score, and exponent annealing. These are concrete new avenues for reproducing its sound in a clean original implementation.
+
+**Not yet proven:** exact 128-tap Pre-FIR and 2048-tap Post-FIR design equations, transform scaling/order, intermediate buffer-to-CLO mapping, vendor-matched coefficients, bit-exact CLO output, equivalence to mobile SONICLINK, or improved sound on hardware. Do not put partial formulas into production. The well-received JCM800 2203 v0.2 C remains the controlled reference; v0.3 automatic shelf remains unvalidated on real hardware.
+
+## Reproducibility
+
+The separate conversation research artifact `Sonicake_HTKPA_DLL_RE_Stage3_v0_3.zip` contains `verify_stage3.py`, evidence JSON, standalone Python scalar primitive reproductions, **five passing unit tests**, and a detailed technical report. The verifier matched **31 exact assembly instruction locations**, four math imports (`powf`, `logf`, `sqrtf`, `cosf`) and eleven pinned constants. Independent consecutive invocations yielded identical evidence JSON; the ZIP integrity check passed.
+
+Next: trace `0x1800B82B0` output pointers through `0x1800B5D00` and `0x1800B7E10` → `0x1800B65A0` → `0x1800B5A30` into the serializer; then numerically test predicted FIR coefficients against *both* existing matching official Windows Manager CLOs. Only after a numeric coefficient validation should a JS-only experimental pathway be considered.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 4
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE4.md
+
+# Sonicake HTKPA — Stage 4: FIR output and resampling trace
+
+**2026-10-12 · Verified partial result, not a completed FIR reconstruction.** This stage statically examines the user-provided Windows Sonicake Manager `5868USB.dll` (SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`). No proprietary binary has been executed or redistributed, no hardware slot written, and the production browser-only JS converter remains unchanged.
+
+## Newly established data flow
+
+- **Working FIR pointers:** `context+0x24408` holds the 128-tap Pre-FIR input buffer; `context+0x24410` holds the 2048-tap Post-FIR input buffer. The latter is explicitly zeroed and initialized to a unit impulse `(1,0,0,...)` at `0x1800bed4a..0x1800bed5d` prior to fitting.
+- **Fitting:** three differently configured calls to `0x1800bb210` (`0x1800bf0c9`), followed by the spectral finishing function `0x1800b9b70` (`0x1800bf11e`). Both working FIR pointers are provided to the optimizer; the spectral finalizer receives the post-FIR destination pointer.
+- **Final buffer construction:** calls `0x1800c0d40` at `0x1800bf135` for Pre-FIR and `0x1800bf14f` for Post-FIR; later calls `0x18000ce00` at `0x1800bf364` and `0x1800bf47f` for sample-rate conversion.
+- **Target sample rate** is **44,100 Hz** (float32 constant at `0x18024cdf0`). `0x18000d031..0x18000d043` calculates an integer output length by truncating `input_length × target_rate / source_rate`.
+- **Packing:** destination tap regions are zero-initialized, and only the rate-converted values are copied into the declared 128/2048-tap VTSI/CLO. Final header and CRC are computed at `0x1800bf4df..0x1800bf542`.
+
+The paired Sonicake Manager NAM-output WAV is 48 kHz. At **48 → 44.1 kHz**, the calculated output supports are **128 → 117** and **2048 → 1881** taps.
+
+## Numerical comparison of actual source-matched CLOs
+
+We verified both the official Windows Manager CLO and the baseline Void CLO, for both matching NAMs. **All four** contain 117 consecutive nonzero Pre-FIR samples followed by 11 zeros, and 1881 consecutive nonzero Post-FIR samples followed by 167 zeros. Thus **the production Void path already exhibits this resampling signature**. It cannot, by itself, account for the audible difference.
+
+Cosine similarity of raw tap vectors (no delay, polarity or amplitude compensation):
+
+| Same-NAM pair | Pre-FIR cosine | Post-FIR cosine |
+| --- | ---: | ---: |
+| JCM800 2203 Crunch | 0.0174 | -0.1932 |
+| SC20 Full Rig | 0.7966 | -0.0311 |
+
+These values are **not perceptual scores**; coefficient phase and latency can strongly affect raw cosine. They do establish that identical container layout and sample counts do **not** imply numerically matching filter taps.
+
+## Acceptance status: **NOT MET**
+
+The Stage 4 objective was to independently calculate at least one complete official FIR from NAM/WAV and match the vendor coefficients. **That has not been achieved**. We have proven the final memory-pointer chain, rate conversion, padding and serialization, not the complete upstream fitting equations or the exact interpolation kernel.
+
+**Remaining concrete target:** trace the outputs of `0x1800b82b0` and the data passed to `0x1800b5d00`/ `0x1800b7e10` and `0x1800b9b70`; reconstruct the complex-spectrum phase convention, inverse transform and normalization into `context+0x24408/0x24410`; then independently generate every nonzero target coefficient (117 Pre or 1881 Post) from a matching reference pair. Matching zero padding or frequency-band averages alone does not satisfy this criterion. Also reconstruct the exact resampling interpolation if byte-level equality is necessary.
+
+## Reproducible verification
+
+The separate research bundle `Sonicake_HTKPA_DLL_RE_Stage4_v0_4.zip` contains:
+
+- `verify_stage4.py`: read-only static verifier with **23 exact instruction checks**, DLL SHA256 pinning, float32 sample-rate constant, CLO VTSI/CRC16 checks, and both official/Void cross-comparisons.
+- `static_validation.json`: recorded results for four user-supplied CLOs, with hashes and tap statistics (no proprietary audio or code).
+- `RESEARCH_REPORT.md`: source addresses, methods, limitations and next trace targets.
+
+The analyzer checks source CLOs without modifying them; ZIP integrity was verified. Neither the DLL, vendor intermediate audio nor commercial captures are included in the research archive or GitHub.
+
+**Preserve the well-auditioned JCM800 2203 v0.2 C as a subjective hardware reference. Do not change default fitting or introduce generic +gain/HF boosts based on this finding.**
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 5
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE5.md
+
+# Sonicake HTKPA — Stage 5: Gaussian spectrum smoothing
+
+**2026-10-12 · Static reverse engineering · Not a full vendor algorithm.**
+
+This research continues Stage 4 on the user's Windows Sonicake Manager `5868USB.dll`, SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. **The DLL was not executed or redistributed**; no physical device operations or production JS converter changes were performed. All addresses are virtual addresses relative to image base `0x180000000`.
+
+## New confirmed data flow
+
+In `0x1800B9B70`, the spectrum-magnitude ratio already found in Stage 3 is clamped to **[0.1,10]**, then passed to **`0x1800B7E10`** at `0x1800BAEF9`, followed by calls to `0x1800B65A0` and `0x1800B5A30`. The new function performs **Gaussian weighted averaging with boundary renormalization**.
+
+With `N = ceil(0.1*sample_rate)`, the spectral array length is `B = trunc(0.5*N + 1)` and smoothing width is `W = trunc(0.1*B)`.
+
+| Internal sample rate | N | B | W | Approximate Gaussian σ in frequency |
+| ---: | ---: | ---: | ---: | ---: |
+| 44,100 | 4410 | 2206 | 220 | ~440 Hz |
+| 48,000 | 4800 | 2401 | 240 | ~480 Hz |
+| 96,000 | 9600 | 4801 | 480 | ~960 Hz |
+
+The independent mathematical kernel (unnormalized, indexing `k=1..W`), verified from double-precision constants and imported `exp`, is:
+
+```
+center = ceil(0.5*W)
+weight[k] = exp(-0.5 * ((k-center)*5.0/W)**2)
+```
+
+- Addresses `0x1800B7E63`/`0x1800B7E85`: constant 5.0 divided by W.
+- `0x1800B7E91`: `ceil` of half the window.
+- `0x1800B7ECF`/`0x1800B7EDB`/`0x1800B7EDF`: squared, negative-half-scaled distance and `exp`.
+- `0x1800B7EE8`: accumulate weights.
+- `0x1800B7F02..0x1800B7FE1`: special even-W zero padding, reversed kernel, coefficients multiplied by `1e6/sum(weights)`.
+- `0x1800B812F`: interior output multiplied by 1e-6; `0x1800B824C`: boundary output divided by sum of actually overlapping weights.
+- `0x1800B8256`: final smoothing output stored in float32.
+
+A **256-float (0x400-byte) work block** is also confirmed in `0x1800B65A0`, including a call to `0x1800B7670` with `0x100` and grouped processing of `0x20 × 8` samples. Its precise transform/overlap role and the relationship to final FIR taps require tracing; it is **not** evidence that a final FIR has 256 taps.
+
+## Reproducible tests and caveats
+
+Separate artifact `Sonicake_HTKPA_DLL_RE_Stage5_v0_5.zip` includes original, clean-room Python code (no proprietary program code), `verify_stage5.py`, `gaussian_spectrum.py`, seven passing unit tests, evidence JSON, optional visualizations, and `RESEARCH_REPORT.md`.
+
+- **27 exact addresses**, **7 binary constants** and imported `exp`/`ceil` were checked against the pinned DLL. Two verifier runs generated identical JSON.
+- Seven unit tests pass: 48k/44.1k/96k sizes, odd/even kernel, constant preservation including array edges, spike smoothing, finite/bounded step response.
+- Illustrative Gaussian smoothing on the **ratio of finished 512-tap Post-FIR magnitudes** from the user-provided matched CLOs reduces adjacent-bin dB-slope variance by >95%. **This is intentionally *not* a reconstruction of internal Sonicake spectral inputs**, nor a test of auditory fidelity.
+- Recovered isolated scalar math and even-window conventions are not bit-accurate end-to-end DLL reimplementation.
+
+## Acceptance status and next targets
+
+**Stage 4 FIR coefficient-level acceptance remains NOT MET.** We have located another processing stage, not recovered the exact 128/2048 final taps. Missing: the source/output spectral buffers, transform phase convention, `0x1800B65A0` → `0x1800B5A30` output mapping into `context+0x24408/+0x24410`, joint fitting and resampler interpolation.
+
+The next scientific gate is unchanged: independently calculate a complete FIR using the same NAM/reference WAV, and numerically compare *all* nonzero coefficients with the matching official Windows Manager CLO on 2203 and/or SC20. Do **not** change production JS default, generalize a +2.5 dB boost, claim matching mobile SONICLINK or ship Gaussian processing from this isolated finding. The user-favored JCM800 2203 v0.2 C is retained as audible control.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 6
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE6.md
+
+# Sonicake HTKPA — Stage 6: complex spectral exponentiation and minimum-phase fingerprint
+
+**Date: 2026-10-12. Research-only; no production change or hardware writes.**
+
+## Key finding
+
+On **two independently captured official Windows Sonicake Manager CLOs**, the full nonzero **1881-tap Post-FIR** almost exactly matches a minimum-phase impulse response independently reconstructed from **its own FFT magnitude**. This is **not** a direct reconstruction of the vendor Post-FIR from the source NAM/WAV.
+
+| Same-NAM CLO | Cosine of Post-FIR vs its magnitude-derived minimum-phase projection | Relative L2 error |
+| --- | ---: | ---: |
+| Official JCM800 2203 Crunch | **0.998563** | 0.05360 |
+| Official JCM800 SC20 Full Rig | **0.999589** | 0.02867 |
+| Original Void JCM800 2203 | −0.243669 | 1.57713 |
+| Original Void JCM800 SC20 | −0.040724 | 1.44272 |
+| Positively auditioned JCM800 2203 v0.1 refit | −0.297339 | 1.61080 |
+| User-favored JCM800 2203 v0.2 C | −0.226487 | 1.56620 |
+
+The cosine uses the **raw, aligned coefficient vectors** with no offset, sign flip, gain adjustment or phase fitting. FFT=32768, relative spectrum floor 1e-8, hmin=real IFFT of the exponential of the causal real cepstrum. On FFT sizes 8192/16384/32768/65536 the **official 2203 cosine remains 0.998515–0.998766**, and SC20 **0.999544–0.999800**. This is strong evidence of a **minimum-phase output-filter design** in the Windows algorithm, even though the exact internal implementation is still incomplete. The Pre-FIR on all six tested CLOs already gives ≈1.0 cosine against its own minimum-phase projection.
+
+## Pinned DLL observations
+
+User-supplied Windows `5868USB.dll` SHA256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`; base `0x180000000`. The DLL was **only statically disassembled**, never loaded or executed.
+
+- `0x1800B73BB`: imported `logf` in the spectral-processing path.
+- `0x1800B7450`: calls spectral interpolator `0x1800B5D00`.
+- `0x1800B748F`: reverse-bin lookup for symmetric spectrum construction.
+- `0x1800B754A`, `0x1800B7569`, `0x1800B7590`: transform, conjugate-fold, transform helpers `0x1800B4A50 → 0x1800B6E30 → 0x1800B4F60`.
+- `0x1800B6EDB` adds paired real components, while `0x1800B6EEB` subtracts paired imaginary components, consistent with Hermitian conjugate folding.
+- `0x1800B75D5`, `0x1800B75E1`, `0x1800B75F4`: imported `expf`, `cosf`, `sinf`; nearby multiplies and stores confirm the local complex reconstruction **`exp(a)·(cos(b)+i·sin(b))`**.
+- `0x1800B5B4B`: invokes `0x1800C0F60` within fixed 64-sample block processing; exact transform conventions not yet recovered.
+
+Together, the pinned instructions and empirical FIR fingerprint strongly **support** (but do not prove every step of) complex-log / minimum-phase spectral synthesis. Twenty exact-instruction pins are verified by a reproducible read-only `objdump` harness.
+
+## Cross-reference with official Post-FIR, JCM800 2203
+
+Raw cosine of each 1881-tap Post-FIR against the official Windows 2203 Post-FIR, then the same filter after minimum-phase projection **without changing its original magnitude response**:
+
+| Source | Original cosine | Projected cosine |
+| --- | ---: | ---: |
+| Void baseline | −0.1932 | **+0.9622** |
+| v0.1 Post-FIR refit | −0.2847 | **+0.9473** |
+| v0.2 C (user's preferred hardware sound) | −0.2916 | **+0.9367** |
+
+**This is a coefficient-comparison result, not a simulated or measured sound-quality improvement.** It highlights a phase mismatch, but the amplitude response and nonlinear gain staging still differ.
+
+## Carefully isolated A/B candidate — NOT hardware-validated
+
+A separately distributed experimental file `JCM800_2203_v06_MIN_PHASE_FROM_C_UNVALIDATED.clo` projects **only the first 512 physically transmitted Post-FIR taps** of the user-favored **v0.2 C** to minimum phase. It changes no Pre-FIR, saturator, DC filter or other coefficients; only those first 512 float32 taps and the derived CRC16 differ. The original v0.2 C remains unchanged.
+
+- Same 8840-byte VTSI with valid CRC16.
+- Mean transmitted-tap magnitude-spectrum deviation from C: **0.000217 dB** on a 32768-point frequency grid.
+- Tap L2 before/after ~**0.343812**.
+- 512-tap cosine to official Windows 2203 changes from **−0.29471** to **+0.95036** (without gain/lag adjustment).
+- **No on-device audition yet.** The altered phase can change attack, group delay and feel even if magnitude response is matched. Do not assume audible benefit. Compare only on a spare user slot at reduced monitoring volume, retaining C and official SONICLINK.
+
+## Verification / unresolved acceptance
+
+A separate private-conversation research ZIP `Sonicake_HTKPA_DLL_RE_Stage6_v0_6.zip` contains independently authored Python cepstrum code, pinned read-only DLL verifier, **five passing unit tests**, evidence JSON, impulse-response plots, exact candidate generator and unvalidated CLO. It **does not contain** the proprietary DLL, original NAM, official WAV or official CLO captures.
+
+**The original Stage-4 acceptance gate remains NOT MET:** no complete vendor Pre/Post-FIR has been inferred from the *input/output WAV only*. Computing an official FIR's phase **from its known vendor magnitude** cannot be presented as end-to-end vendor fitting recovery.
+
+**Next:** trace exact Fourier and conjugate/cepstral array semantics in `0x1800B4A50/0x1800B6E30/0x1800B4F60`; then independently fit a stabilized and smoothed amplitude-response target from the 70-second NAM input/output probe to the Pre-FIR+nonlinearity output, and combine it with phase reconstruction. Evaluate coefficient error on **both** source-matched Windows CLOs and listen on-device before any opt-in browser integration. Production JS-only converter and previous positively auditioned reference are not changed.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 7
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE7.md
+
+# HTKPA Stage 7 — NAM-only spectral Post-FIR reconstruction experiment
+
+**2026-10-12 | Research-only | Production unchanged | Original HTKPA coefficient-reconstruction gate still NOT MET**
+
+## Experimental objective
+
+Estimate a 512-tap *minimum-phase* Post-FIR from the known 70-second input DI and **independently computed NAM WaveNet output**, retaining the baseline Void Mod **Pre-FIR / asymmetric saturator / DC blocker**. This is an original Python analysis experiment, **not** the complete official HTKPA, and **not** a standalone NAM-to-CLO converter: the baseline CLO and independent WaveNet predictions are required.
+
+A separate user-delivered bundle `Sonicake_HTKPA_RE_Stage7_v0_7.zip` contains a CLI fitter, tests, per-model reports, numerical validation, and frequency-response plots. **No proprietary DLL, NAM, user WAV or official CLO file was committed.**
+
+## Procedure
+
+- Input is the shared stereo reference DI resampled to 44,100 Hz, with ten fixed two-second 44.1-kHz NAM WaveNet predictions.
+- Apply baseline Void Mod 128-tap Pre-FIR, four exponential saturator coefficients and two-pole DC blocker.
+- On five training windows (5–7, 18–20, 30–32, 43–45, 58–60 s), use a **4800-sample Hann window** and 50% overlap. Estimate `|S_qy| / (S_qq + 10^-6 × max(S_qq))`.
+- Interpolate log magnitude to a 32768-point FFT, reconstruct a causal 512-tap minimum-phase response via the real cepstrum.
+- Resolve overall sign/polarity from **training waveform only**. Magnitude alone lost this sign and initially produced **-0.823 signed correlation** for JCM800 2203; correct polarity is +0.823.
+- For optional experimental CLO export only, preserve baseline training RMS and regenerate CRC16; research CLI **does not write a CLO without an explicit flag**.
+- Validation windows are disjoint (13–15, 26–28, 39–41, 53–55, 65–67 s), but from the **same** 70-second DI; generalization to independent playing is unproven.
+
+The shared 4800-sample support was motivated by Stage 5's verified 0.1-second spectral window. The above PSD ratio is **our hypothesis**, not a proven transcription of Sonicake HTKPA mathematics.
+
+## Heldout results
+
+Absolute signed-gain-aligned waveform Pearson correlation against **independent NAM WaveNet output**:
+
+| Model | Baseline Void | Stage-7 independent WaveNet fit | Previously good v0.1 refit | User-preferred v0.2 C | Stage-6 projected C |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| JCM800 2203 Crunch | 0.74867 | **0.82262** | **0.89487** | **0.88947** | 0.81740 |
+| SC20 Full Rig | 0.65815 | **0.52652 — regression** | **0.76620** | n/a | n/a |
+
+Stage-7 is **not suitable as a replacement**: it loses to the positively auditioned refit for 2203 and regresses on SC20.
+
+## Crucial no-vendor-audio reproducibility check
+
+After fitting, but **only for validation**, estimate the same candidate once more using the official Windows Manager `outputFile.wav` instead of our independent WaveNet. Shape similarity of the resulting 512-tap filters:
+
+| NAM | Cosine: independent-WaveNet fitted Post-FIR vs vendor-WAV fitted Post-FIR | Post-FIR cosine to official Windows Manager (evaluation only) |
+| --- | ---: | ---: |
+| JCM800 2203 | **0.9999998881** | **0.92268** |
+| SC20 | **0.9999610985** | **0.91527** |
+
+The norm ratio of the WaveNet-fitted impulse vs vendor-WAV-fitted impulse is roughly **3.227**, matching the known official WAV `×0.31` scaling. Thus **the target audio no longer requires the official manager**, while the upstream chain *still* does not match HTKPA.
+
+When the **already-known official Pre-FIR and nonlinear parameters** were substituted as diagnostic upstream coefficients (not independent or deployable), the candidate Post-FIR cosine rose to about **0.958 (2203) and 0.924 (SC20)**. This demonstrates that fitting upstream stages jointly remains necessary.
+
+## Stage 5 Gaussian finding needs correct placement
+
+Applying a naive **≈480-Hz Gaussian smoothing directly to the final estimated Post-FIR spectral ratio** degraded heldout waveform correlation:
+- 2203: **0.823 → 0.429**;
+- SC20: **0.527 → 0.169**.
+
+This experiment **does not falsify** the recovered Sonicake Gaussian kernel. The vendor smooths a specific *intermediate*, not necessarily the final simplified transfer ratio. Array identities must be recovered before transplanting it.
+
+## Acceptance, next work, and safety
+
+**Stage 4's strict acceptance criterion remains unmet:** no full official FIR is yet generated from NAM/WAV and shown coefficient-exact against Windows Manager. Cosine similarity of Post-FIR vectors is not a waveform or listening-quality metric, and the Windows Manager output is not proven identical to mobile SONICLINK.
+
+**Next:** recover the complete input/output buffer identities for HTKPA's selectors **2 → 1 → 3**, jointly identify **Pre-FIR and nonlinear gains**, locate the Gaussian smoother within that actual computation, then reevaluate the end-to-end 128/2048 taps on both NAMs. Do not add arbitrary per-model boosts, do not replace the production browser JS converter, and keep the JCM800 2203 v0.2 C audio-accepted reference intact. Stage 6's phase-only candidate also remains **unvalidated by hardware listening**.
+
+No physical pedal operation occurred. Five standalone Stage-7 Python tests and both read-only NAM-only benchmark runs passed; output ZIP integrity was verified.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 8
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE8.md
+
+# Sonicake HTKPA Stage 8 — DLL-proven region dispatch and optimizer guard
+
+**2026-10-12. Source-first, read-only static reverse engineering of the user's Windows Sonicake Manager 5868USB.dll. No guessed FIR fitter, no new CLO, no production code or device changes.**
+
+Pinned DLL SHA-256: `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. PE image base: `0x180000000`. The proprietary DLL and captured vendor WAV/CLO are not included in the repository.
+
+## Exact fit schedule — independently verified against machine code
+
+The input probe and matching NAM output are grouped by byte pointers in `0x1800BE830`. The output pointers include a *detected sample-alignment offset* (search near 6s, maximum 600 samples), which must **not** be dropped when later reconstructing the numerical fit.
+
+| Execution order | Selector | Input WAV window | Output WAV window | Inner iterations |
+| ---: | ---: | --- | --- | ---: |
+| 1 | 2 | 23–28 s (5s) | same window plus measured onset offset | 3 |
+| 2 | 1 | 6–21 s (15s) | same window plus measured onset offset | 2 |
+| 3 | 3 | 30–50 s (20s) | same window plus measured onset offset | 5 |
+| Final spectral stage | n/a | 50–70 s (20s) | same window plus measured onset offset | separate function |
+
+**Evidence, not inference:**
+- Selector stores **2→1→3** at `0x1800BEE9F/0x1800BEEAA/0x1800BEEB5`. Dispatch and call to `0x1800BB210`: `0x1800BF050..0x1800BF0C9`; loop count three at `0x1800BF0D1`.
+- The four-int table at `0x18024CFB0` is exactly **2,3,5,1**; selector-indexed count lookup at `0x1800BF0A3`. The extra 1 is never used by the three selected calls; its independent meaning is **not known**.
+- Float32 window constants at `0x18024CCD0/0x18024CD34/0x18024CD40` are **5,15,20**. Length lookup at `0x1800BF0AE`. Input/output pointer lookups are `0x1800BF0BE/0x1800BF0B6`.
+- Source starts are directly calculated via multipliers **6,23,30,50 × sample rate** at `0x1800BEA5D`, `0x1800BEB2B`, `0x1800BEB4D`, `0x1800BEB6F`; the output is offset by the detected onset alignment.
+- After the three calls, `0x1800BF111/0x1800BF116` load the 50s output/input pair, and `0x1800BF11E` calls **`0x1800B9B70`**, *not* `0x1800BB210`.
+
+**Do not relabel these as “clean”, “saturation”, or “EQ” passes without following their actual buffers and calculations.**
+
+## Actual optimizer branch logic
+
+The fitter at `0x1800BB210` gets its iteration count at `0x1800BB245` and loops back from `0x1800BC5C2`. Therefore the selected counts are actual optimizer iteration counts, not merely unrelated table entries.
+
+The control score at `0x1800BC410..0x1800BC440` has direct scalar form:
+
+`score = (1/512) * sum_{i=0..511} abs(logf(v[i] + 2^-23))`
+
+This is backed by a 512-element loop, `logf` import, bitwise absolute mask and exact float32 constant 1/512. **The immediate producer of v is now known**: `0x1800BC3CA` loads its scratch pointer, `0x1800BC3E4` passes that same pointer as an output argument to `0x1800B5D00` (`0x1800BC3F9`), and the callee **reads that output pointer** at `0x1800B5FE3`, **writes its results** at `0x1800B60FE`; `0x1800BC410` then reads the same buffer in the score loop. Its **mathematical meaning remains unproven**; do not assume those values are physically transmitted FIR taps.
+
+The branch condition at `0x1800BC459/0x1800BC469`, compared with `1.2` at `0x1800BC504/0x18024C9A8` and `0.5` at `0x1800BC59C/0x18024C880`:
+
+```text
+if new_score < previous_score:
+    save candidate
+else if new_score > 1.2 * previous_score:
+    restore saved candidate
+    exponent_step *= 0.5
+else:
+    keep current candidate
+```
+
+The two complete **Pre-FIR and Post-FIR coefficient arrays** are saved and restored together: live context pointers `+0x24408` and `+0x24410` are forwarded through the fitter, saved via `0x1800BC495/0x1800BC4B2` and restored via `0x1800BC53F/0x1800BC55C`. Meanwhile the exponential-power correction factor is annealed by **0.9 per iteration** at `0x1800BB4BE`.
+
+**Observed:** paired-filter state tracking, iterative acceptance/rollback, score guard and schedule. **Unproven:** complete score-array provenance, candidate-generation equation, official FIR samples from the WAV. The score is not necessarily a perceptual or waveform error.
+
+## Verification and acceptance
+
+The separately delivered self-contained research archive `Sonicake_HTKPA_DLL_RE_Stage8_v0_8.zip` contains `verify_stage8.py`, `RESEARCH_REPORT.md`, `README.md` and machine-readable `evidence.json`; excludes vendor binaries/audio. The verifier checks **70 exact-address assembly predicates**, the PE SHA-256, four integer iteration constants, three window lengths and five optimization constants. Two independent runs produce the same JSON. **The DLL is never executed**.
+
+**Gate still open:** We have **not** independently generated either complete official FIR from the original input/output WAV. This Stage 8 replaces earlier speculation about fitting order with checked machine-code facts; it does not claim a working official converter, sound quality equivalence or identical mobile SONICLINK behavior.
+
+## Next source-first work
+
+Trace the exact input, output and temporary arrays of `0x1800BB210`'s two `0x1800B82B0` calls (`0x1800BC055/0x1800BC3C5`) and two `0x1800B5A30` calls (`0x1800BBB5B/0x1800BC381`). Trace the input arguments and mathematical output of `0x1800B5D00`, now directly proven to produce the 512-element score buffer; then reproduce the actual candidate transform before trying WAV→FIR again. **No heuristic fitting or production changes without a source-confirmed equation and two-model numerical validation.**
+
+Keep the positively hardware-auditioned JCM800 2203 v0.2 C as control; the main browser JS-only converter stays unchanged.
+
