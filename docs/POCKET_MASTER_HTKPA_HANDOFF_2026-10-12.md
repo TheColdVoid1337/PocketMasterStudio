@@ -1072,3 +1072,449 @@ Separate user-facing archive `Sonicake_HTKPA_DLL_RE_Stage14_v0_14.zip` contains 
 
 **Stage 15 source-first priorities:** trace every temporary in the feedback-to-Post-FIR ratio after `0x1800BC055`, validate both Gaussian passes on tiny positive synthetic arrays against the pinned native branches, and then reverse the final `0x1800B9B70` spectral correction. Only afterwards attempt two-model vendor FIR reconstruction. Retain the user-approved JCM800 2203 v0.2 C as hardware control.
 
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 15
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE15.md
+
+# Sonicake HTKPA Stage 15 — feedback ratio and final Post-FIR correction
+
+**2026-10-12 · Source-first static research only. No production converter edits, DLL execution, new CLO, or device writes.**
+
+Analyzed the user-supplied Windows Sonicake Manager `5868USB.dll` (SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`). All addresses are PE virtual addresses with image base `0x180000000`. The proprietary DLL and corresponding NAM/WAV/CLO captures are **not redistributed or committed**.
+
+This stage addresses the two explicit Stage 14 unknown blocks: `0x1800BC055→0x1800BC33D` and final `0x1800B9B70`.
+
+## 1. Cross-spectral feedback: regularized quotient and working Post-FIR synthesis
+
+The optimizer at `0x1800BC055` invokes the previously traced cross-spectral evaluator `0x1800B82B0`. A vectorized double-precision path (`0x1800BC10D/0x1800BC114/0x1800BC118/0x1800BC11C`) and scalar equivalent (`0x1800BC222/0x1800BC226/0x1800BC22A/0x1800BC22F`) compute the following *local* quotient, storing float32:
+
+```
+Q[i] = float32(1_000_000.0 * float32(A[i]) /
+               (1_000_000.0 * float32(B[i]) + 2**-23))
+```
+
+The multiplier `1000000.0` and epsilon `2^-23` are **double** constants at `0x18024D5A0` and `0x18024D1E0`, respectively. The effective unscaled denominator epsilon is approximately `1.19209e-13`. This is **not** the Stage 7 experiment's arbitrary adaptive Welch estimator regularizer.
+
+The quotient output is passed through the source-confirmed Mel/dB/Gaussian curve conditioner `0x1800B7670` at `0x1800BC33D`, then the shared minimum-phase-like `0x1800B68F0` at `0x1800BC35C`, with destination `context+0x24410` (working **Post-FIR**) and the correct 2048 target length.
+
+**Precision boundary:** The arithmetic and several source/destination pointers are directly established. Exact origin and aliasing of **every** intermediate scratch array `A/B` and the full pre/post update equation are not yet recovered. Naming A and B does not identify them with raw STFT power arrays in isolation.
+
+## 2. Once-only final Post-FIR spectral correction
+
+After three calls to the main fitter, `0x1800BF100` passes `context+0x24410` and `0x1800BF11E` calls `0x1800B9B70`.
+
+The finalizer:
+
+1. Uses a support of `ceil(0.1*sample_rate)` (`0x1800B9BCB–0x1800B9BD5`) — 4800 samples at 48 kHz.
+2. Builds rendered/reference audio spectra, using two transforms (`0x1800BA8A3`, `0x1800BA8BB`) and `sqrtf(re²+im²)` (`0x1800BA97B`). The complete upstream complex-array orientation is not yet byte-exact.
+3. Forms the same class of `1e6 * numerator/(1e6 * denominator+2^-23)` ratio (`0x1800BAC70–0x1800BAD2E`), clamps it to **[0.1, 10]** (`0x1800BAEB3/0x1800BAEC6`), and Gaussian smooths via `0x1800B7E10` (`0x1800BAEF9`).
+4. Calls `0x1800B65A0` at `0x1800BAF88` to create and apply a **256-tap corrective filter to the existing Post-FIR**.
+5. Rerenders audio through the corrected Post-FIR (`0x1800BAFAB`) and obtains a **ratio of square-root summed energies** (`0x1800BB0C0/0x1800BB0CB/0x1800BB0E2`). It multiplies the Post-FIR by that factor (`0x1800BB12F`).
+
+## 3. Exact structure of `0x1800B65A0`: causal convolution, cropping and DC subtraction
+
+- Allocates two **256-float** scratch arrays (`0x1800B65B8/0x1800B65CC`).
+- Conditions the transfer curve to 256 bins (`0x1800B65FD`) and synthesizes a **256-tap FIR** via `0x1800B68F0` (`0x1800B6621`).
+- Allocates `PostFirLength + 255` floats, initializes them to zero and performs a nested multiplication/accumulation loop (`0x1800B6690–0x1800B675D`) consisting of **256 inner taps per old Post-FIR tap**.
+- Copies **only the first PostFirLength** convolution outputs back into the existing Post-FIR (`0x1800B6771`) and subtracts their mean (`0x1800B67EA/0x1800B682B/0x1800B68B0`).
+
+Independent *algebraic* model for normal non-degenerate arrays:
+
+```python
+corrector = synthesize_256(conditioned_spectral_curve)
+full = causal_convolution(working_post_fir, corrector)
+working_post_fir[:] = full[:len(working_post_fir)]
+working_post_fir -= mean(working_post_fir)
+# Outer function subsequently applies energy ratio
+```
+
+This is **not** a direct 2048-tap recomputation: it corrects the already fitted filter by convolution, and then output-energy calibration. Exact float32 summation order and all native edge cases remain unverified.
+
+## Independent file consistency check (not parameter fitting)
+
+The user-provided official Windows Manager CLOs have **near-zero** sums of their 2048 Post-FIR coefficients, consistent with the identified DC subtraction prior to 48k→44.1k conversion:
+
+| Model | Official Post-FIR sum | L2 norm |
+|---|---:|---:|
+| JCM800 2203 Crunch | 0.002959 | 1.170528 |
+| JCM800 SC20 Full Rig | 0.006035 | 1.922987 |
+
+## Verification and original acceptance gate
+
+The separately supplied `Sonicake_HTKPA_DLL_RE_Stage15_v0_15.zip` includes independently authored `verify_stage15.py`, this stage's full research report, README and JSON evidence. The verifier statically checks **46 exact machine-code addresses, eight binary constants, and 13 synthetic mathematical tests** covering regularized quotient, causal/truncated convolution, DC and energy gain. Two runs yield identical JSON: SHA-256 `5c5f236c0bc6ec5fad5b9e6418d36aafa00b7845c05c4070faeddc3d6c7c4802`. Zip integrity passed.
+
+**Two Stage 14 blocks now have verified core operations and data flow, but the original strict objective — calculating official 128-tap Pre-FIR / 2048-tap Post-FIR from only the NAM and probe WAV, with numerical coefficient parity — is STILL NOT MET.** In particular, optimizer `0x1800BB210` scratch-buffer provenance / three-stage update, entire native DSP fit loop, transform numeric parity and exact rate conversion remain unfinished.
+
+**Next source-first gate:** full register/stack SSA of `0x1800BB210` covering the `2→1→3` loops and `0x1800BC055` feedback buffer identities, then a self-contained synthetic input-to-working-Pre/Post-fit test, and *only then* a two-model coefficient match. No guess-based CLO production or unconditional +gain/brightness.
+
+Keep the user-auditioned JCM800 2203 v0.2 C as hardware control. Mobile SONICLINK vs Windows Manager exact parity remains unproven.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 16
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE16.md
+
+# Sonicake HTKPA Stage 16 — source-proven iteration workspace and feedback aliasing
+
+**2026-10-12.** This is a static, read-only reverse engineering result from the **user-provided** Windows Sonicake Manager `5868USB.dll` (SHA256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`). The DLL was never executed, nor is it distributed in this repository. **No production JS changes, new CLO or pedal writes.**
+
+## Main new result
+
+The optimizer `0x1800BB210` allocates **one contiguous float32 block** for its curves, temporary audio, backup FIR coefficients, and iteration scores. The byte allocation follows:
+
+`4 * (10*L + 2*P + Q + T + I)`
+
+where `L` is the working-curve length (derived from `context+0x20ecc`); `P=context+0x20ed4` is the Pre-FIR tap count; `Q=context+0x20ed8` is the Post-FIR tap count; `T` is the current audio sample count; and `I` is the optimizer iteration count. **Do not confuse L with the separate 512 Mel-spaced score queries.**
+
+All offsets below are **relative float32 element offsets** from the allocation base `B`:
+
+| Scratch segment | Offset | Machine-code origin / role |
+| --- | --- | --- |
+| `V0` | `0` | copied from `context+0x24328`, then modified by bounded power iteration |
+| `V1` | `L` | copied from `context+0x24330` |
+| `V2` | `2L` | copy of `V0`, working product, denominator and in-place destination of subsequent spectral feedback |
+| `V3,V4,V5,V6,V7,V8` | `3L,4L,5L,6L,7L,8L` | temporary curve and spectrum buffers; importantly `V5` is the quotient's numerator source |
+| `V9` | `9L` | copy of `V0`; part of candidate save/restore |
+| Pre curve temporary | `10L` | `P` floats; synthesis input |
+| Saved Pre-FIR | `10L+P` | `P` floats, saved/restored with optimizer decisions |
+| Saved Post-FIR | `10L+2P` | `Q` floats, saved/restored with optimizer decisions |
+| Rendered audio | `10L+2P+Q` | `T` floats; current-DSP output `r15` |
+| Per-iteration score | `10L+2P+Q+T` | `I` floats |
+
+Allocator and pointer pins: `0x1800BB255–0x1800BB33D`; context copy operations `0x1800BB342/0x1800BB347/0x1800BB35A/0x1800BB368`.
+
+## Exact quotient-buffer provenance — Stage 15 refinement
+
+The first spectral evaluator is called at `0x1800BC055`, writing through a `V5` output argument prepared at `0x1800BC01D/0x1800BC038`. The numerator reads are from `V5` (`0x1800BC081/0x1800BC0F3`). The denominator reads are from **`V2`** (`0x1800BC093/0x1800BC107`), and `0x1800BC12E` writes the resulting quotient **back into V2**. The scalar tail `0x1800BC210–0x1800BC316` agrees:
+
+```text
+V2[k] = float32(1e6*float32(V5[k]) /
+                (1e6*float32(V2[k]) + 2^-23))
+```
+
+The `V2` denominator **is not simply the raw auto-spectrum of the generated audio**; `V2` began as a copy of `V0` and was subsequently transformed/elementwise-multiplied at `0x1800BB575`. The resulting quotient is then passed to `0x1800B7670` (`0x1800BC33D`) before the common Post-FIR synthesizer `0x1800B68F0` (`0x1800BC35C`). This resolves an important pointer-level ambiguity without inventing its physical DSP meaning.
+
+## Confirmed order within one iteration
+
+Bounded power and annealing (`0x1800BB460..0x1800BB4BE`) → three separate Mel/dB conditioning calls (`0x1800BB4D9/0x1800BB4F8/0x1800BB812`) and intermediate elementwise products/divisions (`0x1800BB575/0x1800BB6E1`) including auxiliary conditioning `0x1800B6220` → **Pre-FIR synthesis** (`0x1800BB836`) → render/saturate and spectrum evaluate (`0x1800BBB5B/0x1800BBCC9/0x1800BC055`) → quotient `V5/V2` → **Post-FIR synthesis** (`0x1800BC35C`) → second render/spectrum evaluation (`0x1800BC381/0x1800BC3C5`) → Mel score interpolation and `mean(abs(logf(v+2^-23)))` (`0x1800BC3F9..0x1800BC440`) → save/restore with `1.2×` threshold and `0.5×` step reduction (`0x1800BC459..0x1800BC5A9`).
+
+At outer level, this executes three selectors `2→1→3` with counts `3→2→5` (proven in Stage 8), then exactly one final `0x1800B9B70` Post-FIR correction. The previous hardware-positive **JCM800 2203 v0.2 C** remains the control.
+
+## Reproducibility and acceptance
+
+A separate conversation artifact `Sonicake_HTKPA_DLL_RE_Stage16_v0_16.zip` includes independent read-only `verify_stage16.py`, full `RESEARCH_REPORT.md`, `README.md` and `evidence.json`. **74 exact instruction pins, 9 numeric constants and 22 structural/algebraic tests passed**, with two runs producing identical evidence JSON SHA-256 `bc778ec7ca5092b62f9f11a06a809821154fa289a9aa33d6fbb7ac22c39e5280`. It does not contain the DLL, user's audio/NAM, vendor CLO or full disassembly.
+
+**Original acceptance gate is STILL NOT MET.** While memory provenance and the control-flow skeleton are now confirmed, native edge/alias semantics of the three conditioner calls and `0x1800B6220`, integrated rendering/STFT float32 equivalence, cross-selector state and final resampling all require more work before an independent **exact** vendor Pre-FIR/Post-FIR can be derived from the NAM/probe. No guessed fitting constants or production changes should be introduced until those blocks have source-grounded numerical tests.
+
+
+## Stage 17 correction (2026-10-12): vector multiplication is NOT stored in V2
+
+The Stage-16 prose descriptions `V2[k] ← V2[k] × V0[k]`, `V2 was ... altered by ... 0x1800BB575`, and the scratch-loop pseudocode `V2[k] ← V2[k] * V0[k]` are **incorrect**. Full Win64 caller-to-callee stack tracing shows that `0x1800BB575` writes to the **second caller-owned array**, outer `r12`, located in callee `r13=[rsp+0x1E8]`. The other vector operation at `0x1800BB6E1` writes to **the first caller-owned array**, outer `r15`, accessed through callee `rdi=[rsp+0x1E0]`. Both use the second conditioner output `V0`:
+
+```text
+outer_r12[k] *= V0[k]          # actual destination at 0x1800BB578
+outer_r15[k] /= V0[k]          # actual destination at 0x1800BB6E9
+0x1800B6220(outer_r15, L)   # in-place low-index geometric conditioning
+```
+
+The local `V2` scratch is still involved in the **separate** regularized feedback quotient `V2 ← 1e6*V5/(1e6*V2+2^-23)`, correctly identified later in this Stage-16 report. The two caller arrays are allocated once by the enclosing native function before all three selector calls, so the correction changes inter-pass state. See [Stage 17](NAM_CLO_HTKPA_DLL_RE_STAGE17.md) for pinned instructions, full operand-register proof and a tested isolated helper. This erratum is intentionally appended rather than silently rewriting historical observations.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 17
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE17.md
+
+# HTKPA Stage 17 — caller-buffer alias correction and source-verified auxiliary conditioner
+
+**Date:** 2026-10-12. **Method:** static disassembly of the original user-supplied Windows Sonicake Manager `5868USB.dll`, SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. No DLL execution, pedal operations, new CLO or production converter edits.
+
+## Important Stage-16 erratum
+
+Stage 16 misassigned the vector multiplication at `0x1800BB575` to local scratch `V2`. Full caller/callee Win64 stack tracing proves otherwise. The outer `0x1800BE830` allocates three arrays (outer `r15` at `0x1800BEE33`, `r12` at `0x1800BEE3F`, `r13` at `0x1800BEE4B`) before the three fitting calls. It passes them at caller stack `+0x40/+0x48/+0x50`, corresponding to callee `[rsp+0x1E0]/[rsp+0x1E8]/[rsp+0x1F0]` (accounting for the 8-byte return address, eight register pushes, and `0x158` frame bytes).
+
+After initial curve-conditioning calls `0x1800BB4D9` and `0x1800BB4F8`, which write local `V2` then `V0` respectively, the **native vector instructions actually perform**:
+
+```text
+outer_r12[k] = float32(outer_r12[k] * V0[k])   # 0x1800BB575, stores at 0x1800BB578
+outer_r15[k] = float32(outer_r15[k] / V0[k])   # 0x1800BB6E1, stores at 0x1800BB6E9
+```
+
+The subsequent `0x1800B6220` (call at `0x1800BB7E3`) modifies **outer_r15**. This updates caller-owned arrays carried between selectors **2→1→3**. It is incorrect to silently substitute a local scratch update. `V2` remains the correct **destination of the separate later feedback quotient**, as proven in Stage 16.
+
+## Newly decoded `0x1800B6220`
+
+The source-defined length of the low-index modifier is computed from the current audio sample rate `Fs` and spectral curve width `L`. Native context initialization at `0x1800B5865..0x1800B5887` stores `0.5*Fs` and its reciprocal at `context+0x20EC4/0x20EC8`. A fixed **60.0f** (`0x18024CD60`) is passed at the call site `0x1800BB7D2`.
+
+```text
+K = trunc(sqrtf(float32(float32(60.0f * (1.0f/(0.5f*Fs))) * float32(L))))
+```
+
+For regular positive finite arrays and `1 < K < L`, exact source-derived operation order is:
+
+```python
+a[0] = sqrtf(a[0] * sqrtf(a[0] * a[1]))
+for i in range(1,K):
+    a[i] = sqrtf(a[i] * sqrtf(a[i-1] * a[i+1]))
+```
+
+**All reads are in-place:** `a[i-1]` uses its *updated* value and `a[K]` is read as a lookahead. For `K<=1`, the DLL skips processing; unproven negative/NaN/`K>=L` cases are not guessed. `sqrtf` thunk `0x18017E170` resolves via imported `api-ms-win-crt-math-l1-1-0.dll` to `sqrtf` at IAT `0x18018BA38`.
+
+Examples derived from the formula, **not claims about actual HTKPA L**: Fs=48k and L=1000 gives K=1; L=2500 gives K=2; L=10000 gives K=5. The 512-point Mel evaluation grid is a separate array and **must not be confused with L**.
+
+This precisely closes one earlier unknown helper, without inventing the missing full curve conditioning.
+
+## What Stage 17 actually tested
+
+Standalone Python verifier `stage17_source_first.py` matches **64 exact native instruction addresses**, **5 binary constants**, and passes **23 synthetic math/alias tests**. Two independent runs of the verifier produced identical JSON evidence SHA-256 `9b0220696c674bca8a496d19a191a3e085bc352f886d882055baee5d57fd241b`. It uses `objdump` to read the file, **never loads or executes it**.
+
+A separate **read-only two-model coefficient-parity gate** `vendor_parity_gate.py` checks VTSI length, CRC16-Modbus, pinned original Windows Manager SHA-256 and Pre/Post-FIR layout:
+
+| Model | Official reference SHA-256 | Official pre sum | Official post sum | Independent synthesized candidate |
+|---|---|---:|---:|---|
+| JCM800 2203 Crunch | `50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7` | 0.014214 | 0.002959 | **not yet available** |
+| JCM800 SC20 Full Rig | `2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a` | 0.005175 | 0.006035 | **not yet available** |
+
+The gate therefore reports **`NOT_TESTED` for both exact coefficient comparisons**. It will measure max absolute error, relative L2 error, cosine similarity, and exact float32 equality separately for 128 Pre and 2048 Post taps, **only after an independently computed candidate exists**. It never uses vendor coefficients as fitter targets. Reference proprietary files are not distributed.
+
+## Exact remaining blockers
+
+The explicitly requested **complete single-pass native-equivalent fit, the combined 3→2→5 iteration schedule and exact coefficient parity with both Windows Manager CLOs are NOT achieved**. In particular:
+
+- Initial shared caller arrays are prepared by **`0x1800BC6B0`**, still to be independently reconstructed.
+- All buffer aliases, special Gaussian edge cases, knot ordering and float32 arithmetic of the three **`0x1800B7670`** frequency-conditioning calls have not been reproduced together on a native-equivalent synthetic input.
+- Native DSP render, cross-spectrum normalization, score/rollback state transitions and 48→44.1-kHz tap rate conversion are not yet validated end-to-end.
+- Windows Manager vs mobile SONICLINK identity remains unproven.
+
+**Next Stage 18:** source-first reconstruct `0x1800BC6B0` and exact bounded `0x1800B7670` synthetic return arrays. Connect these to the now proven caller-array mutations and low-index conditioning, then proceed to the first whole Pre-FIR candidate. Do **not** introduce a guessed conditioner or false “bit-exact” assertions.
+
+The self-contained user research ZIP `Sonicake_HTKPA_DLL_RE_Stage17_v0_17.zip` contains only new Python source, report, README and evidence; no original DLL, proprietary NAM/audio, or CLO. Existing user-auditioned JCM800 2203 v0.2 C remains untouched; production browser JS unchanged.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 18
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE18.md
+
+# Sonicake HTKPA Stage 18 — source-derived initial spectral curves and B7670 conditioner
+
+**2026-10-12 · Source-first, read-only research · No device/production changes.**
+
+Analyzed user's Windows Sonicake Manager `5868USB.dll`, pinned SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. The commercial DLL was never executed, modified or committed. A separate research ZIP **`Sonicake_HTKPA_DLL_RE_Stage18_v0_18.zip`** is available in the originating conversation; it bundles `stage18_source_first.py`, `demo_stage18.py`, evidence JSON, detailed report and README — no DLL/NAM/WAV/CLO files.
+
+## Source correction: `0x1800BC6B0` is NOT a trivial fixed-curve initializer
+
+Stage 17 correctly located the call, but underestimated the audio preprocessing it performs. The outer fit driver `0x1800BE830`:
+
+1. Calls audio-preprocess helper `0x1800BD490` at `0x1800BEE25`.
+2. Allocates persistent caller-owned correction arrays **A, B, F** at `0x1800BEE33/0x1800BEE3F/0x1800BEE4B`.
+3. Passes their pointers via outgoing Win64 stack slots and calls `0x1800BC6B0` at `0x1800BEE89` **before** the selectors `2→1→3`.
+
+The latter function **prepares the initial A/B spectral curves from the audio**, not by filling fixed arrays. Observed native operations include sample-rate-specific coefficient-table selection (`0x1800BC753..0x1800BC940`), a 50-point helper call to `0x1800B5A30` (`0x1800BC96D`), two recursive second-order filters, `0x1800BE700` nonlinear processing (`0x1800BCC79`), and cross-spectral analysis `0x1800B82B0` (`0x1800BCFF2`).
+
+**Do not mistake this for a standalone spectrum-vs-spectrum initialization.** Full real-WAV reproduction still requires independently implementing its two audio-preprocess paths and the exact FFT/STFT buffers.
+
+## New exact tail formulas and proven call order
+
+`0x1800BD01F` and `0x1800BD03D` call Gaussian `0x1800B7E10` in succession with widths `trunc(0.001*N)` and `trunc(0.005*N)`, where N is the spectral curve's native length. Pinned doubles: `0x18024C618 = 0.001`, `0x18024C688 = 0.005`.
+
+After the Gaussian passes, the DLL computes a **quadratic soft floor** on working B:
+
+```text
+T     = float32(max(auxiliary_U) * 0.001)
+limit = float32(2*T)
+alpha = float32((limit-T)/(limit*limit))
+
+B[k] = float32(T + alpha*B_raw[k]*B_raw[k])  if B_raw[k] < limit
+       B_raw[k]                              otherwise
+
+A[k] = float32((1e6*float64(U[k])) / (1e6*float64(B[k]) + 2^-23))
+```
+
+Native proof of floor and compare: `0x1800BD0B7..0x1800BD119`; ratio: `0x1800BD230..0x1800BD2E5` and scalar `0x1800BD350..0x1800BD441`. Pinned constants `1e6` at `0x18024CD28`, epsilon `2^-23` at `0x18024C588`. The parabola joins the unchanged branch at `2T` with both *value* and *first derivative* continuous, for T>0. Its scalar formula, source-ordered float32 approximations and branch conditions have independent tests.
+
+The **physical meaning of U's exact audio-derived buffer is not fully reconstructed**; it is wrong to assume that it is a raw Welch power spectrum merely because it feeds the floor. The original source WAV and reference audio have not yet been converted into the native U/B spectrum arrays by this prototype.
+
+## Implemented ordinary-domain `0x1800B7670`
+
+`conditioned_curve(freq,mag,m)` now executes the **complete source-grounded sequence of stages** for finite positive magnitude gains and strictly increasing frequency coordinates, source length `N>=501`, `2<=m<=N`:
+
+- 2595·log10(1+Hz/700) **Mel endpoint conversion**, Mel linspace of N and m coordinates and inverse mapping to Hz;
+- separate float32 repeated-addition `0x180027DB0` linear-Hz output grid, enforcing exact last endpoint;
+- gain to `20log10(gain)` in dB;
+- first Gaussian, width `trunc(0.002*N)`;
+- **interpolate source Hz→N Mel-spaced Hz** with `0x1800B5D00`;
+- second Gaussian, width `2*trunc(N/m)`;
+- **interpolate N Mel→m Mel** (skip when equal);
+- **interpolate m Mel-spaced Hz→m linear Hz** and convert back `10**(dB/20)`.
+
+Proof of three conditional interpolators: `0x1800B7BF8/0x1800B7C4B/0x1800B7C8C`; two Gaussian calls: `0x1800B7BBB/0x1800B7C12`; final gain: `0x1800B7D1C`. Gaussian `0x1800B7E10` uses native-shaped, double-precision, reversed window coefficients and cropped-boundary normalization; window width<=0 remains deliberately rejected. **This is algebraic and synthetic domain parity, not bit-identical Windows CRT/SSE execution.**
+
+The native `0x180027DB0` **repeated-addition** linspace implementation is included rather than silently using a generic NumPy linspace. Native interpolation undefined/nonmonotone/duplicate-knot variants remain excluded. No guessed regularization, generic SciPy smoothing or vendor CLO coefficients were used.
+
+## Test facts and demonstration
+
+The standalone read-only verifier passed:
+
+| Gate | Verified |
+|---|---:|
+| Exact DLL address/instruction pins | **59 / 59** |
+| Exact PE numerical constants | **12 / 12** |
+| Synthetic algebraic/structural tests | **49 / 49** |
+| Two independent evidence JSON runs | **Byte-identical** |
+
+Evidence SHA-256 `c334edaaede0db5200c6d60b8010e10519028ee3261729190861dc6dea7c1775`.
+
+Synthetic fixture: **2401 source frequency bins**, two intentionally artificial positive curves. Two Gaussian initialization passes give widths **2,12**. Source-conditioned A and B can be mapped to **128-point** and **2048-point** spectra; for the conditioner itself, widths are respectively **4,36** and **4,2**. Both outputs are finite, positive, and preserve the expected Hz range. **These are not FIR taps, not output audio, and not a new CLO.**
+
+## Remaining source-first blockers
+
+**Vendor coefficient parity remains `NOT_TESTED` for both 2203 and SC20** because no independently derived real-NAM FIR candidate was generated. The core remaining native path is the audio preprocessing of `0x1800BD490` and `0x1800BC6B0` including the sample-rate-specific second-order sections, output of `0x1800BE700`, and spectral output mapping of `0x1800B82B0`, followed by end-to-end exact numeric fits and the final 44.1-kHz serialization. A complete 3-pass converter is NOT established.
+
+**Stage 19:** reverse these exact audio/preprocessing/STFT buffers first, produce independently generated **initial A/B curves from the original user probe WAV**, and then connect to the known fitter skeleton. Only compare produced FIRs with official 2203/SC20 as a held-out oracle; no guessing missing math from the vendor target.
+
+Keep existing hardware-auditioned JCM800 2203 v0.2 C and production PocketMasterStudio JS converter untouched. Windows Manager vs mobile SONICLINK identity is still unproven.
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 19
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE19.md
+
+# Sonicake HTKPA Stage 19 — source-pinned 50-tap audio-preprocessing FIR and real WAV gate
+
+**2026-10-12. STRICT STATUS: original initial A/B from real WAV still NOT COMPUTED.** This stage makes a verified upstream checkpoint, not a complete NAM→CLO implementation. No production JS, experimental CLO, or pedal writes.
+
+Source: the user-supplied Windows Sonicake Manager `5868USB.dll`, SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`. DLL examined statically only with Python PE section parsing and `objdump`, never executed or redistributed.
+
+## Actual recovered native 50-coefficient input FIR
+
+At `0x1800BC739`, `0x1800BC7EF`, and `0x1800BC89E`, `0x1800BC6B0` selects three **different, hard-coded float32 50-tap coefficient banks** by native sample rate **44,100 / 48,000 / 96,000 Hz**. Branch starts are `0x1800BC753`, `0x1800BC802`, and `0x1800BC8B1`. For each branch, the DLL loads exactly **twelve 4-float SSE vectors plus two scalar floats** into one contiguous 50-element stack array.
+
+At `0x1800BC94D` this array is passed as the second argument; `0x1800BC95A` sets the coefficient count to `0x32` (50), and `0x1800BC96D` invokes **`0x1800B5A30`**, the partitioned-convolution helper, to process source audio. Its body uses `0x1800C0F60` with 64-sample blocks. The complete float32 partition/rounding implementation is not yet rebuilt, so a simple reference causal FIR convolution must **not** be called bit-exact vendor processing.
+
+The three actual PE tables are independently decoded in the Stage-19 research script; there are **70 exact address/operand pins**, comprising 42 original PE-source coefficient-reference instructions and 28 call/dataflow control pins. Source-derived table diagnostics (not fitted):
+
+| Native branch | first three coefficients | sum | L2 norm |
+| --- | --- | ---: | ---: |
+| 44.1 kHz | 2.368210, 3.574280, 3.095710 | −0.0868914 | 7.695335 |
+| 48 kHz | 2.369809, 3.532199, 3.386006 | −0.0252041 | 8.024002 |
+| 96 kHz | 2.369809, 3.144882, 3.532199 | −0.9660231 | 11.273363 |
+
+The proprietary coefficient arrays are **not committed**. The user can reextract and verify them from the original local SHA-pinned DLL.
+
+## Real-WAV input audit
+
+Two independent user-captured official Manager sessions were read, **not fitted**:
+
+| Model | Input DI WAV | Reference output WAV |
+| --- | --- | --- |
+| JCM800 2203 Crunch | 70 seconds stereo PCM16, 44.1 kHz | 70 seconds stereo PCM16, 48 kHz |
+| SC20 Full Rig | 70 seconds stereo PCM16, 44.1 kHz | 70 seconds stereo PCM16, 48 kHz |
+
+Both input DI WAVs are **byte-identical**, SHA-256 `9bb6c1b136dfbeb7538a6060499d98c89342b76ec568b76836e36ab98b29aa1a`. Both channel pairs are identical, but the output WAVs differ (2203 RMS ≈0.03403, SC20 RMS ≈0.01028).
+
+A **separate mathematical audit**, not a claim about the complete native preprocessing, applies the DLL-derived **44.1-kHz 50-tap FIR** by simple causal convolution to the actual unresampled 44.1-kHz DI. Its RMS is ≈**0.82734** and peak ≈**8.962** before IIR/nonlinear processing. This must **not** be compared as a vendor sound output, since the actual HTKPA 44.1→48-kHz input conditioning, subsequent gain mapping and further DSP stages have not been implemented. The evidence records only hashes, RMS, peaks, four section measurements and eight example float32 output samples, never full input WAV data. Vendor Pre/Post FIR coefficient arrays were not accessed for fitting.
+
+## Two additional tracing results
+
+After the native 50-tap input FIR, `0x1800BC6B0` executes first and second recursive second-order sections bracketing `0x1800BE700` (the known four-parameter nonlinear saturator), then spectral analyzer `0x1800B82B0`, after which Stage 18's two Gaussians / quadratic spectral floor / A/B quotient become applicable.
+
+For the sections, state buffers and coefficient pointers are confirmed: `context+0x20/+0x28/+0x30` with `context+0x232D8..0x232F8`, and `context+0x20C98/+0x20CA0/+0x20CA8` with `context+0x23300..0x23320`. The **actual coefficient constructor** was located at `0x1800BFF17..0x1800C0216`, with selection into live filter fields at `0x1800BEC36..0x1800BED00`. These source-specific coefficients and native numerical behavior are not yet reproduced.
+
+**Stage-10 correction:** `0x1800B8373` uses `r14d` as the STFT analysis window length; `0x1800B83EA–0x1800B83FB` computes **`trunc(0.5 × window_length_samples)`** as the hop. It is a **50% window hop**, **not a fixed half-second hop** as the old report mistakenly stated. An explicit erratum has been added to [Stage 10](NAM_CLO_HTKPA_DLL_RE_STAGE10.md).
+
+## Verification and strict acceptance gate
+
+Separate user-facing package `Sonicake_HTKPA_DLL_RE_Stage19_v0_19.zip` contains `stage19_source_first.py`, **12 successful independent tests**, full `RESEARCH_REPORT.md`, `evidence.json`, `plot_stage19.py`, figure of the three extracted frequency responses, and README. **70 pinned native instructions and all three coefficient banks pass.** Source-side code reads the local DLL as bytes and never executes it. ZIP integrity checked; no proprietary DLL, capture media or commercial CLO in the archive.
+
+**Still not achieved:** initial real-WAV **A/B arrays**, full optimizer 2→1→3, or coefficient comparison of new independent vendor Pre/Post FIR. The gate remains `NOT_COMPUTED` for A/B and `NOT_TESTED` for official FIR parity — no CLO emitted. Next source-first steps must reproduce the **biquad coefficient constructor**, the four-gain audio fitting procedure `0x1800BDBE0`, native resampling/alignment and the STFT buffer conventions in `0x1800B82B0`, then connect to the working Stage-18 A/B function. Do **not** substitute a generic Welch fit or secretly use official CLO coefficients as fit targets.
+
+The user-auditioned JCM800 2203 v0.2 C and production PocketMasterStudio Void Mod converter remain unchanged.
+
+
+## Stage 20 IIR correction — coefficient count, native cutoffs and live selectors (2026-10-12)
+
+Stage 19's phrase *"six consecutive double coefficients"* (and any implication of two *non-neutral* biquads) was too broad. Static source trace of `0x1800BD490` proves exactly **five** doubles per section: `[b0,b1,b2,a1,a2]`, with live offsets `context+0x232D8…0x232F8` (first) and `+0x23300…0x23320` (second). The native context initializer sets two alternative filter banks to identity `[1,0,0,0,0]`. The sample-rate constructor `0x1800BFF17–0x1800C0216` computes two **other**, non-identity banks, whose measured *discrete* −3 dB cutoff frequencies are **approximately 40 and 20 Hz**, not 20 and 10 Hz. In the traced native selection modes, the **first IIR section is neutral** and the second is either neutral or the 40/20-Hz section. Mode-2's branch exists but its reachability during normal NAM conversion is not shown.
+
+The independent Stage-20 bounded SSE interpreter reproduces all **ten native context coefficient stores** for 44.1/48/96 kHz; 106 isolated tests pass. See [Stage 20](NAM_CLO_HTKPA_DLL_RE_STAGE20.md) for code proof, coefficient table, sample-rounding rules and strict non-parity caveats. The remaining four-gain saturator fitting and real-WAV A/B generation are **NOT COMPUTED**.
+
+
+
+
+---
+
+## COMPLETE PRIMARY SOURCE REPORT — Stage 20
+
+Source: https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/NAM_CLO_HTKPA_DLL_RE_STAGE20.md
+
+# Sonicake HTKPA Stage 20 — DLL-derived IIR coefficient constructor
+
+**2026-10-12 | Static source-first research.** No proprietary DLL execution, no device changes, no new CLO, and no production JS modification.
+
+Pinned Windows Sonicake Manager `5868USB.dll` SHA-256:
+`fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`.
+Base VA `0x180000000`.
+
+## What is proven
+
+The actual IIR audio section in `0x1800BD490` is **five** double-precision coefficients, not six: `[b0,b1,b2,a1,a2]`. Loads are pinned at `0x1800BD599`, `0x1800BD591`, `0x1800BD5A1`, `0x1800BD564`, `0x1800BD56F`. Each section uses:
+
+```
+w[n] = (1000*float64(input_f32[n]) - a2*w[n-2]) - a1*w[n-1]
+m[n] = float32((b1*w[n-1] + b2*w[n-2]) + b0*w[n])
+y[n] = float32(float64(m[n])*0.001)
+```
+
+The native context constructor `0x1800C04B0` initializes two 5-double banks `context+0x24338` and `context+0x24360` to **[1,0,0,0,0] (identity)**, and two other banks near 44.1-kHz high-pass coefficients. The later sample-rate dependent initializer `0x1800BFF17…0x1800C0216` dynamically replaces the latter two banks (`+0x24388`, `+0x243B0`) using its `float32(Fs)` value at `context+0x20EC0`. There are **ten direct context double writes and five global double writes**.
+
+A standalone Python **interpreter of exactly 152 SSE/scalar instructions** (not a DLL loader) reads the same PE constant bytes and reconstructs the ten native context values at Fs 44,100, 48,000 and 96,000 Hz, including `float32` intermediates, sign-mask `xorps`, and `cvtps2pd` / `cvtss2sd` conversion. The 44.1-kHz emulated coefficients agree with the separate hard-coded default initializer to within `1.07×10⁻⁷` in absolute error.
+
+### Numeric coefficient proof, Fs 48,000 Hz
+
+| Source bank | b0 | b1 | b2 | a1 | a2 | Measured digital −3 dB |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `0x24388` | 0.996304393 | −1.992608786 | 0.996304393 | −1.992595077 | 0.992622495 | ≈40 Hz |
+| `0x243B0` | 0.998150527 | −1.996301055 | 0.998150527 | −1.996297717 | 0.996304393 | ≈20 Hz |
+
+**Important frequency caveat:** Native analog-like PE constants suggest 20/10-Hz design parameters, but the constructor divides by expressions based on **Fs** rather than `2*Fs`. The actual discrete transfer cutoffs are therefore about 40 and 20 Hz. A SciPy `freqz` computation on the independently emulated coefficients verifies this at all three supported rates.
+
+### Live IIR mode selection
+
+Function `0x1800BEC2B–0x1800BED11` copies bank pointers into the two live sections:
+
+| mode (`context+0x232D0`) | first live FIR/IIR section | second section |
+|---:|---|---|
+| 0 | `+0x24360` (identity) | `+0x24360` (identity) |
+| 1 | `+0x24338` (identity) | `+0x24388` (≈40 Hz HP) |
+| 2 | `+0x24338` (identity) | `+0x243B0` (≈20 Hz HP) |
+
+Selector instruction pins `0x1800BEC36/0x1800BEC59/0x1800BEC8F/0x1800BECB7/0x1800BECDF`. The **actual mode assignment within the earlier path sets 0 or 1** using `context+0x4`. Mode 2 has a handler but its regular NAM conversion reachability is **not proven**. The first section is identity for the observed branches; it is wrong to assume *two active frequency-altering IIRs*.
+
+## Adjacent saturator-fitting function: narrower proven findings
+
+`0x1800BDBE0` uses a 0.1-second block-size factor (`Fs × 0.1`, PE double `0x18024C7A0`) to prepare audio envelope groups. The two scalar optimization sweeps in `0x1800BE480…0x1800BE63E` use the sign-separated exponential model (`expf` imports at `0x1800BE4BA/0x1800BE4D5/0x1800BE5AE/0x1800BE5C9`) and source-pinned candidate multiplier `0.8f`, addition by `0.05`, upper bound `1.2`. Four resulting `float32` values are written at `0x1800BE661/0x1800BE676/0x1800BE682/0x1800BE68F`. This is **not** a complete reimplementation of the four-parameter optimizer: exact envelope extraction, fit initialization, numerical tie-breaking and real fitted values remain unresolved.
+
+## Reproducibility and original acceptance gate
+
+Research-only ZIP `Sonicake_HTKPA_DLL_RE_Stage20_v0_20.zip` delivered in the originating conversation bundles `stage20_iir_source.py`, `test_stage20.py`, `RESEARCH_REPORT.md`, `README.md`, `test_stdout.txt`, `evidence.json`. It contains no vendor DLL, proprietary media or CLO. **106 individual assertions pass**, and two independent evidence runs are byte-identical (SHA-256 `ad19bd408c788f80f90cf140899c56e6ce5e6db6cf884e2627fefc11500226d0`). The source never loads or executes the DLL; it reads PE bytes and tests independent Python math.
+
+**Still NOT achieved:** complete four nonlinear gains from the reference WAV; initial vendor A/B curves; real-WAV native-signal-path equivalence; independently reconstructed official 128/2048 FIR and heldout equality on both Marshall 2203 and SC20. All retain statuses **NOT_COMPUTED** / **NOT_TESTED**. No hardware operation, product conversion or production source modification.
+
+**Next Stage 21:** source-first complete `0x1800BDBE0` saturation parameter optimizer, then native audio preprocessing and `0x1800B82B0` STFT alignment to form genuine initial A/B curves. Avoid inserting defaults from official CLO or arbitrary numerical fitting. Keep the user-auditioned 2203 v0.2 C as reference.
+
+Historical [Stage 19](NAM_CLO_HTKPA_DLL_RE_STAGE19.md) has an explicit correction of the five-coefficient count, active IIR count and digital cutoff interpretation.
+
