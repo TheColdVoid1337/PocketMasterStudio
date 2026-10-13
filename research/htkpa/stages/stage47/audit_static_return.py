@@ -66,7 +66,7 @@ SETUP_ANCHORS = {
     0x1223F: r"^movq\s+0x58\(%rbx\),\s*%rax$",
     0x1224E: r"^movq\s+%rdi,\s*0x70\(%rbx\)$",
     0x12256: r"^leaq\s+0x68\(%rbx\),\s*%rcx$",
-    0x1225A: r"^callq\s+0x1800122f0$",
+    0x1225A: r"^callq\s+0x1800122f0\b.*$",
     0x1225F: r"^movq\s+0x68\(%rbx\),\s*%rax$",
     0x12263: r"^movq\s+%rax,\s*0x70\(%rbx\)$",
 }
