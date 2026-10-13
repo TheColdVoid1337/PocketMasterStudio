@@ -1,7 +1,7 @@
 {
   "stage": 38,
   "date": "2026-10-14",
-  "status": "PASS_NUMPY_NUMERIC_ONLY",
+  "status": "PASS_NUMPY_AND_COMPILED_R8BRAIN_FFT",
   "source_public": "avaneev/r8brain-free-src",
   "source_pin": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
   "public_code_identified": [
@@ -46,6 +46,52 @@
     "input_len": 2680,
     "output_copy": 1972
   },
-  "scope": "Only native-to-NumPy FFT numeric match. Pinned public r8brain C++ build run is PENDING WSL. Does not establish FFT bit parity, full convolver signal parity or final 44.1->48k.",
-  "privacy": "No original buffers or proprietary DLL/audio included"
+  "scope": "User ran compiled original r8brain v7.6 CDSPRealFFT forward/inverse; numerical comparison PASS (threshold 1e-13), full bit parity NOT PASS; complete convolver and final 44.1->48k output NOT TESTED.",
+  "privacy": "No original buffers or proprietary DLL/audio included",
+  "user_executed_utc_context": "2026-10-14",
+  "public_cpp_fft": [
+    {
+      "frame": 0,
+      "stage": "forward_2048",
+      "compared_f64": 2048,
+      "bit_exact": 305,
+      "first_bit_mismatch": 2,
+      "max_abs": 5.551115123125783e-17,
+      "rms": 2.7269392025867192e-18
+    },
+    {
+      "frame": 0,
+      "stage": "inverse_4096",
+      "compared_f64": 4096,
+      "bit_exact": 2862,
+      "first_bit_mismatch": 1,
+      "max_abs": 4.336808689942018e-19,
+      "rms": 5.860715077411921e-20
+    },
+    {
+      "frame": 1,
+      "stage": "forward_2048",
+      "compared_f64": 2048,
+      "bit_exact": 311,
+      "first_bit_mismatch": 2,
+      "max_abs": 4.7244109666055856e-17,
+      "rms": 2.7622713905202265e-18
+    },
+    {
+      "frame": 1,
+      "stage": "inverse_4096",
+      "compared_f64": 4096,
+      "bit_exact": 3589,
+      "first_bit_mismatch": 16,
+      "max_abs": 4.336808689942018e-19,
+      "rms": 3.8476098690313434e-20
+    }
+  ],
+  "cpp_summary": {
+    "compared_f64": 12288,
+    "bit_exact": 7067,
+    "bit_exact_fraction": 0.5751139322916666,
+    "largest_forward_abs_error": 5.551115123125783e-17,
+    "largest_inverse_abs_error": 4.336808689942018e-19
+  }
 }
