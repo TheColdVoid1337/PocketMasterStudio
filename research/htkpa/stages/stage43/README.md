@@ -1,6 +1,6 @@
 # Stage43 — historical r8brain full FIR convolver against genuine vendor samples
 
-**STATUS: PREPARED / NOT YET RUN.** Stage41 (v6.5–v7.2) and Stage42 (v7.2–v7.6) conclusively identify **v7.6 as the first tested public release producing different FIR spectra** for our two reference filters. All tested releases v6.5–v7.5 produce exactly the same packed FIR spectra **between public versions**, with joint RMS **1.3529207911675724e-19** relative to original Sonicake. Public v7.6 gives joint RMS **5.30608307059938e-15**. This does **not** uniquely date the vendor DLL's actual embedded source.
+**STATUS: COMPLETED — actual 6-version C++ benchmark executed successfully in user's WSL (2026-10-14).** Stage41 (v6.5–v7.2) and Stage42 (v7.2–v7.6) conclusively identify **v7.6 as the first tested public release producing different FIR spectra** for our two reference filters. All tested releases v6.5–v7.5 produce exactly the same packed FIR spectra **between public versions**, with joint RMS **1.3529207911675724e-19** relative to original Sonicake. Public v7.6 gives joint RMS **5.30608307059938e-15**. This does **not** uniquely date the vendor DLL's actual embedded source.
 
 ## New diagnostic question
 
@@ -51,3 +51,16 @@ The public Git cache was downloaded during Stage41/42 and should already contain
 ## Scope and caveats
 
 The same library can produce different bit patterns under Windows MSVC vs WSL GCC, including FMA use, FFT backend choice, floating-point rounding and compile options. A smaller RMS is a solid numeric observation only, and does not identify original vendor release uniquely. The Sonicake NAM-fitting algorithm, fractional resampler and final 48 kHz output are outside this gate. Never commit the raw original captures.
+
+## User-confirmed Stage43 results
+
+The user executed the full Stage43 test with both original capture archives and all pinned historical C++ revisions. The complete output was `status=COMPLETED`, every compiler and test run returned `0`, and every revision produced the expected **1417-tap filter, 4096-point FFT and 1972 output doubles from 2680 genuine input doubles**.
+
+| Public r8brain versions | Output bit-equal to Sonicake | Maximum abs difference | RMS difference |
+| --- | ---: | ---: | ---: |
+| v6.5 / v7.0 / v7.1 / v7.2 / v7.5 | **380/1972** | `8.673617379884035e-19` | `2.2951391745135605e-19` |
+| v7.6 | **0/1972** | `2.402592014227878e-16` | `7.738254656116845e-17` |
+
+The pre-v7.6 public implementations are **337× closer by RMS** than v7.6 under this exact first native FIR block benchmark. The 5 historical versions return the **same numerical metrics**; the benchmark does not identify an exact historical library release inside Sonicake. A reasonable **research-only working baseline** is the pinned v6.5 source `3c930bf6825c0cfea4a813210c83b1a650c820b5`, because it was available at initial Pocket Master/NAM development time, and its output is numerically indistinguishable under this test from later pre-v7.6 source. The version inside Sonicake remains **UNPROVEN**.
+
+No vendor final 48000 Hz interpolation output was captured/compared, and no NAM fitting algorithm was reproduced. See `evidence.json` for complete exact user-supplied metrics. Next research is **Stage44 PUBLIC full 44100→48000 r8brain chain**, with explicit warning that its output cannot yet be compared to vendor end-to-end.
