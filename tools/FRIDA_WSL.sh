@@ -22,5 +22,5 @@ SCRIPT_WIN="$(wslpath -w "$ROOT/tools/frida_capture.py")"
 CFG_WIN="$(wslpath -w "$CFG")"
 DLL_WIN="$(wslpath -w "$DLL")"
 printf '\033[35m[FRIDA]\033[0m Launching Windows Python from WSL: %s\n' "$WINPY"
-printf '\033[33m[ACTION]\033[0m Perform one NAM -> CLO conversion; Frida detaches after ${FRIDA_AUTO_QUIET:-12} quiet seconds. Manager stays open.\n'
+printf '\033[33m[ACTION]\033[0m Perform one NAM -> CLO conversion; Frida detaches after %s quiet seconds. Manager stays open.\n' "${FRIDA_AUTO_QUIET:-12}"
 "$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet "${FRIDA_AUTO_QUIET:-12}" "$@"
