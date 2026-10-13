@@ -96,11 +96,21 @@ function scalar(ctx, f){
     let value, bits=null;
     if(f.type==='xmm_f64' || f.type==='xmm_f32'){
       const raw=ctx[f.reg];
-      if(!(raw instanceof ArrayBuffer) || raw.byteLength<16)throw Error('XMM register unavailable: type='+typeof raw+', tag='+Object.prototype.toString.call(raw)+', byteLength='+(raw && raw.byteLength));
-      const v=new DataView(raw);
+      // Frida may expose an ArrayBuffer from a different JS realm, so do NOT
+      // reject a valid buffer based on instanceof ArrayBuffer.
       const width=f.type==='xmm_f64'?8:4;
-      value=width===8?v.getFloat64(f.offset,true):v.getFloat32(f.offset,true);
-      const bytes=new Uint8Array(raw,f.offset,width);
+      const source=(raw && raw.buffer && typeof raw.byteLength==='number')?raw.buffer:raw;
+      let v;
+      try { v=new DataView(source); }
+      catch(e) {
+        throw Error('XMM buffer conversion failed: type='+typeof raw+
+          ', tag='+Object.prototype.toString.call(raw)+
+          ', byteLength='+(raw && raw.byteLength)+', reason='+String(e));
+      }
+      const offset=f.offset+((source!==raw && raw.byteOffset)?raw.byteOffset:0);
+      if(v.byteLength<offset+width)throw Error('XMM buffer too small: '+v.byteLength);
+      value=width===8?v.getFloat64(offset,true):v.getFloat32(offset,true);
+      const bytes=new Uint8Array(source,offset,width);
       bits='0x'+Array.from(bytes).reverse().map(b=>b.toString(16).padStart(2,'0')).join('');
       return {value:value,bits:bits};
     }
