@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REGS = {'rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp','r8','r9','r10','r11','r12','r13','r14','r15'}
-TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64_slice','xmm_f64','xmm_f32'}
+TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64_slice','f64_block','xmm_f64','xmm_f32'}
 XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
@@ -78,8 +78,8 @@ def validate(cfg):
             off=int(str(offset),0)
             if off < -4096 or off > 4096: raise ValueError('offset out of bounded range')
             count=int(f.get('count',8))
-            if typ=='f64_slice' and not 1<=count<=2048: raise ValueError('f64_slice count must be 1..2048')
-            out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ=='f64_slice' else 1))
+            if typ in ('f64_slice','f64_block') and not 1<=count<=2048: raise ValueError('f64 block count must be 1..2048')
+            out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ in ('f64_slice','f64_block') else 1))
         hits=int(s.get('max_hits',8))
         if not 1<=hits<=MAX_HITS: raise ValueError('max_hits out of range')
         normalized.append(dict(name=name,rva=rva,fields=out,max_hits=hits,required=bool(s.get('required',True))))
@@ -123,6 +123,13 @@ function scalar(ctx, f){
       return {value:f.type==='reg_ptr'?regval.toString():regval.toString(),bits:null};
     }
     const p=ctx[f.reg].add(f.offset);
+    if(f.type==='f64_block'){
+      const raw=p.readByteArray(f.count*8);
+      if(raw===null)throw Error('null memory block');
+      const bytes=new Uint8Array(raw),parts=new Array(bytes.length);
+      for(let i=0;i<bytes.length;i++)parts[i]=bytes[i].toString(16).padStart(2,'0');
+      return {encoding:'hex_f64le',count:f.count,hex:parts.join('')};
+    }
     if(f.type==='f64_slice'){
       const values=[], bitStrings=[];
       for(let i=0;i<f.count;i++){
@@ -335,6 +342,9 @@ def self_test():
     assert z['sites'][0]['fields'][0]['count']==1972
     z=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='registers',address='0x18000C838',fields=[dict(name='bytes',type='reg_u64',reg='r8',offset=0)])]))
     assert z['sites'][0]['fields'][0]['type']=='reg_u64'
+    b=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='binary',address='0x18000C838',fields=[dict(name='block',type='f64_block',reg='rdx',count=1972)])]))
+    assert b['sites'][0]['fields'][0]['count']==1972
+    assert 'p.readByteArray(f.count*8)' in agent_source(b)
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         d=Path(tmp)
