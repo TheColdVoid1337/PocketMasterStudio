@@ -38,7 +38,7 @@ def validate(cfg):
         if k not in cfg: raise ValueError('missing '+k)
     if not re.fullmatch(r'[a-fA-F0-9]{64}',cfg['sha256']):
         raise ValueError('expected module SHA256 required')
-    if not isinstance(cfg['module'],str) or not re.fullmatch(r'[a-zA-Z0-9_. -]+\\.(?:dll|exe)',cfg['module'],re.I):
+    if not isinstance(cfg['module'],str) or not re.fullmatch(r'[a-zA-Z0-9_. -]+\.(?:dll|exe)',cfg['module'],re.I):
         raise ValueError('module must be a simple DLL/EXE basename')
     base = int(str(cfg.get('image_base','0x180000000')),0)
     sites = cfg['sites']
