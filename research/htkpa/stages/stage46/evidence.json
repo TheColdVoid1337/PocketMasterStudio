@@ -1,0 +1,78 @@
+{
+  "stage": 46,
+  "status": "STATIC_RTTI_VTABLE_CONFIRMED",
+  "observed_date": "2026-10-14",
+  "method": "Read-only PE64 MSVC RTTI complete-object locator and virtual table analysis on user-supplied original 5868USB.dll. LLVM objdump disassembly corroborated register/argument mapping for identified fractional process.",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "found_classes": [
+    {
+      "name": "r8b::CDSPBlockConvolver",
+      "rtti_name": ".?AVCDSPBlockConvolver@r8b@@",
+      "type_descriptor_rva": "0x2a0f08",
+      "col_rva": "0x253f38",
+      "vftable_rva": "0x244ea0",
+      "vtable_methods": [
+        "0x18000cc70",
+        "0x18000c100",
+        "0x18000c110",
+        "0x18000c120",
+        "0x18000c140",
+        "0x18000c160",
+        "0x18000c220"
+      ],
+      "process_va": "0x18000c220",
+      "control": "Matches prior input-entry hook address and actual block-convolver processing address"
+    },
+    {
+      "name": "r8b::CDSPFracInterpolator<...>",
+      "rtti_name": ".?AV?$CDSPFracInterpolator@$0BI@$0CKB@@r8b@@",
+      "type_descriptor_rva": "0x2a0f38",
+      "col_rva": "0x253e68",
+      "vftable_rva": "0x245170",
+      "vtable_methods": [
+        "0x180014320",
+        "0x180011ac0",
+        "0x180011b50",
+        "0x180013dc0",
+        "0x180013d90",
+        "0x180013d30",
+        "0x1800135c0"
+      ],
+      "process_va": "0x1800135c0",
+      "assembly_prologue": [
+        "mov rax,rsp",
+        "push r12",
+        "push r13",
+        "sub rsp,38h",
+        "mov r12,[r9]",
+        "mov r13,r9",
+        "mov rsi,rdx",
+        "mov r15d,r8d"
+      ],
+      "classification": "Statically validated vtable virtual slot 6 process, not proven runtime reachability or safe hook"
+    },
+    {
+      "name": "r8b::CDSPResampler24",
+      "rtti_name": ".?AVCDSPResampler24@r8b@@",
+      "type_descriptor_rva": "0x2a0e40",
+      "col_rva": "0x253a80",
+      "vftable_rva": "0x244b58",
+      "process_va": "0x180011850"
+    }
+  ],
+  "virtual_slot_mapping": [
+    "destructor",
+    "getInLenBeforeOutPos",
+    "getLatency",
+    "getLatencyFrac",
+    "getMaxOutLen",
+    "clear",
+    "process"
+  ],
+  "abi_note": "Native MSVC x64 member process takes this=RCX, ip=RDX, l0=R8D, double*& op0=R9; process count returns EAX. The pointer referenced by R9 may be replaced; capture must establish lifetime before instrumentation.",
+  "version_note": "Original DLL RTTI includes templated r8b::CDSPFracInterpolator<...>; compared source v6.5 publicly exposes non-template CDSPFracInterpolator; numerical compatibility does not uniquely date/reconstruct embedded source revision.",
+  "evidence_strength": "static vtable mapping verified; no runtime reachability, memory safety or 48000Hz vendor output established",
+  "risk": "Do not hook 0x1800135c0 as an automatic follow-up. Prior Stage32/33/36 C220+output hook combinations crashed Manager; identify safe output/copy site and assess pointer lifetime offline first.",
+  "privacy": "No original DLL, decompiled byte streams, audio, NAM/CLO or native FFT arrays in repository."
+}
