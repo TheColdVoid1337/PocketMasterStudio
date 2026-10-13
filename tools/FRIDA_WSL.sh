@@ -23,4 +23,10 @@ CFG_WIN="$(wslpath -w "$CFG")"
 DLL_WIN="$(wslpath -w "$DLL")"
 printf '\033[35m[FRIDA]\033[0m Launching Windows Python from WSL: %s\n' "$WINPY"
 printf '\033[33m[ACTION]\033[0m Perform one NAM -> CLO conversion; Frida detaches after %s quiet seconds. Manager stays open.\n' "${FRIDA_AUTO_QUIET:-12}"
-"$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet "${FRIDA_AUTO_QUIET:-12}" "$@"
+WATCH_ARGS=()
+if [[ -n "${FRIDA_WATCH_CLO:-}" ]]; then
+  [[ -d "$FRIDA_WATCH_CLO" ]] || { echo "[ERROR] CLO watch directory missing: $FRIDA_WATCH_CLO" >&2; exit 2; }
+  WATCH_ARGS=(--completion-dir "$(wslpath -w "$FRIDA_WATCH_CLO")")
+  printf '[WATCH] New/changed stable CLO in %s\n' "$FRIDA_WATCH_CLO"
+fi
+"$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet "${FRIDA_AUTO_QUIET:-12}" "${WATCH_ARGS[@]}" "$@"
