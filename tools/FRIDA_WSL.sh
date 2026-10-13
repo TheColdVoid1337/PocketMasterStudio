@@ -15,7 +15,7 @@ printf '\033[32m[VENV]\033[0m WSL environment activated (NOT used to run Frida)\
 command -v wslpath >/dev/null || { echo '[ERROR] wslpath unavailable'; exit 2; }
 WINPY="$ROOT/research/_LOCAL_FILES/stage23w_native/.venv/Scripts/python.exe"
 [[ -f "$WINPY" ]] || { echo "[ERROR] Windows Python missing: $WINPY" >&2; exit 2; }
-CFG="$ROOT/tools/frida_examples/htkpa_stage24c_stack.json"
+CFG="$ROOT/tools/frida_examples/${FRIDA_CONFIG:-htkpa_stage24c_stack.json}"
 DLL="$ROOT/research/_LOCAL_FILES/vendor/5868USB.dll"
 [[ -f "$CFG" && -f "$DLL" ]] || { echo '[ERROR] Config or original DLL missing' >&2; exit 2; }
 SCRIPT_WIN="$(wslpath -w "$ROOT/tools/frida_capture.py")"
@@ -23,4 +23,4 @@ CFG_WIN="$(wslpath -w "$CFG")"
 DLL_WIN="$(wslpath -w "$DLL")"
 printf '\033[35m[FRIDA]\033[0m Launching Windows Python from WSL: %s\n' "$WINPY"
 printf '\033[33m[ACTION]\033[0m Perform one NAM -> CLO conversion; capture auto-finishes after 12 quiet seconds.\n'
-"$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet 12 "$@"
+"$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet "${FRIDA_AUTO_QUIET:-12}" "$@"
