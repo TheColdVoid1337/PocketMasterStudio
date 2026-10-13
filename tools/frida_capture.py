@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REGS = {'rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp','r8','r9','r10','r11','r12','r13','r14','r15'}
-TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','f64_slice','xmm_f64','xmm_f32'}
+TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64_slice','xmm_f64','xmm_f32'}
 XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
@@ -72,6 +72,7 @@ def validate(cfg):
                 raise ValueError('invalid field name')
             if typ not in TYPES or reg not in (XMM_REGS if typ.startswith('xmm_') else REGS):
                 raise ValueError('unsupported type or register')
+            if typ in ('reg_ptr','reg_u64') and int(str(offset),0)!=0: raise ValueError('direct register offset must be zero')
             if typ.startswith('xmm_') and int(str(offset),0) not in ((0,8) if typ=='xmm_f64' else (0,4,8,12)):
                 raise ValueError('invalid XMM lane offset')
             off=int(str(offset),0)
@@ -115,6 +116,11 @@ function scalar(ctx, f){
       const bytes=new Uint8Array(source,offset,width);
       bits='0x'+Array.from(bytes).reverse().map(b=>b.toString(16).padStart(2,'0')).join('');
       return {value:value,bits:bits};
+    }
+    if(f.type==='reg_ptr' || f.type==='reg_u64'){
+      if(f.offset!==0)throw Error('register direct value disallows offset');
+      const regval=ctx[f.reg];
+      return {value:f.type==='reg_ptr'?regval.toString():regval.toUInt64().toString(),bits:null};
     }
     const p=ctx[f.reg].add(f.offset);
     if(f.type==='f64_slice'){
@@ -298,6 +304,8 @@ def self_test():
     assert x['sites'][0]['fields'][0]['reg']=='xmm8'
     q=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='copy',address='0x18000C838',fields=[dict(name='samples',type='f64_slice',reg='rdx',offset=0,count=8)])]))
     assert q['sites'][0]['fields'][0]['count']==8
+    z=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='registers',address='0x18000C838',fields=[dict(name='bytes',type='reg_u64',reg='r8',offset=0)])]))
+    assert z['sites'][0]['fields'][0]['type']=='reg_u64'
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         d=Path(tmp)
