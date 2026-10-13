@@ -31,3 +31,16 @@ The audit compiles `r8b_kernel_gate.cpp` from current Stage40 against the exact 
 **Gate status must remain `SPECTRAL_DIFFERENTIAL_MEASURED` until the WSL test is run.** A spectrum mismatch may arise from kernel-generation algorithm/version or FFT/compiler floating-point effects. Distinguish them with additional controls; do not assume the source version is known.
 
 Upstream r8brain-free-src MIT © Aleksey Vaneev / Voxengo.
+
+## If the full Stage23W ZIP is missing locally
+
+This is exactly what happened in the user's first Stage40 WSL run: `FileNotFoundError` before comparisons started. Do **not** rerun the same missing path. Download the separately supplied private conversation artifact `stage40_native_fir_fixtures.zip` (36,435 bytes) into the Git-ignored `research/_LOCAL_FILES/`. It contains **only** the four 4096-f64 `coeff_pre_fft`/`coeff_post_fft` arrays required by this script, retaining the exact original archive member paths and their SHA256 hashes. Then:
+
+```bash
+python research/htkpa/stages/stage40/audit.py \
+  --native-zip research/_LOCAL_FILES/stage40_native_fir_fixtures.zip \
+  --upstream research/_LOCAL_FILES/r8brain_src \
+  --out research/_LOCAL_FILES/stage40_report.json
+```
+
+For **historical vendor attribution**, also compare the pinned v6.5 source from Git commit `3c930bf6825c0cfea4a813210c83b1a650c820b5` (2023-12-07), not just the modern v7.6 source. The native DLL's PE COFF build timestamp is **2026-07-29**, so candidate v7.1 and v7.2 (released by that date) cannot be ruled out from timeline alone. Old v6.5 builds require compiling/linking `r8bbase.cpp`; this v7.6-only gate is **not yet** a multi-version historical fingerprint.
