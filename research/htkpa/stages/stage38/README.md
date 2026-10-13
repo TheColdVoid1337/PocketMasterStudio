@@ -1,6 +1,6 @@
 # Stage38 — native Sonicake FFT vs open-source r8brain FFT
 
-**Gate state:** native-vs-NumPy Ooura-convention mathematical check PASSED on two complete frames. A **real compiled r8brain 7.6 FFT code check is prepared but has not been run on the user's WSL**. This is strictly a Fourier-stage test, not final NAM→CLO parity.
+**Gate state: PASS_NUMPY_AND_COMPILED_R8BRAIN_FFT**. On 2026-10-14 the user ran the complete WSL audit using pinned open-source r8brain 7.6 and the native fixture. This is strictly a Fourier-stage test, not final NAM→CLO parity.
 
 ## Verified native numbers (no new Manager runs)
 
@@ -35,7 +35,7 @@ Optionally add `--stage35-archive research/_LOCAL_FILES/frida_captures/frida_202
 
 ## Remaining gates
 
-- Actual native vs compiled public-source FFT values for **all 2048 + 4096 doubles × 2 frames**, including bit equality and maximum error, have not yet been observed; do not claim r8brain compiled parity until the WSL test is run.
+- **Compiled original r8brain FFT test passed numerically on all 12,288 f64 values.** Public r8brain bit-exact: frame0 forward 305/2048 and inverse 2862/4096, frame1 forward 311/2048 and inverse 3589/4096. Total **7067/12,288 exact**; forward max abs 5.551115123125783e-17, inverse max abs 4.336808689942018e-19. Bit parity remains incomplete. See `evidence.json`.
 - End-to-end `CDSPBlockConvolver` output comparison, full fractional interpolator and 44.1→48 kHz output parity are also pending.
 - Upstream revision v7.6 is a **reproducible control**, not an identified original Sonicake build. Do not equate exact mathematical FFT agreement with exact vendor source version.
 
