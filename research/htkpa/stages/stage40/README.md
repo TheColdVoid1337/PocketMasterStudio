@@ -44,3 +44,13 @@ python research/htkpa/stages/stage40/audit.py \
 ```
 
 For **historical vendor attribution**, also compare the pinned v6.5 source from Git commit `3c930bf6825c0cfea4a813210c83b1a650c820b5` (2023-12-07), not just the modern v7.6 source. The native DLL's PE COFF build timestamp is **2026-07-29**, so candidate v7.1 and v7.2 (released by that date) cannot be ruled out from timeline alone. Old v6.5 builds require compiling/linking `r8bbase.cpp`; this v7.6-only gate is **not yet** a multi-version historical fingerprint.
+
+## Important Stage40 correction: public zero-phase vs native raw FFT
+
+The original Stage40 WSL run yielded 2/4096 exact f64 and approx 0.0009765625 peak mismatch for both 1417-/1543-tap filters. This was **not a legitimate generated-kernel comparison**. At the original hook point, `coeff_post_fft` is the raw Ooura FFT spectrum with `[real,imag]` pairs; the public `getKernelBlock()` returns **post-`convertToZP` coefficients**. In the pinned r8brain `CDSPRealFFT.h`, `convertToZP` copies `p[i]` into `p[i+1]` for every even i>=2; compare the two only **after applying that conversion to a copy of native data**. The near-zero native imaginary values and nonzero r8brain odd slots account for the original misleading ~0.0009765625 differences.
+
+Corrected `audit.py` separately emits `public_vs_native_spectrum` for the **aligned** comparison and the `INVALID_previous_public_vs_unconverted_native_spectrum` control for traceability. It also independently checks the original native packed FFT against NumPy's `rfft` with the opposite imaginary sign; both native 4096-point FFTs differ from that mathematical reference by at most **4.336808689942018e-19**. No need to re-run Sonicake.
+
+**Corrected Stage40 public-source output not yet observed in user's WSL.** Until re-run, do not use the previous 2/4096 result for historical v6.5 vs v7.x source attribution. The original two attempts agree on file SHA, so neither private archive was corrupted.
+
+The same-r8brain numerical convolution PASS in Stage39 is unaffected. Next historical revision comparisons should work on matching time-domain coefficients or spectra with identical zero-phase conversion.
