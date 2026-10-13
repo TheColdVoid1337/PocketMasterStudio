@@ -73,3 +73,18 @@ python tools\frida_capture.py --config tools\frida_examples\htkpa_stage24c_xmm.j
 ```
 
 Verify that the initial project location is really yours; change the literal `F:\...` path if your checkout was moved. Always use Windows PowerShell, not WSL.
+
+## Launch Windows Frida from WSL (recommended)
+
+Use `tools/FRIDA_WSL.sh` **inside WSL**. It changes to the repository root, activates the root WSL `.venv` for shell tooling, checks the private Windows x64 Frida environment, translates script/config/DLL paths via `wslpath -w`, and executes the Windows `research/_LOCAL_FILES/stage23w_native/.venv/Scripts/python.exe` directly through WSL interop. This is intentionally **not** `.venv/bin/python`, which cannot load the Windows DLL. The wrapper supplies the Stage24C XMM JSON and original vendor DLL, with auto-PID discovery or spawn from default Windows install path. No PID entry required.
+
+```bash
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+git pull --ff-only origin main
+bash tools/FRIDA_WSL.sh
+```
+
+After the native program finishes its normal conversion press Enter; retrieve `research/_LOCAL_FILES/frida_captures/frida_*.tar.gz`. If WSL interop for Windows `.exe` is disabled, the launcher errors and stops; enable WSL interop using your normal system configuration rather than invoking Linux Frida as a fallback.
+
+**XMM correction gate:** Frida's JS reference describes x64 `xmm*` values as ArrayBuffer; a cross-realm `instanceof ArrayBuffer` check is not a reliable type test, so the reader now attempts `DataView` directly and reports actual buffer conversion failures. The first Windows native XMM capture with valid `bits` remains necessary. An event with a failed field cannot count toward successful capture; existing Stage24C negative evidence stays unchanged.
