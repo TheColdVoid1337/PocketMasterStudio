@@ -1,0 +1,97 @@
+{
+  "stage": 27,
+  "archive": "frida_20261013_114126_579849.tar.gz",
+  "status": "NATIVE_CAPTURE_PASS_ROUTER_ONLY",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "frida": {
+    "status": "CAPTURED_HOOKS_ONLY",
+    "runtime_verified": true,
+    "ready": true,
+    "hits": 18,
+    "valid_field_hits": 18,
+    "field_errors": 0,
+    "hook_errors": 0,
+    "thread_id": 8272,
+    "site_hits": {
+      "branch_decision": 12,
+      "direct_copy_before": 6
+    }
+  },
+  "router": {
+    "observed_count": 12,
+    "shift_count_at_state54": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sample_stride_at_state2c": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "state84": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "state90": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "direct_copy": {
+    "events": 6,
+    "doubles_per_event": 16,
+    "total_f64": 96,
+    "nonzero": true,
+    "contains_positive_and_negative_values": true
+  },
+  "alternative_branches": {
+    "stride_copy": 0,
+    "shift_copy": 0
+  },
+  "caveats": [
+    "The 96 samples are six discontinuous snippets, not a 96-sample contiguous stream",
+    "No post-copy memory snapshot or proof of PCM24 WAV relation",
+    "No evidence fractional interpolation is implemented in this router",
+    "No full resampler or NAM-CLO parity"
+  ],
+  "raw_samples_committed": false
+}
