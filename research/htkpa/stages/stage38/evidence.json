@@ -1,0 +1,51 @@
+{
+  "stage": 38,
+  "date": "2026-10-14",
+  "status": "PASS_NUMPY_NUMERIC_ONLY",
+  "source_public": "avaneev/r8brain-free-src",
+  "source_pin": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+  "public_code_identified": [
+    "CDSPBlockConvolver.h::process",
+    "CDSPRealFFT.h::forward",
+    "CDSPRealFFT.h::inverse"
+  ],
+  "private_input": "stage23w_native(1).zip (not committed)",
+  "observed": [
+    {
+      "frame": 0,
+      "forward_compared_f64": 2048,
+      "forward_max_abs": 8.326672684688674e-17,
+      "forward_rms": 5.827019681840254e-18,
+      "forward_exact_f64": 68,
+      "inverse_compared_f64": 4096,
+      "inverse_max_abs": 8.673617379884035e-19,
+      "inverse_rms": 1.9745843965683605e-19,
+      "inverse_exact_f64": 802,
+      "native_inverse_sha256": "e8038ef7c6ab30fd6aa04a5025a0bc0ef31fab7ec6529b96429fba5249d8908d"
+    },
+    {
+      "frame": 1,
+      "forward_compared_f64": 2048,
+      "forward_max_abs": 1.1102230246251565e-16,
+      "forward_rms": 8.400011036100952e-18,
+      "forward_exact_f64": 79,
+      "inverse_compared_f64": 4096,
+      "inverse_max_abs": 1.1926223897340549e-18,
+      "inverse_rms": 2.5795210778584996e-19,
+      "inverse_exact_f64": 842,
+      "native_inverse_sha256": "6bffdc693e96fd5e736df0e6f811941d92a245cdbc355f524d7894ab6d9abd7f"
+    }
+  ],
+  "convention": "Packed Ooura rdft: 0 DC, 1 Nyquist, interleaved real/imag with positive-imaginary convention relative to NumPy rfft; inverse unnormalized N/2",
+  "stage35_prefix": "First 1972 f64 Stage35 bytes exactly equal after_inverse_00 prefix in Stage23W",
+  "geometry": {
+    "fir_taps": 1417,
+    "fft_input": 2048,
+    "fft_output": 4096,
+    "history": 708,
+    "input_len": 2680,
+    "output_copy": 1972
+  },
+  "scope": "Only native-to-NumPy FFT numeric match. Pinned public r8brain C++ build run is PENDING WSL. Does not establish FFT bit parity, full convolver signal parity or final 44.1->48k.",
+  "privacy": "No original buffers or proprietary DLL/audio included"
+}
