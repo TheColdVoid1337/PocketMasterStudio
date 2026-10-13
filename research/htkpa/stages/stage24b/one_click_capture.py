@@ -157,7 +157,7 @@ def choose_pid(frida, preferred_exe: Path, specified_pid: int | None):
     if specified_pid:
         return device, specified_pid, 'attach'
     running = [p for p in device.enumerate_processes()
-               if 'sonicake manager' in p.name.lower()]
+               if 'sonicake' in p.name.lower() and 'manager' in p.name.lower()]
     if len(running) == 1:
         print(f'[APP] Attaching to existing Sonicake Manager PID={running[0].pid}')
         print('[NOTE] For a fresh constructor trace, close Manager and rerun if hooks remain silent.')
