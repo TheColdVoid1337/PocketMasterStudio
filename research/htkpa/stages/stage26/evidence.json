@@ -1,0 +1,70 @@
+{
+  "stage": "26",
+  "capture": "frida_20261013_113451_325799.tar.gz",
+  "scope": "bounded live Windows FIR stream copies and output branch; not full resampler output",
+  "status": "NATIVE_CAPTURE_PASS",
+  "dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "manifest": {
+    "status": "CAPTURED_HOOKS_ONLY",
+    "runtime_verified": true,
+    "ready": true,
+    "hits": 20,
+    "valid_field_hits": 20,
+    "field_errors": 0,
+    "hook_errors": 0,
+    "site_hits": {
+      "scratch_into_work": 4,
+      "work_into_scratch": 4,
+      "output_route": 8,
+      "direct_output_copy": 4
+    }
+  },
+  "scratch_handoff": {
+    "transitions_checked": 3,
+    "samples_per_transition": 8,
+    "bitwise_matching_samples": 24,
+    "total_compared_samples": 24,
+    "validation": "work_into_scratch[k].source8.bits equals scratch_into_work[k+1].source8.bits"
+  },
+  "output_route": {
+    "observed_0x2c": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "observed_0x54": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "observed_0x84": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "caveat": "labels in capture config are provisional; fields have not been source-verified as semantic period or skip"
+  },
+  "output_copy": {
+    "events": 4,
+    "samples_per_event": 8,
+    "nonzero": true,
+    "full_stream_unavailable": true
+  },
+  "next": "capture actual same-call continuous post-FIR and interpolator output with pointer/length provenance; identify 0x2c semantics from PE",
+  "privacy": "raw trace remains local; only aggregate sanitized evidence committed"
+}
