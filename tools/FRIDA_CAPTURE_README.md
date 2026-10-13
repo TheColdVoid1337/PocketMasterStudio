@@ -34,3 +34,19 @@ Use multiple `--site` and `--field` arguments. `--field` explicitly names its si
 ### Research discipline
 
 A hook's instruction boundary matters: `onEnter` captures registers before executing the instruction at that address. Confirm that the register contains a valid object at that exact site, and that memory contents are initialized. Correlate same-call objects by pointers/session; two adjacent traces are not automatically related. Results marked CAPTURED mean **valid observational session**, not parity or verification of the user's wider task. Keep Stage24B's earlier dedicated runner unchanged for the historical reproducer; this tool is its independent reusable successor.
+
+## XMM registers (Stage24C extension)
+
+Fields with `type: "xmm_f64"` or `type: "xmm_f32"` read a specific scalar IEEE-754 lane **directly from the hook's x64 CPU context**, not through a memory pointer. Set `reg` to `xmm0` … `xmm15`. Allowed byte lane offsets: f64 = 0 or 8; f32 = 0, 4, 8 or 12. Values and underlying bit hex are both recorded. The hook samples **before** the instruction at that VA executes.
+
+For the HTKPA Stage24C six-site probe, use `tools/frida_examples/htkpa_stage24c_xmm.json`. It captures a few scalar XMM values from the shared width, phase and gamma calculations without allocating raw FFT/audio buffers.
+
+**Windows PowerShell (existing Manager PID):**
+
+```powershell
+tools\FRIDA_CAPTURE.bat --config tools\frida_examples\htkpa_stage24c_xmm.json --pid 12345 --module-file research\_LOCAL_FILES\vendor\5868USB.dll
+```
+
+Replace 12345 with Manager PID. Prefer a **fresh Manager process** so hooks are installed before its first normal conversion. Do one conversion, press Enter in the console, and share only the generated `frida_*.tar.gz`. If Manager is not yet running, replace `--pid 12345` with `--exe "C:\Program Files\Sonicake\Sonicake Manager\Sonicake Manager.exe"` (adjust path as needed); launcher spawns and resumes it with hooks attached.
+
+**Validation limit:** Python config/source self-test is not a Windows execution test. XMM context access must be confirmed by seeing real `hit` events containing valid numeric `fields` and `bits`, with no `error` values.
