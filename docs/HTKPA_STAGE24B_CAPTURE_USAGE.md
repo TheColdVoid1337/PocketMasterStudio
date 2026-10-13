@@ -1,5 +1,12 @@
 # Stage24B — one-click Windows generator capture
 
+## Current tracked one-click release — 2026-10-13
+
+**UPDATE / supersedes historical packaging notes below:** The previously ZIP-only capture code is **NOW COMMITTED IN `main`**, so **no ZIP extraction and no Codex session** are required. From the repository root run `git pull --ff-only origin main`; in Windows Explorer double-click [`research/htkpa/stages/stage24b/STAGE24B_CAPTURE.bat`](../research/htkpa/stages/stage24b/STAGE24B_CAPTURE.bat). It invokes the tracked [`one_click_capture.py`](../research/htkpa/stages/stage24b/one_click_capture.py) with the existing Windows Frida venv. Complete one normal NAM→CLO import, then either let changed-CLO monitoring finish or press Enter after the real import completes. A verified `stage24b_*.tar.gz` (success **or** explicit failed trace) is saved under ignored `research/_LOCAL_FILES/stage23w_native/stage24b_captures/`. Send **that** archive to the next chat.
+
+Read the canonical new-chat handoff: [`docs/HTKPA_CANONICAL_HANDOFF_2026-10-13.md`](HTKPA_CANONICAL_HANDOFF_2026-10-13.md), and the current detailed [Stage24B README](../research/htkpa/stages/stage24b/README_STAGE24B.md). The old text below describing one-click source as **not yet in GitHub** documents an earlier packaging state and is **obsolete**. Native Stage24B scalar values are still **AWAITING USER WINDOWS RUN**. This release was only tested offline (Python self-test, AST/py_compile, Frida JS syntax and archive allowlist).
+
+
 ## Environment
 
 Use the user's already-installed Windows x64 Python + Frida at `research/_LOCAL_FILES/stage23w_native/.venv/Scripts/python.exe`. Do **not** install a second Windows venv or Frida. Linux `.venv` is activated in WSL for reproducible shell setup only; it cannot load the Windows PE DLL.
