@@ -81,7 +81,7 @@ def validate(cfg):
             out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ=='f64_slice' else 1))
         hits=int(s.get('max_hits',8))
         if not 1<=hits<=MAX_HITS: raise ValueError('max_hits out of range')
-        normalized.append(dict(name=name,rva=rva,fields=out,max_hits=hits))
+        normalized.append(dict(name=name,rva=rva,fields=out,max_hits=hits,required=bool(s.get('required',True))))
     return dict(module=cfg['module'],sha256=cfg['sha256'].lower(),sites=normalized,
                 image_base=base)
 
@@ -273,7 +273,7 @@ def capture(args,cfg,folder):
             with lock:
                 valid=(state['ready'] and state['runtime_verified'] and state['valid_field_hits']
                     and not state['field_errors'] and not state['hook_errors']
-                    and all(state['site_hits'].get(site['name'],0)>0 for site in cfg['sites']))
+                    and all(state['site_hits'].get(site['name'],0)>0 for site in cfg['sites'] if site['required']))
                 quiet=(state['last_hit_monotonic'] is not None and
                     time.monotonic()-state['last_hit_monotonic']>=args.auto_quiet)
             if args.auto_quiet and valid and quiet:
