@@ -1,0 +1,85 @@
+{
+  "stage": 44,
+  "status": "PUBLIC_PIPELINE_READY",
+  "user_run_date": "2026-10-14",
+  "source": "actual user WSL execution of pinned public r8brain native C++ pipeline on Stage43-verified genuine 2680 f64 Sonicake input",
+  "original_input_sha256": "9519d98a65e88f0858819a2579202768c945f9b9604ae4cd9fc656162d173acf",
+  "original_first_fir_output_sha256": "4e80e6e12343f2b1b618e351d2ecfe5e0851993af0ee10636149f7bd6a979cb6",
+  "assumed_parameters": {
+    "source_hz": 44100,
+    "destination_hz": 48000,
+    "transband_pct": 2,
+    "attenuation_db": 180.15,
+    "phase": "linear"
+  },
+  "public_chain": "CDSPBlockConvolver(2x to 88200) followed by CDSPFracInterpolator(88200 to 48000)",
+  "per_version": [
+    {
+      "version": "v6.5",
+      "commit": "3c930bf6825c0cfea4a813210c83b1a650c820b5",
+      "output_f64": 1067,
+      "output_sha256": "d1e7fde902ba117da0536ecbe1d4a4fde0a4a8918e3d02883187a8a63f27e6e1",
+      "chunk_sizes": [
+        64,
+        512,
+        2680
+      ],
+      "chunk_calls": [
+        42,
+        6,
+        1
+      ],
+      "chunk_exact_1067": true
+    },
+    {
+      "version": "v7.2",
+      "commit": "8fff6f3db26f14a8f5e8fb871000613673db5753",
+      "output_f64": 1067,
+      "output_sha256": "d1e7fde902ba117da0536ecbe1d4a4fde0a4a8918e3d02883187a8a63f27e6e1",
+      "chunk_sizes": [
+        64,
+        512,
+        2680
+      ],
+      "chunk_calls": [
+        42,
+        6,
+        1
+      ],
+      "chunk_exact_1067": true
+    },
+    {
+      "version": "v7.6",
+      "commit": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+      "output_f64": 1067,
+      "output_sha256": "48f94de01225afd916e862061ed656b104ab1cb176790d84b526cd87e9aa466a",
+      "chunk_sizes": [
+        64,
+        512,
+        2680
+      ],
+      "chunk_calls": [
+        42,
+        6,
+        1
+      ],
+      "chunk_exact_1067": true
+    }
+  ],
+  "cross_version": {
+    "v72_vs_v65": {
+      "samples": 1067,
+      "bit_exact": 1067,
+      "max_abs": 0,
+      "rms": 0
+    },
+    "v76_vs_v65": {
+      "samples": 1067,
+      "bit_exact": 0,
+      "max_abs": 9.377454325207313e-15,
+      "rms": 3.879522442760983e-16
+    }
+  },
+  "hypothesis_limits": "PUBLIC to PUBLIC only; no vendor 48000Hz final f64 reference; output count 1067 only for short 2680-sample startup segment; no flushing/tail and not total final audio length. Public parameters assumed from Stage43 matching first FIR, not independently established in all downstream vendor paths.",
+  "privacy": "Raw original or public-generated waveform arrays were not committed."
+}
