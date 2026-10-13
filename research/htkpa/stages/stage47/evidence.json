@@ -1,7 +1,7 @@
 {
   "stage": 47,
   "date": "2026-10-14",
-  "status": "STATIC_POST_FRACTIONAL_OUTPUT_SITE_VERIFIED",
+  "status": "STATIC_LAST_STAGE_RETURN_SITE_VERIFIED",
   "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "method": "Read-only LLVM 17.0.0 objdump on original PE64; independent Python regular-expression anchor gate ran successfully on all inspected functions. No live Manager, Frida or vendor program execution.",
   "PE_imagebase": "0x180000000",
