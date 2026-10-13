@@ -1,0 +1,81 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "scratch_into_work",
+      "address": "0x18000C445",
+      "max_hits": 4,
+      "fields": [
+        {
+          "name": "source8",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 8
+        },
+        {
+          "name": "dest",
+          "type": "ptr",
+          "reg": "rsp",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "work_into_scratch",
+      "address": "0x18000C45F",
+      "max_hits": 4,
+      "fields": [
+        {
+          "name": "source8",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 8
+        }
+      ]
+    },
+    {
+      "name": "output_route",
+      "address": "0x18000C6FC",
+      "max_hits": 8,
+      "fields": [
+        {
+          "name": "output_period",
+          "type": "u32",
+          "reg": "rsi",
+          "offset": 44
+        },
+        {
+          "name": "route_flag",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 84
+        },
+        {
+          "name": "initial_skip",
+          "type": "u32",
+          "reg": "rsi",
+          "offset": 132
+        }
+      ]
+    },
+    {
+      "name": "direct_output_copy",
+      "address": "0x18000C838",
+      "required": false,
+      "max_hits": 4,
+      "fields": [
+        {
+          "name": "output8",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 8
+        }
+      ]
+    }
+  ]
+}
