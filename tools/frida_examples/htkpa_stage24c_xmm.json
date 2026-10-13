@@ -1,0 +1,115 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "gamma_before_width",
+      "address": "0x18000B75E",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "y",
+          "type": "xmm_f64",
+          "reg": "xmm9",
+          "offset": 0
+        },
+        {
+          "name": "transition",
+          "type": "xmm_f64",
+          "reg": "xmm10",
+          "offset": 0
+        },
+        {
+          "name": "y_squared",
+          "type": "xmm_f64",
+          "reg": "xmm2",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "width_before_division",
+      "address": "0x18000B7BD",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "width_numerator",
+          "type": "xmm_f64",
+          "reg": "xmm8",
+          "offset": 0
+        },
+        {
+          "name": "y",
+          "type": "xmm_f64",
+          "reg": "xmm9",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "width_pre_cutoff",
+      "address": "0x18000B826",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "width_scaled",
+          "type": "xmm_f64",
+          "reg": "xmm8",
+          "offset": 0
+        },
+        {
+          "name": "phase_correction",
+          "type": "xmm_f64",
+          "reg": "xmm6",
+          "offset": 0
+        },
+        {
+          "name": "phase_work",
+          "type": "xmm_f64",
+          "reg": "xmm11",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "g_pre_store",
+      "address": "0x18000B838",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "G_before_floor",
+          "type": "xmm_f64",
+          "reg": "xmm8",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "theta_pre_store",
+      "address": "0x18000B844",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "theta",
+          "type": "xmm_f64",
+          "reg": "xmm11",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "name": "gamma_pre_store",
+      "address": "0x18000B8C1",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "gamma",
+          "type": "xmm_f64",
+          "reg": "xmm9",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}
