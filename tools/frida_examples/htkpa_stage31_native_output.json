@@ -1,0 +1,64 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "output_before_memcpy",
+      "address": "0x18000C838",
+      "max_hits": 32,
+      "fields": [
+        {
+          "name": "src_address",
+          "type": "reg_ptr",
+          "reg": "rdx",
+          "offset": 0
+        },
+        {
+          "name": "dest_address",
+          "type": "reg_ptr",
+          "reg": "rcx",
+          "offset": 0
+        },
+        {
+          "name": "copy_bytes",
+          "type": "reg_u64",
+          "reg": "r8",
+          "offset": 0
+        },
+        {
+          "name": "src_first16_f64",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 16
+        }
+      ]
+    },
+    {
+      "name": "router_state",
+      "address": "0x18000C6FC",
+      "max_hits": 32,
+      "fields": [
+        {
+          "name": "stride",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 44
+        },
+        {
+          "name": "shift",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 84
+        },
+        {
+          "name": "phase",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 144
+        }
+      ]
+    }
+  ]
+}
