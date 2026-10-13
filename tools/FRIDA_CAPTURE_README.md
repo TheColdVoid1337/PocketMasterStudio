@@ -88,3 +88,13 @@ bash tools/FRIDA_WSL.sh
 After the native program finishes its normal conversion press Enter; retrieve `research/_LOCAL_FILES/frida_captures/frida_*.tar.gz`. If WSL interop for Windows `.exe` is disabled, the launcher errors and stops; enable WSL interop using your normal system configuration rather than invoking Linux Frida as a fallback.
 
 **XMM correction gate:** Frida's JS reference describes x64 `xmm*` values as ArrayBuffer; a cross-realm `instanceof ArrayBuffer` check is not a reliable type test, so the reader now attempts `DataView` directly and reports actual buffer conversion failures. The first Windows native XMM capture with valid `bits` remains necessary. An event with a failed field cannot count toward successful capture; existing Stage24C negative evidence stays unchanged.
+
+## Stage24C WSL follow-up: 2026-10-13
+
+The actual second XMM attempt `frida_20261013_105652_757060.tar.gz` observed all six hook sites and 12 hits with verified runtime DLL, but **all 22 requested XMM reads failed**: `typeof this.context.xmm* === undefined` in the Windows Frida Interceptor callback. No numerical XMM measurements exist; do not keep retrying the old XMM config. `INCOMPLETE` was correct.
+
+The **WSL default** now uses `htkpa_stage24c_stack.json` instead. Original PE proves `0x18000B838` stores G at `[rsp+0x30]`, `0x18000B844` stores theta at `[rsp+0x48]`, and `0x18000B8C1` stores gamma at `[rsp+0x50]`; the probe hooks at `0x18000B8C8` and reads those memory fields, not inaccessible XMM registers. This captures finalized generator scalars, **not all arithmetic intermediates**.
+
+The WSL wrapper now passes `--auto-quiet 12`. If every configured site has at least one error-free observed field event, loaded module hash checks out, hooks report ready and no errors occur, it stops 12 seconds after the last hit with `CAPTURED_HOOKS_ONLY`. **This indicates complete hook evidence, not that the NAM→CLO conversion has finished.** It detaches but deliberately leaves Manager running. If an error or no hits occur, it waits until its timeout or interruption and archives an incomplete result. Terminal Enter through WSL interop is not required.
+
+For a more detailed future look at *earlier* math values, locate additional original stack spills or implement a carefully verified CPU-context/SIMD capture method. Never reinterpret absent XMM values as zeros.
