@@ -1,0 +1,29 @@
+{
+  "stage": 39,
+  "status": "PREPARED_OFFLINE_PUBLIC_CONVOLVER_NOT_YET_RUN",
+  "upstream_commit": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+  "native_source_verified": {
+    "reconstructed_input_samples": 2680,
+    "input_sha256": "9519d98a65e88f0858819a2579202768c945f9b9604ae4cd9fc656162d173acf",
+    "stage33_prefix_f64_bit_exact": 2048,
+    "history_f64_bit_exact": 708,
+    "frame0_history_zero_f64": 708,
+    "fft_padding_zero_f64_per_frame": 2048
+  },
+  "native_reference_verified": {
+    "stage35_vs_stage23w_inverse0_first_f64_bit_exact": 1972,
+    "native_reference_sha256": "4e80e6e12343f2b1b618e351d2ecfe5e0851993af0ee10636149f7bd6a979cb6"
+  },
+  "public_config_candidate": {
+    "norm_freq": 0.5,
+    "trans_band": 2,
+    "attenuation_db": 180.15,
+    "phase": "linear",
+    "gain": 2,
+    "up_factor": 2,
+    "down_factor": 1,
+    "consume_latency": true
+  },
+  "compiled_cpp_status": "PENDING_USER_WSL",
+  "limits": "No claim of compiled r8brain CDSPBlockConvolver parity until actual run. Does not prove fractional or final 48000Hz output."
+}
