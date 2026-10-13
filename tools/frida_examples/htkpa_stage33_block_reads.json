@@ -1,0 +1,60 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "input_entry",
+      "address": "0x18000C220",
+      "max_hits": 1,
+      "fields": [
+        {
+          "name": "input_count",
+          "type": "reg_u64",
+          "reg": "r8",
+          "offset": 0
+        },
+        {
+          "name": "input_ptr",
+          "type": "reg_ptr",
+          "reg": "rdx",
+          "offset": 0
+        },
+        {
+          "name": "input_2048",
+          "type": "f64_block",
+          "reg": "rdx",
+          "count": 2048
+        }
+      ]
+    },
+    {
+      "name": "fir_copy",
+      "address": "0x18000C838",
+      "max_hits": 2,
+      "fields": [
+        {
+          "name": "copy_bytes",
+          "type": "reg_u64",
+          "reg": "r8"
+        },
+        {
+          "name": "src_ptr",
+          "type": "reg_ptr",
+          "reg": "rdx"
+        },
+        {
+          "name": "dst_ptr",
+          "type": "reg_ptr",
+          "reg": "rcx"
+        },
+        {
+          "name": "data_1972",
+          "type": "f64_block",
+          "reg": "rdx",
+          "count": 1972
+        }
+      ]
+    }
+  ]
+}
