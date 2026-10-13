@@ -1,6 +1,6 @@
 {
   "stage": 39,
-  "status": "PREPARED_OFFLINE_PUBLIC_CONVOLVER_NOT_YET_RUN",
+  "status": "PASS_NUMERIC_CONVOLVER",
   "upstream_commit": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
   "native_source_verified": {
     "reconstructed_input_samples": 2680,
@@ -24,6 +24,19 @@
     "down_factor": 1,
     "consume_latency": true
   },
-  "compiled_cpp_status": "PENDING_USER_WSL",
-  "limits": "No claim of compiled r8brain CDSPBlockConvolver parity until actual run. Does not prove fractional or final 48000Hz output."
+  "compiled_cpp_status": "PASS_NUMERICAL_FILTER_AND_CONVOLVER_ONLY",
+  "limits": "0/1972 bit-exact; cause not yet isolated (FIR kernel coefficients/FFT floating-point differences/compiler). No final 44.1->48 kHz output or NAM fitting parity.",
+  "observed_from_user_wsl": {
+    "source_pin": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+    "input_samples": 2680,
+    "output_samples": 1972,
+    "native_reference_samples": 1972,
+    "public_filter_taps": 1417,
+    "public_fft_length": 4096,
+    "compared_samples": 1972,
+    "bit_exact": 0,
+    "max_abs": 2.402592014227878e-16,
+    "rms": 7.738254656116845e-17,
+    "return_code": 0
+  }
 }
