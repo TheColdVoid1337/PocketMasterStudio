@@ -11,7 +11,7 @@ research\_LOCAL_FILES\stage23w_native\.venv\Scripts\python.exe tools\frida_captu
 research\_LOCAL_FILES\stage23w_native\.venv\Scripts\python.exe tools\frida_capture.py --config tools\frida_examples\htkpa_stage24b.json --pid 12345 --module-file research\_LOCAL_FILES\vendor\5868USB.dll
 ```
 
-Or run `tools\FRIDA_CAPTURE.bat` with arguments. Without arguments the BAT offers a default configuration and asks for a PID (legacy interactive shortcut). The Python CLI now automatically attaches to the sole detected Sonicake Manager or spawns it from the default install path if absent; `--pid` overrides discovery, and `--exe PATH` specifies an alternate executable for spawn. Prefer spawning when you need early constructor hits. **Use Windows Python with Frida installed; WSL Python cannot attach.**
+Or run `tools\FRIDA_CAPTURE.bat` with arguments. Without arguments the BAT selects the Stage24C XMM example and uses automatic Manager PID discovery. The Python CLI now automatically attaches to the sole detected Sonicake Manager or spawns it from the default install path if absent; `--pid` overrides discovery, and `--exe PATH` specifies an alternate executable for spawn. Prefer spawning when you need early constructor hits. **Use Windows Python with Frida installed; WSL Python cannot attach.**
 
 After hooks are installed, perform the local action and press **Enter after completion**. Success requires target module hooks installed, runtime-loaded module SHA verified, at least one hit, and no Frida hook errors. Silence/timeout or pressing Enter early does not count as success. The observer does not attempt to decide whether a NAM→CLO conversion or other application task actually completed: it merely records the operator's completion signal.
 
