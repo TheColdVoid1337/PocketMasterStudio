@@ -54,3 +54,16 @@ Corrected `audit.py` separately emits `public_vs_native_spectrum` for the **alig
 **Corrected Stage40 public-source output not yet observed in user's WSL.** Until re-run, do not use the previous 2/4096 result for historical v6.5 vs v7.x source attribution. The original two attempts agree on file SHA, so neither private archive was corrupted.
 
 The same-r8brain numerical convolution PASS in Stage39 is unaffected. Next historical revision comparisons should work on matching time-domain coefficients or spectra with identical zero-phase conversion.
+
+## Actual user WSL rerun — corrected spectrum parity (2026-10-14)
+
+The user reran Stage40 after the `convertToZP()` alignment fix, using the original private `stage23w_native(1).zip`. Both original SHA-256 checks passed; public reference was pinned `r8brain 7.6` at `cb2abb9977efe2471979b380ed95daa56ab4fdb9`.
+
+| Filter | Max absolute error | RMS error | Exact f64 |
+|---|---:|---:|---:|
+| 1417 taps | `7.635184802110007e-14` | `5.418108913456421e-15` | 4/4096 |
+| 1543 taps | `7.650661788122237e-14` | `5.191640483135054e-15` | 4/4096 |
+
+Both native original pre-ZP FFT inputs independently reproduce NumPy spectra within **4.336808689942018e-19** absolute maximum. Report state: `SPECTRAL_ZP_ALIGNED_DIFFERENTIAL_MEASURED`; this is an **extremely small numerical FIR-spectrum mismatch, not bitwise/source-version identification**. The original invalid raw-vs-ZP results are retained as diagnostic controls only. Full details in `evidence.json`.
+
+**Next:** compare pinned historical public source revisions v6.5, v7.0, v7.1 and v7.2 with this same aligned metric. See `../stage41/`.
