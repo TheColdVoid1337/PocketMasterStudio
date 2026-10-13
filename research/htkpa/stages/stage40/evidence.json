@@ -24,6 +24,36 @@
       "raw_vs_zp_rms": 0.0004631843325599409
     }
   ],
-  "new_public_vs_native_zp_results": "PENDING_USER_WSL_RERUN",
-  "limits": "No historical r8brain version attribution from original Stage40 invalid comparison. Stage39 full convolver numeric PASS remains unaffected."
+  "new_public_vs_native_zp_results": "USER_WSL_2026_10_14_CONFIRMED",
+  "limits": "Corrected public v7.6 zero-phase spectrum comparison is user observed and numerically close (max errors approx 7.6e-14), but fails strict bit parity (4/4096 per filter). Does not identify Sonicake's embedded r8brain version, compiler, or final resampler output.",
+  "status": "SPECTRAL_ZP_ALIGNED_DIFFERENTIAL_MEASURED",
+  "user_wsl_observation": {
+    "source_revision": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+    "filters": [
+      {
+        "kernel": 0,
+        "taps": 1417,
+        "fft_size": 4096,
+        "bit_exact": 4,
+        "max_abs": 7.635184802110007e-14,
+        "rms": 5.418108913456421e-15,
+        "max_abs_over_native_peak": 7.818429234419856e-11,
+        "largest_error_index": 2020,
+        "native_raw_fft_vs_numpy_max_abs": 4.336808689942018e-19,
+        "public_spectrum_sha256": "7d330b36f93d06e0ec5c39f36621a99fc55f03643b3beca784af03760ebfa0c8"
+      },
+      {
+        "kernel": 1,
+        "taps": 1543,
+        "fft_size": 4096,
+        "bit_exact": 4,
+        "max_abs": 7.650661788122237e-14,
+        "rms": 5.191640483135054e-15,
+        "max_abs_over_native_peak": 7.834277664504481e-11,
+        "largest_error_index": 1840,
+        "native_raw_fft_vs_numpy_max_abs": 4.336808689942018e-19,
+        "public_spectrum_sha256": "c734ca38e039a53a78daf964ba8ac459e160a64e297118a23a4fd94cbf75925f"
+      }
+    ]
+  }
 }
