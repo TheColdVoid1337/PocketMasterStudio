@@ -14,7 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REGS = {'rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp','r8','r9','r10','r11','r12','r13','r14','r15'}
-TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr'}
+TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','xmm_f64','xmm_f32'}
+XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
 
@@ -62,7 +63,10 @@ def validate(cfg):
             offset=f.get('offset',0)
             if not isinstance(label,str) or not re.fullmatch('[a-zA-Z][a-zA-Z0-9_]{0,63}',label):
                 raise ValueError('invalid field name')
-            if typ not in TYPES or reg not in REGS: raise ValueError('unsupported type or register')
+            if typ not in TYPES or reg not in (XMM_REGS if typ.startswith('xmm_') else REGS):
+                raise ValueError('unsupported type or register')
+            if typ.startswith('xmm_') and int(str(offset),0) not in ((0,8) if typ=='xmm_f64' else (0,4,8,12)):
+                raise ValueError('invalid XMM lane offset')
             off=int(str(offset),0)
             if off < -4096 or off > 4096: raise ValueError('offset out of bounded range')
             out.append(dict(name=label,type=typ,reg=reg,offset=off))
@@ -82,8 +86,18 @@ const counters={};
 function tell(data){send(Object.assign({timestamp_ms:Date.now(),thread:Process.getCurrentThreadId()},data));}
 function scalar(ctx, f){
   try {
-    const p=ctx[f.reg].add(f.offset);
     let value, bits=null;
+    if(f.type==='xmm_f64' || f.type==='xmm_f32'){
+      const raw=ctx[f.reg];
+      if(!(raw instanceof ArrayBuffer) || raw.byteLength<16)throw Error('XMM register not available as ArrayBuffer');
+      const v=new DataView(raw);
+      const width=f.type==='xmm_f64'?8:4;
+      value=width===8?v.getFloat64(f.offset,true):v.getFloat32(f.offset,true);
+      const bytes=new Uint8Array(raw,f.offset,width);
+      bits='0x'+Array.from(bytes).reverse().map(b=>b.toString(16).padStart(2,'0')).join('');
+      return {value:value,bits:bits};
+    }
+    const p=ctx[f.reg].add(f.offset);
     switch(f.type){
       case 'f64': value=p.readDouble();bits='0x'+p.readU64().toString(16).padStart(16,'0');break;
       case 'f32': value=p.readFloat();bits='0x'+p.readU32().toString(16).padStart(8,'0');break;
@@ -219,6 +233,8 @@ def self_test():
     c=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='test',address='0x18000BD12',fields=[dict(name='sample',type='f64',reg='rcx',offset=8)])]))
     assert c['sites'][0]['rva']==0xbd12
     assert 'Interceptor.attach' in agent_source(c)
+    x=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='xmm',address='0x18000B81C',fields=[dict(name='width',type='xmm_f64',reg='xmm8',offset=0)])]))
+    assert x['sites'][0]['fields'][0]['reg']=='xmm8'
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         d=Path(tmp)
