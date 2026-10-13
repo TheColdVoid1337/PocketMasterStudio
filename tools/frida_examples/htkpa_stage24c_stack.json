@@ -1,0 +1,38 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "generator_stack_after_stores",
+      "address": "0x18000B8C8",
+      "max_hits": 8,
+      "fields": [
+        {
+          "name": "G_before_floor",
+          "reg": "rsp",
+          "offset": 48,
+          "type": "f64"
+        },
+        {
+          "name": "theta",
+          "reg": "rsp",
+          "offset": 72,
+          "type": "f64"
+        },
+        {
+          "name": "gamma",
+          "reg": "rsp",
+          "offset": 80,
+          "type": "f64"
+        },
+        {
+          "name": "G_integer",
+          "reg": "rsp",
+          "offset": 60,
+          "type": "u32"
+        }
+      ]
+    }
+  ]
+}
