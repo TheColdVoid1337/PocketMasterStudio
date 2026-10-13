@@ -179,10 +179,26 @@ def capture(args,cfg,folder):
     device=frida.get_local_device()
     if args.pid is not None:
         pid=args.pid; spawned=False
+        print('[TARGET] Explicit PID:',pid,flush=True)
     else:
-        if args.exe is None or not args.exe.is_file():
-            raise ValueError('provide --pid or --exe PATH')
-        pid=device.spawn([str(args.exe)]);spawned=True
+        matches=[p for p in device.enumerate_processes()
+                 if 'sonicake' in p.name.lower() and 'manager' in p.name.lower()]
+        if args.fresh:
+            matches=[]
+        if len(matches)>1:
+            raise RuntimeError('Multiple Manager processes; specify --pid to disambiguate')
+        if len(matches)==1:
+            pid=matches[0].pid; spawned=False
+            print('[TARGET] Auto-attaching:',matches[0].name,'PID',pid,flush=True)
+            print('[NOTE] Existing process may have passed early hooks; --fresh needs Manager closed first.',flush=True)
+        else:
+            if args.exe is None or not args.exe.is_file():
+                raise FileNotFoundError('No running Sonicake Manager; --exe path required to spawn')
+            if args.fresh and any('sonicake' in p.name.lower() and 'manager' in p.name.lower()
+                                   for p in device.enumerate_processes()):
+                raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
+            print('[TARGET] Spawning with hooks before resume:',args.exe,flush=True)
+            pid=device.spawn([str(args.exe)]);spawned=True
     state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0)
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
@@ -254,7 +270,8 @@ def main():
     ap.add_argument('--site',action='append',default=[],help='name:VA-or-RVA')
     ap.add_argument('--field',action='append',default=[],help='site:name:type:register:offset')
     ap.add_argument('--pid',type=int)
-    ap.add_argument('--exe',type=Path)
+    ap.add_argument('--fresh',action='store_true',help='spawn fresh Manager; requires old instances closed')
+    ap.add_argument('--exe',type=Path,default=Path(os.environ.get('ProgramFiles','C:/Program Files'))/'Sonicake'/'Sonicake Manager'/'Sonicake Manager.exe')
     ap.add_argument('--module-file',type=Path,help='original DLL/EXE to SHA-verify before hooking')
     ap.add_argument('--timeout',type=int,default=900)
     ap.add_argument('--out',type=Path,default=DEFAULT_OUT)
