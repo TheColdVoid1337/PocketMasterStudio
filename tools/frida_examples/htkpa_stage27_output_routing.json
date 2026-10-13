@@ -45,27 +45,6 @@
           "reg": "rdx",
           "offset": 0,
           "count": 16
-        },
-        {
-          "name": "dst_old_f64_4",
-          "type": "f64_slice",
-          "reg": "rcx",
-          "offset": 0,
-          "count": 4
-        }
-      ]
-    },
-    {
-      "name": "direct_copy_after",
-      "address": "0x18000C83D",
-      "max_hits": 6,
-      "fields": [
-        {
-          "name": "dst_new_f64_16",
-          "type": "f64_slice",
-          "reg": "rcx",
-          "offset": 0,
-          "count": 16
         }
       ]
     },
