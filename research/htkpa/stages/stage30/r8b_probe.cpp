@@ -45,7 +45,7 @@ int main(int argc,char** argv) {
    int got=res.process(in.data()+offset,n,ptr);
    if(got<0||static_cast<size_t>(got)>1000000)throw std::runtime_error("bad output count");
    if(got>0&&!ptr)throw std::runtime_error("null output pointer");
-   out.insert(out.end(),ptr,ptr+got);offset+=n;blocks++;
+   if(got>0)out.insert(out.end(),ptr,ptr+got);offset+=n;blocks++;
   }
   std::ofstream f(argv[2],std::ios::binary);
   if(!f)throw std::runtime_error("cannot create output");
