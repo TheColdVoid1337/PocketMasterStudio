@@ -1,0 +1,87 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "filter_arguments",
+      "address": "0x18000BD12",
+      "max_hits": 8,
+      "fields": [
+        {
+          "name": "cutoff",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 0
+        },
+        {
+          "name": "quality",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 8
+        },
+        {
+          "name": "attenuation",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 16
+        },
+        {
+          "name": "gain",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 32
+        }
+      ]
+    },
+    {
+      "name": "generator_arguments",
+      "address": "0x18000B981",
+      "max_hits": 8,
+      "fields": [
+        {
+          "name": "G_before_floor",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 0
+        },
+        {
+          "name": "G_integer",
+          "type": "u32",
+          "reg": "rcx",
+          "offset": 12
+        },
+        {
+          "name": "theta",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 24
+        },
+        {
+          "name": "gamma",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 32
+        },
+        {
+          "name": "beta",
+          "type": "f64",
+          "reg": "rcx",
+          "offset": 192
+        },
+        {
+          "name": "index",
+          "type": "u32",
+          "reg": "rcx",
+          "offset": 88
+        },
+        {
+          "name": "filter_cutoff",
+          "type": "f64",
+          "reg": "rdi",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}
