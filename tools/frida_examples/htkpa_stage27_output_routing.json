@@ -1,0 +1,103 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "branch_decision",
+      "address": "0x18000C6FC",
+      "max_hits": 12,
+      "fields": [
+        {
+          "name": "shift_count_at_state54",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 84
+        },
+        {
+          "name": "sample_stride_at_state2c",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 44
+        },
+        {
+          "name": "skip_at_state84",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 132
+        },
+        {
+          "name": "phase_at_state90",
+          "type": "i32",
+          "reg": "rsi",
+          "offset": 144
+        }
+      ]
+    },
+    {
+      "name": "direct_copy_before",
+      "address": "0x18000C838",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "input_f64_16",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 16
+        },
+        {
+          "name": "dst_old_f64_4",
+          "type": "f64_slice",
+          "reg": "rcx",
+          "offset": 0,
+          "count": 4
+        }
+      ]
+    },
+    {
+      "name": "direct_copy_after",
+      "address": "0x18000C83D",
+      "max_hits": 6,
+      "fields": [
+        {
+          "name": "dst_new_f64_16",
+          "type": "f64_slice",
+          "reg": "rcx",
+          "offset": 0,
+          "count": 16
+        }
+      ]
+    },
+    {
+      "name": "stride_copy",
+      "address": "0x18000C80D",
+      "required": false,
+      "max_hits": 4,
+      "fields": [
+        {
+          "name": "strided_source_4",
+          "type": "f64_slice",
+          "reg": "r8",
+          "offset": 0,
+          "count": 4
+        }
+      ]
+    },
+    {
+      "name": "shift_copy",
+      "address": "0x18000C745",
+      "required": false,
+      "max_hits": 4,
+      "fields": [
+        {
+          "name": "shift_source_4",
+          "type": "f64_slice",
+          "reg": "rdx",
+          "offset": 0,
+          "count": 4
+        }
+      ]
+    }
+  ]
+}
