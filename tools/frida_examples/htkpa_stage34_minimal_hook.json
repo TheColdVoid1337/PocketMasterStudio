@@ -1,0 +1,19 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "minimal_output_hook",
+      "address": "0x18000C838",
+      "max_hits": 1,
+      "fields": [
+        {
+          "name": "source_address_only",
+          "type": "reg_ptr",
+          "reg": "rdx"
+        }
+      ]
+    }
+  ]
+}
