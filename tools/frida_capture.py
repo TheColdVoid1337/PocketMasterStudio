@@ -78,7 +78,7 @@ def validate(cfg):
             off=int(str(offset),0)
             if off < -4096 or off > 4096: raise ValueError('offset out of bounded range')
             count=int(f.get('count',8))
-            if typ=='f64_slice' and not 1<=count<=16: raise ValueError('f64_slice count must be 1..16')
+            if typ=='f64_slice' and not 1<=count<=2048: raise ValueError('f64_slice count must be 1..2048')
             out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ=='f64_slice' else 1))
         hits=int(s.get('max_hits',8))
         if not 1<=hits<=MAX_HITS: raise ValueError('max_hits out of range')
@@ -331,6 +331,8 @@ def self_test():
     assert x['sites'][0]['fields'][0]['reg']=='xmm8'
     q=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='copy',address='0x18000C838',fields=[dict(name='samples',type='f64_slice',reg='rdx',offset=0,count=8)])]))
     assert q['sites'][0]['fields'][0]['count']==8
+    z=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='block',address='0x18000C838',max_hits=2,fields=[dict(name='samples',type='f64_slice',reg='rdx',offset=0,count=1972)])]))
+    assert z['sites'][0]['fields'][0]['count']==1972
     z=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='registers',address='0x18000C838',fields=[dict(name='bytes',type='reg_u64',reg='r8',offset=0)])]))
     assert z['sites'][0]['fields'][0]['type']=='reg_u64'
     import tempfile
