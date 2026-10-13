@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REGS = {'rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp','r8','r9','r10','r11','r12','r13','r14','r15'}
-TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64_slice','f64_block','xmm_f64','xmm_f32'}
+TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64_slice','f64_block','f64_binary','xmm_f64','xmm_f32'}
 XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
@@ -78,8 +78,8 @@ def validate(cfg):
             off=int(str(offset),0)
             if off < -4096 or off > 4096: raise ValueError('offset out of bounded range')
             count=int(f.get('count',8))
-            if typ in ('f64_slice','f64_block') and not 1<=count<=2048: raise ValueError('f64 block count must be 1..2048')
-            out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ in ('f64_slice','f64_block') else 1))
+            if typ in ('f64_slice','f64_block','f64_binary') and not 1<=count<=2048: raise ValueError('f64 block count must be 1..2048')
+            out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ in ('f64_slice','f64_block','f64_binary') else 1))
         hits=int(s.get('max_hits',8))
         if not 1<=hits<=MAX_HITS: raise ValueError('max_hits out of range')
         normalized.append(dict(name=name,rva=rva,fields=out,max_hits=hits,required=bool(s.get('required',True))))
@@ -164,7 +164,17 @@ function install(mod) {
    Interceptor.attach(mod.base.add(site.rva),{onEnter(){
     if(++counters[site.name]>site.max_hits)return;
     const fields={};
-    for(const f of site.fields)fields[f.name]=scalar(this.context,f);
+    for(const f of site.fields){
+      if(f.type==='f64_binary'){
+        try{
+          const raw=this.context[f.reg].add(f.offset).readByteArray(f.count*8);
+          if(raw===null)throw Error('null memory block');
+          send({kind:'binary_block',site:site.name,field:f.name,count:f.count,
+            timestamp_ms:Date.now(),thread:Process.getCurrentThreadId()},raw);
+          fields[f.name]={encoding:'binary_f64le',count:f.count,bytes:f.count*8};
+        }catch(e){fields[f.name]={error:String(e).slice(0,200)};}
+      } else fields[f.name]=scalar(this.context,f);
+    }
     tell({kind:'hit',site:site.name,rva:site.rva,pc:mod.base.add(site.rva).toString(),
       registers:{rcx:this.context.rcx.toString(),rdx:this.context.rdx.toString(),
       r8:this.context.r8.toString(),r9:this.context.r9.toString()},fields:fields});
@@ -197,7 +207,7 @@ def build_config(args):
     return validate(cfg)
 
 def archive(directory, destination):
-    members=['config.json','manifest.json','events.jsonl','HANDOFF.md']
+    members=['config.json','manifest.json','events.jsonl','HANDOFF.md'] + sorted(p.name for p in directory.glob('block_*.bin'))
     digest={}
     with tarfile.open(destination,'w:gz') as t:
         for name in members:
@@ -244,6 +254,16 @@ def capture(args,cfg,folder):
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
     def on_message(msg,data):
+        if msg.get('type')=='send' and msg.get('payload',{}).get('kind')=='binary_block':
+            payload=msg['payload']
+            name='block_{:d}_{}_{}.bin'.format(int(payload['timestamp_ms']),payload['site'],payload['field'])
+            if not re.fullmatch(r'block_[0-9]+_[A-Za-z0-9_]+_[A-Za-z0-9_]+[.]bin',name):
+                raise ValueError('invalid block filename')
+            body=bytes(data or b'')
+            if len(body)!=int(payload['count'])*8 or len(body)>16384:
+                raise ValueError('invalid binary block size')
+            (folder/name).write_bytes(body)
+            payload.update(file=name,sha256=hashlib.sha256(body).hexdigest(),bytes=len(body))
         e=msg.get('payload',{}) if msg.get('type')=='send' else dict(kind='frida_error',error=str(msg)[:500])
         if e.get('kind')=='module_loaded':
             try:
