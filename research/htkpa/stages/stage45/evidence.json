@@ -1,0 +1,80 @@
+{
+  "stage": 45,
+  "status": "PUBLIC_HYBRID_DIFFERENTIAL_MEASURED",
+  "observed_date": "2026-10-14",
+  "actual_user_WSL": true,
+  "input_native_verified": {
+    "input_2680_f64_sha256": "9519d98a65e88f0858819a2579202768c945f9b9604ae4cd9fc656162d173acf",
+    "vendor_first_FIR_1972_f64_sha256": "4e80e6e12343f2b1b618e351d2ecfe5e0851993af0ee10636149f7bd6a979cb6"
+  },
+  "semantics": "VENDOR FIRST FIR 1972 f64 -> PUBLIC compiled CDSPFracInterpolator (88200 -> 48000), vs full PUBLIC r8brain CDSPResampler(44100 -> 48000) on vendor input 2680 f64. Not vendor final 48 kHz.",
+  "versions": [
+    {
+      "version": "v6.5",
+      "commit": "3c930bf6825c0cfea4a813210c83b1a650c820b5",
+      "public_full_1067_sha256": "d1e7fde902ba117da0536ecbe1d4a4fde0a4a8918e3d02883187a8a63f27e6e1",
+      "hybrid_1067_sha256": "a6db6a9720b3c9649fdca3f9002606d65ec5fbf4968f8d5c187514077e6a0750",
+      "hybrid_vs_full_public": {
+        "count": 1067,
+        "bit_exact": 199,
+        "max_abs": 8.673617379884035e-19,
+        "rms": 2.3660543527888402e-19
+      }
+    },
+    {
+      "version": "v7.2",
+      "commit": "8fff6f3db26f14a8f5e8fb871000613673db5753",
+      "public_full_1067_sha256": "d1e7fde902ba117da0536ecbe1d4a4fde0a4a8918e3d02883187a8a63f27e6e1",
+      "hybrid_1067_sha256": "a6db6a9720b3c9649fdca3f9002606d65ec5fbf4968f8d5c187514077e6a0750",
+      "hybrid_vs_full_public": {
+        "count": 1067,
+        "bit_exact": 199,
+        "max_abs": 8.673617379884035e-19,
+        "rms": 2.3660543527888402e-19
+      }
+    },
+    {
+      "version": "v7.6",
+      "commit": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+      "public_full_1067_sha256": "48f94de01225afd916e862061ed656b104ab1cb176790d84b526cd87e9aa466a",
+      "hybrid_1067_sha256": "594dcfc83c7e1a3bd6841c2def1f8abfecd599a35c3123fad4278ce8f5ca74db",
+      "hybrid_vs_full_public": {
+        "count": 1067,
+        "bit_exact": 0,
+        "max_abs": 2.3809079707781677e-16,
+        "rms": 7.340605368424465e-17
+      }
+    }
+  ],
+  "chunk_invariance": {
+    "input_f64": 1972,
+    "chunk_sizes": [
+      64,
+      512,
+      1972
+    ],
+    "calls": [
+      31,
+      4,
+      1
+    ],
+    "output_f64": 1067,
+    "all_three_versions_bit_exact_at_each_chunk": 1067
+  },
+  "cross_version_hybrid": {
+    "v72_vs_v65": {
+      "count": 1067,
+      "bit_exact": 1067,
+      "max_abs": 0,
+      "rms": 0
+    },
+    "v76_vs_v65": {
+      "count": 1067,
+      "bit_exact": 15,
+      "max_abs": 9.34978006475462e-15,
+      "rms": 3.799624143507259e-16
+    }
+  },
+  "limits": "The comparison isolates propagation through PUBLIC fractional resampler only. Sonicake's own post-frac output has not been identified; no valid native final-vs-public 48000-Hz parity claim, vendor source version attribution or NAM/CLO fitting.",
+  "privacy": "Only numerical metrics, public hashes and vendor capture SHA-256. No proprietary samples/DLL/output buffers."
+}
