@@ -120,7 +120,7 @@ function scalar(ctx, f){
     if(f.type==='reg_ptr' || f.type==='reg_u64'){
       if(f.offset!==0)throw Error('register direct value disallows offset');
       const regval=ctx[f.reg];
-      return {value:f.type==='reg_ptr'?regval.toString():regval.toUInt64().toString(),bits:null};
+      return {value:f.type==='reg_ptr'?regval.toString():regval.toString(),bits:null};
     }
     const p=ctx[f.reg].add(f.offset);
     if(f.type==='f64_slice'){
@@ -259,6 +259,19 @@ def capture(args,cfg,folder):
                 f.write(json.dumps(e,ensure_ascii=True)+'\n')
         if e.get('kind') in ('hit','hook_error','ready'):
             report('ERROR' if e.get('kind')=='hook_error' else 'FRIDA',e.get('kind'),e.get('site',''))
+    watch_dir=args.completion_dir
+    def clo_snapshot():
+        if watch_dir is None or not watch_dir.is_dir(): return {}
+        result={}
+        for f in watch_dir.glob('*.clo'):
+            try:
+                st=f.stat()
+                result[str(f.resolve()).lower()]=(st.st_size,st.st_mtime_ns)
+            except OSError: pass
+        return result
+    baseline=clo_snapshot()
+    candidate=None
+    candidate_since=None
     session=None;script=None
     try:
         session=device.attach(pid)
@@ -282,6 +295,20 @@ def capture(args,cfg,folder):
                     and all(state['site_hits'].get(site['name'],0)>0 for site in cfg['sites'] if site['required']))
                 quiet=(state['last_hit_monotonic'] is not None and
                     time.monotonic()-state['last_hit_monotonic']>=args.auto_quiet)
+            if watch_dir is not None:
+                current=clo_snapshot()
+                changes=[(p,meta) for p,meta in current.items()
+                         if meta[0]>0 and baseline.get(p)!=meta]
+                if changes:
+                    selected=max(changes,key=lambda x:x[1][1])
+                    if selected==candidate:
+                        if candidate_since is not None and time.monotonic()-candidate_since>=3 and valid:
+                            report('ARCHIVE','Changed CLO stable for 3 seconds; detaching')
+                            return ('CAPTURED_HOOKS_ONLY','stable_clo_after_hooks',state,pid)
+                    else:
+                        candidate=selected;candidate_since=time.monotonic()
+                else:
+                    candidate=None;candidate_since=None
             if args.auto_quiet and valid and quiet:
                 report('ARCHIVE','All configured sites observed, quiet period complete')
                 return ('CAPTURED_HOOKS_ONLY','auto_quiet_after_hooks',state,pid)
@@ -325,6 +352,7 @@ def main():
     ap.add_argument('--site',action='append',default=[],help='name:VA-or-RVA')
     ap.add_argument('--field',action='append',default=[],help='site:name:type:register:offset')
     ap.add_argument('--pid',type=int)
+    ap.add_argument('--completion-dir',type=Path,help='watch Windows directory for a new/changed stable CLO')
     ap.add_argument('--fresh',action='store_true',help='spawn fresh Manager; requires old instances closed')
     ap.add_argument('--exe',type=Path,default=Path(os.environ.get('ProgramFiles','C:/Program Files'))/'Sonicake'/'Sonicake Manager'/'Sonicake Manager.exe')
     ap.add_argument('--module-file',type=Path,help='original DLL/EXE to SHA-verify before hooking')
