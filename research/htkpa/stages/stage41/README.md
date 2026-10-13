@@ -1,6 +1,6 @@
 # Stage41 — historical r8brain version fingerprint (offline Sonicake)
 
-**Status: PREPARED; actual 5-version native comparison NOT RUN YET.** User-completed Stage40 has established public r8brain v7.6 FIR spectra after matching zero-phase storage format to native Sonicake: 1417 taps max abs **7.635184802110007e-14**, RMS **5.418108913456421e-15**, bit-exact **4/4096**; 1543 taps max abs **7.650661788122237e-14**, RMS **5.191640483135054e-15**, bit-exact **4/4096**. The previous unaligned ~0.0009765625 Stage40 comparison is **invalid for source-version identification**.
+**Status: COMPLETED — actual WSL native comparison executed by user on 2026-10-14.** User-completed Stage40 has established public r8brain v7.6 FIR spectra after matching zero-phase storage format to native Sonicake: 1417 taps max abs **7.635184802110007e-14**, RMS **5.418108913456421e-15**, bit-exact **4/4096**; 1543 taps max abs **7.650661788122237e-14**, RMS **5.191640483135054e-15**, bit-exact **4/4096**. The previous unaligned ~0.0009765625 Stage40 comparison is **invalid for source-version identification**.
 
 ## Why historical versions?
 
@@ -45,3 +45,21 @@ Expected output records the filter geometry and per-version **max error, RMS, 81
 Do **not** infer original vendor revision merely because one Linux-compiled candidate has the smallest RMS; different FFT backends, compiler optimizations, source modifications or portability revisions can all produce differences. If the early v6.5 coefficients become substantially closer than v7.6 with stable FFT conventions, investigate source changes and build settings next. If differences are all similar or identical, chronological evidence remains stronger than numerical fingerprinting.
 
 The MIT-licensed original source is https://github.com/avaneev/r8brain-free-src (Aleksey Vaneev / Voxengo). No proprietary DLL or native buffer data included in this commit.
+
+## Actual Stage41 WSL run — five public source revisions
+
+User successfully compiled the **real pinned upstream C++** at all five commits (no Frida, no new Sonicake runs). Each filter produced the exact expected geometry; all compared kernels are in the same zero-phase representation. See `evidence.json`.
+
+| Public version | FIR joint RMS | Max abs over both filters | Exact native f64 / 8192 |
+| --- | ---: | ---: | ---: |
+| v6.5 | `1.3529207911675724e-19` | `4.336808689942018e-19` | **2511** |
+| v7.0 | `1.3529207911675724e-19` | `4.336808689942018e-19` | **2511** |
+| v7.1 | `1.3529207911675724e-19` | `4.336808689942018e-19` | **2511** |
+| v7.2 | `1.3529207911675724e-19` | `4.336808689942018e-19` | **2511** |
+| v7.6 | `5.30608307059938e-15` | `7.650661788122237e-14` | **8** |
+
+v6.5 through v7.2 **are byte-for-byte identical to one another** in both generated public spectra. Original Sonicake spectrum remains distinct from them at a few f64 low-order bits. These public versions cannot be distinguished by this specific two-filter test; do not announce the exact embedded vintage of Sonicake. Numerical compatibility is ~39,200 times tighter in RMS than public v7.6, which is a robust *source-family* signal.
+
+Source comparison: the public v7.5 → v7.6 Git change affects only `README.md` and `r8bbase.h`. Version 7.6 adds fast approximations for exp/log plus Bessel changes; this is a leading explanation for its larger FIR mismatch, though not proof of a specific Sonicake source revision.
+
+**Next Stage42:** test v7.3, v7.4 and v7.5 with the same FIR geometry/format as control v7.2 and v7.6, to identify the first version that changes these public outputs. See `../stage42/`.
