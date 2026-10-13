@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REGS = {'rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp','r8','r9','r10','r11','r12','r13','r14','r15'}
-TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','xmm_f64','xmm_f32'}
+TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','f64_slice','xmm_f64','xmm_f32'}
 XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
@@ -76,7 +76,9 @@ def validate(cfg):
                 raise ValueError('invalid XMM lane offset')
             off=int(str(offset),0)
             if off < -4096 or off > 4096: raise ValueError('offset out of bounded range')
-            out.append(dict(name=label,type=typ,reg=reg,offset=off))
+            count=int(f.get('count',8))
+            if typ=='f64_slice' and not 1<=count<=16: raise ValueError('f64_slice count must be 1..16')
+            out.append(dict(name=label,type=typ,reg=reg,offset=off,count=count if typ=='f64_slice' else 1))
         hits=int(s.get('max_hits',8))
         if not 1<=hits<=MAX_HITS: raise ValueError('max_hits out of range')
         normalized.append(dict(name=name,rva=rva,fields=out,max_hits=hits))
@@ -115,6 +117,15 @@ function scalar(ctx, f){
       return {value:value,bits:bits};
     }
     const p=ctx[f.reg].add(f.offset);
+    if(f.type==='f64_slice'){
+      const values=[], bitStrings=[];
+      for(let i=0;i<f.count;i++){
+        const q=p.add(i*8);
+        values.push(q.readDouble());
+        bitStrings.push('0x'+q.readU64().toString(16).padStart(16,'0'));
+      }
+      return {values:values,bits:bitStrings,count:f.count};
+    }
     switch(f.type){
       case 'f64': value=p.readDouble();bits='0x'+p.readU64().toString(16).padStart(16,'0');break;
       case 'f32': value=p.readFloat();bits='0x'+p.readU32().toString(16).padStart(8,'0');break;
@@ -285,6 +296,8 @@ def self_test():
     assert 'Interceptor.attach' in agent_source(c)
     x=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='xmm',address='0x18000B81C',fields=[dict(name='width',type='xmm_f64',reg='xmm8',offset=0)])]))
     assert x['sites'][0]['fields'][0]['reg']=='xmm8'
+    q=validate(dict(module='5868USB.dll',sha256='a'*64,sites=[dict(name='copy',address='0x18000C838',fields=[dict(name='samples',type='f64_slice',reg='rdx',offset=0,count=8)])]))
+    assert q['sites'][0]['fields'][0]['count']==8
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         d=Path(tmp)
