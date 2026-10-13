@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Stage40: compare public r8brain native packed FIR FFTs vs original DLL.
-Only metadata/digests leave private environment, never packed arrays.
+"""Stage40: compare the SAME zero-phase FIR spectrum representation.
+
+Original native 'coeff_post_fft' is the RAW forward FFT, while public
+CDSPFIRFilter.getKernelBlock() is AFTER convertToZP(). Align before comparing.
+No native audio/coefficients leave the private workstation.
 """
 import argparse
 import hashlib
 import json
-import math
 from pathlib import Path
 import subprocess
 import tempfile
@@ -37,6 +39,28 @@ def compare(public, original):
       "max_original_abs":scale,
       "public_dc":float(public[0]),"native_dc":float(original[0]),
       "public_nyquist":float(public[1]),"native_nyquist":float(original[1])}
+def native_forward_fft_check(time_data, raw_fft):
+    """Independent FFT check in Ooura packed sign convention (NumPy is opposite)."""
+    f=np.fft.rfft(time_data)
+    packed=np.empty(len(time_data),dtype="<f8")
+    packed[0]=f[0].real
+    packed[1]=f[-1].real
+    packed[2::2]=f[1:-1].real
+    packed[3::2]=-f[1:-1].imag
+    err=float(np.max(np.abs(packed-raw_fft)))
+    if err>2e-15:raise ValueError("original coefficient FFT does not match time input")
+    return err
+
+def convert_native_fft_to_zp(raw_fft):
+    """Original r8brain CDSPRealFFT.convertToZP() for default Ooura/IPP path.
+
+    Keep raw_fft untouched, and for i=2,4,...,Len-2 copy p[i] to p[i+1].
+    This duplicates the real bin so multiplyBlocksZP can do vector products.
+    """
+    aligned=raw_fft.copy()
+    aligned[3::2]=aligned[2::2]
+    return aligned
+
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--native-zip",type=Path,required=True,
@@ -65,16 +89,21 @@ def main():
                 if len(raw)!=4096*8:raise ValueError("public spectrum wrong length")
                 public=np.frombuffer(raw,dtype="<f8").copy()
                 if not np.isfinite(public).all():raise ValueError("nonfinite public kernel")
+                native_fft_math_error=native_forward_fft_check(pre,ref)
+                aligned_native=convert_native_fft_to_zp(ref)
                 row={"kernel":i,"native_time_sha256":pre_sha,
                      "native_spectrum_sha256":post_sha,
                      "public_spectrum_sha256":hashlib.sha256(raw).hexdigest(),
                      "native_max_abs_time":float(np.max(np.abs(pre))),
+                     "native_raw_fft_vs_numpy_max_abs":native_fft_math_error,
                      "compiled_source":public_meta[i],
-                     "public_vs_native_spectrum":compare(public,ref)}
+                     "spectrum_layout":"public_getKernelBlock_after_convertToZP_vs_native_raw_fft_after_explicit_convertToZP",
+                     "public_vs_native_spectrum":compare(public,aligned_native),
+                     "INVALID_previous_public_vs_unconverted_native_spectrum":compare(public,ref)}
                 rows.append(row)
-    result={"stage":40,"status":"SPECTRAL_DIFFERENTIAL_MEASURED",
+    result={"stage":40,"status":"SPECTRAL_ZP_ALIGNED_DIFFERENTIAL_MEASURED",
             "source_revision":PIN,"filter_count":2,"filters":rows,
-            "limits":"This differentiates public generated FIR spectra from vendor. The raw spectral mismatch alone does not identify the vintage source revision or establish bit-parity."}
+            "limits":"Corrected for r8brain convertToZP in native spectrum; old 2/4096 matches were a representation mismatch. Aligned spectrum differences still cannot uniquely identify vendor source revision/compiler."}
     text=json.dumps(result,indent=2)+"\n"
     if a.out:a.out.write_text(text)
     print(text)
