@@ -19,6 +19,13 @@ XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
 
+COLORS = {'TARGET':'\x1b[36m','NOTE':'\x1b[33m','FRIDA':'\x1b[35m','STARTED':'\x1b[32m','ARCHIVE':'\x1b[32m','ERROR':'\x1b[31m'}
+def report(kind,*parts):
+    enabled = sys.stdout.isatty() and os.environ.get('NO_COLOR') is None
+    prefix='['+kind+']'
+    if enabled:prefix=COLORS.get(kind,'')+prefix+'\x1b[0m'
+    print(prefix,*parts,flush=True)
+
 def sha(path):
     h = hashlib.sha256()
     with open(path,'rb') as f:
@@ -179,7 +186,7 @@ def capture(args,cfg,folder):
     device=frida.get_local_device()
     if args.pid is not None:
         pid=args.pid; spawned=False
-        print('[TARGET] Explicit PID:',pid,flush=True)
+        report('TARGET','Explicit PID:',pid)
     else:
         matches=[p for p in device.enumerate_processes()
                  if 'sonicake' in p.name.lower() and 'manager' in p.name.lower()]
@@ -189,15 +196,15 @@ def capture(args,cfg,folder):
             raise RuntimeError('Multiple Manager processes; specify --pid to disambiguate')
         if len(matches)==1:
             pid=matches[0].pid; spawned=False
-            print('[TARGET] Auto-attaching:',matches[0].name,'PID',pid,flush=True)
-            print('[NOTE] Existing process may have passed early hooks; --fresh needs Manager closed first.',flush=True)
+            report('TARGET','Auto-attaching:',matches[0].name,'PID',pid)
+            report('NOTE','Existing process may have passed early hooks; --fresh needs Manager closed first.')
         else:
             if args.exe is None or not args.exe.is_file():
                 raise FileNotFoundError('No running Sonicake Manager; --exe path required to spawn')
             if args.fresh and any('sonicake' in p.name.lower() and 'manager' in p.name.lower()
                                    for p in device.enumerate_processes()):
                 raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
-            print('[TARGET] Spawning with hooks before resume:',args.exe,flush=True)
+            report('TARGET','Spawning with hooks before resume:',args.exe)
             pid=device.spawn([str(args.exe)]);spawned=True
     state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0)
     events_path=folder/'events.jsonl'
@@ -217,7 +224,7 @@ def capture(args,cfg,folder):
             with events_path.open('a',encoding='utf-8') as f:
                 f.write(json.dumps(e,ensure_ascii=True)+'\n')
         if e.get('kind') in ('hit','hook_error','ready'):
-            print('[FRIDA]',e.get('kind'),e.get('site',''),flush=True)
+            report('ERROR' if e.get('kind')=='hook_error' else 'FRIDA',e.get('kind'),e.get('site',''))
     session=None;script=None
     try:
         session=device.attach(pid)
@@ -225,7 +232,7 @@ def capture(args,cfg,folder):
         script.on('message',on_message)
         script.load()
         if spawned:device.resume(pid)
-        print('[STARTED] PID',pid,'Run the target action. Press Enter after it finishes.',flush=True)
+        report('STARTED','PID',pid,'Run the target action. Press Enter after it finishes.')
         input_done=threading.Event()
         if sys.stdin.isatty():
             def read_enter():
@@ -293,7 +300,7 @@ def main():
         status,method,state,pid=capture(args,cfg,folder)
     except (Exception,KeyboardInterrupt) as e:
         problem=f'{type(e).__name__}: {e}'
-        print('[ERROR]',problem)
+        report('ERROR',problem)
     manifest=dict(status=status,method=method,problem=problem,
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
         expected_sha256=cfg['sha256'],state=state,scope='bounded read-only scalar observation')
@@ -303,7 +310,7 @@ def main():
         '\n\nNative values are only events marked hit in events.jsonl, and require runtime SHA verified.\n')
     dest=folder.with_suffix('.tar.gz')
     archive(folder,dest)
-    print('[ARCHIVE]',dest,'[RESULT]',status)
+    report('ARCHIVE',dest,'[RESULT]',status)
     return 0 if status=='CAPTURED' else 2
 
 if __name__=='__main__':raise SystemExit(main())
