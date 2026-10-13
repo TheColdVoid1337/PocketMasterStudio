@@ -96,7 +96,7 @@ function scalar(ctx, f){
     let value, bits=null;
     if(f.type==='xmm_f64' || f.type==='xmm_f32'){
       const raw=ctx[f.reg];
-      if(!(raw instanceof ArrayBuffer) || raw.byteLength<16)throw Error('XMM register not available as ArrayBuffer');
+      if(!(raw instanceof ArrayBuffer) || raw.byteLength<16)throw Error('XMM register unavailable: type='+typeof raw+', tag='+Object.prototype.toString.call(raw)+', byteLength='+(raw && raw.byteLength));
       const v=new DataView(raw);
       const width=f.type==='xmm_f64'?8:4;
       value=width===8?v.getFloat64(f.offset,true):v.getFloat32(f.offset,true);
@@ -206,7 +206,7 @@ def capture(args,cfg,folder):
                 raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
             report('TARGET','Spawning with hooks before resume:',args.exe)
             pid=device.spawn([str(args.exe)]);spawned=True
-    state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0)
+    state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0)
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
     def on_message(msg,data):
@@ -218,7 +218,12 @@ def capture(args,cfg,folder):
                 state['runtime_verified']=(actual==cfg['sha256'])
             except OSError as ex:e['sha_error']=str(ex)
         if e.get('kind')=='ready':state['ready']=e.get('installed')==e.get('requested')
-        if e.get('kind')=='hit':state['hits']+=1
+        if e.get('kind')=='hit':
+            state['hits']+=1
+            fields=e.get('fields',{})
+            errors=sum(isinstance(v,dict) and 'error' in v for v in fields.values())
+            state['field_errors']+=errors
+            if fields and not errors:state['valid_field_hits']+=1
         if e.get('kind') in ('hook_error','frida_error'):state['hook_errors']+=1
         with lock:
             with events_path.open('a',encoding='utf-8') as f:
@@ -242,7 +247,7 @@ def capture(args,cfg,folder):
         start=time.monotonic()
         while time.monotonic()-start<args.timeout:
             if input_done.wait(0.25):
-                return ('CAPTURED' if state['ready'] and state['runtime_verified'] and state['hits'] and not state['hook_errors'] else 'INCOMPLETE','operator_enter',state,pid)
+                return ('CAPTURED' if state['ready'] and state['runtime_verified'] and state['hits'] and state['valid_field_hits'] and not state['field_errors'] and not state['hook_errors'] else 'INCOMPLETE','operator_enter',state,pid)
         return ('INCOMPLETE','timeout',state,pid)
     finally:
         if script:
