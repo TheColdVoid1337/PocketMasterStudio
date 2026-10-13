@@ -26,6 +26,8 @@ ADDR = {
     "frac_output_write": BASE + 0x13C38,
     "frac_count_return": BASE + 0x13D1D,
     "frac_vftable": BASE + 0x245170,
+    "last_stage_capacity_check": BASE + 0x12237,
+    "last_stage_buffer_choice": BASE + 0x12263,
 }
 
 # Each text pattern identifies the instruction at a FULL absolute image VA, not
@@ -55,6 +57,18 @@ FRAC_ANCHORS = {
     0x13D19: r"^sarq\s+\$0x3,\s*%r12$",
     0x13D1D: r"^movl\s+%r12d,\s*%eax$",
     0x13D28: r"^retq$",
+}
+SETUP_ANCHORS = {
+    0x1222A: r"^movq\s+%rsi,\s*0x50\(%rbx\)$",
+    0x12231: r"^movl\s+%r13d,\s*%edx$",
+    0x12237: r"^callq\s+\*0x20\(%rax\)$",
+    0x1223A: r"^cmpl\s+%r12d,\s*%eax$",
+    0x1223F: r"^movq\s+0x58\(%rbx\),\s*%rax$",
+    0x1224E: r"^movq\s+%rdi,\s*0x70\(%rbx\)$",
+    0x12256: r"^leaq\s+0x68\(%rbx\),\s*%rcx$",
+    0x1225A: r"^callq\s+0x1800122f0$",
+    0x1225F: r"^movq\s+0x68\(%rbx\),\s*%rax$",
+    0x12263: r"^movq\s+%rax,\s*0x70\(%rbx\)$",
 }
 CLEAR_ANCHORS = {
     0x11A4F: r"^leaq\s+0x23371a\(%rip\),\s*%rcx$",
@@ -98,9 +112,11 @@ def main() -> None:
     wrapper = disasm(args.dll, args.objdump, BASE+0x11850, BASE+0x11915)
     clearer = disasm(args.dll, args.objdump, BASE+0x11A39, BASE+0x11A60)
     frac = disasm(args.dll, args.objdump, BASE+0x135C0, BASE+0x13D29)
+    setup = disasm(args.dll, args.objdump, BASE+0x12213, BASE+0x12268)
     assert_instructions("resampler", wrapper, WRAPPER_ANCHORS)
     assert_instructions("clear", clearer, CLEAR_ANCHORS)
     assert_instructions("fractional", frac, FRAC_ANCHORS)
+    assert_instructions("last-stage buffer setup", setup, SETUP_ANCHORS)
 
     # The final virtual slot offset 0x30 is grounded by CDSPProcessor's
     # 7-slot vftable; a static indirect call never proves its runtime target.
@@ -133,6 +149,14 @@ def main() -> None:
             {"site":hex(BASE+0x1190C),
              "operation":"FIRST instruction after final stage returns; EAX output count and [R15] proposed output base; single STATIC observation candidate only"}
         ],
+        "last_stage_output_storage":{
+            "processor_pointer":"RBX+0x50",
+            "max_out_len_call":"virtual slot 4 getMaxOutLen at 0x180012237",
+            "available_buffer_choices":"Reuse intermediate tmp buffer [RBX+0x58], reallocate dedicated [RBX+0x68], or leave [RBX+0x70]=0 for in-place output to original input buffer",
+            "candidate_output_pointer":"The pointer written to original double*& at [R15] immediately BEFORE final virtual call",
+            "candidate_output_count":"EAX immediately AFTER final virtual call at 0x18001190C",
+            "pointer_lifetime_caveat":"Buffer may be owned by resampler and overwritten on subsequent process(); cannot claim safe cross-call access. Bound reads to the current returned EAX count and verify the memory region before use.",
+        },
         "fractional_process_checks":{
             "entry_va":hex(BASE+0x135C0),
             "input_f64_count_register":"R8D",
