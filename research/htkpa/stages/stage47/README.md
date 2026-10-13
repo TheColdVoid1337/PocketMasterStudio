@@ -1,6 +1,6 @@
 # Stage47 — static caller, output-pointer and buffer-capacity reconstruction
 
-**Status: STATIC_POST_FRACTIONAL_OUTPUT_SITE_VERIFIED (no runtime experiment).**
+**Status: STATIC_LAST_STAGE_RETURN_SITE_VERIFIED (no runtime experiment).**
 
 This is a direct offline analysis of the user's original PE64 `5868USB.dll`, exact SHA-256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`, using LLVM 17.0.0 `llvm-objdump`. The identified function is r8brain-related native code, not a claim of vendor output parity or a validated safe Frida hook. Stage46's MSVC RTTI identified `r8b::CDSPFracInterpolator<...>::process` at `0x1800135C0`, with `r8b::CDSPResampler24::process` at `0x180011850`.
 
