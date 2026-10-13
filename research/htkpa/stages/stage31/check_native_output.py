@@ -14,8 +14,8 @@ def analyze(path):
             raise ValueError("unexpected archive membership")
         contents={x.name.split("/")[-1]:t.extractfile(x).read() for x in m}
     manifest=json.loads(contents["manifest.json"])
-    if not manifest.get("runtime_verified"):raise ValueError("original DLL hash unverified")
-    if manifest.get("field_errors") or manifest.get("hook_errors"):raise ValueError("field or Frida error")
+    if not manifest.get("state",{}).get("runtime_verified"):raise ValueError("original DLL hash unverified")
+    if manifest.get("state",{}).get("field_errors") or manifest.get("state",{}).get("hook_errors"):raise ValueError("field or Frida error")
     config=json.loads(contents["config.json"])
     if config["sha256"]!=EXPECTED:raise ValueError("wrong DLL config")
     events=[json.loads(l) for l in contents["events.jsonl"].splitlines()]
@@ -23,7 +23,7 @@ def analyze(path):
     for e in events:
         if e.get("kind")!="hit" or e.get("site")!="output_before_memcpy":continue
         f=e["fields"]
-        count=int(f["copy_bytes"]["value"])
+        count=int(f["copy_bytes"]["value"],0)
         n=f["src_first16_f64"]
         if count%8:raise ValueError("unaligned memcpy length")
         if count<128:raise ValueError("prefix read exceeds memcpy length: "+str(count))
