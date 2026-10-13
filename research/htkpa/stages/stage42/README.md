@@ -1,6 +1,6 @@
 # Stage42 — locate where r8brain's filter spectra diverge
 
-**Prepared, not user-run yet.** This stage follows the successful user-executed Stage41, which compared two genuine Sonicake FIR spectra against five *real compiled* r8brain public source commits.
+**COMPLETED — user's WSL execution on 2026-10-14.** This stage follows the successful user-executed Stage41, which compared two genuine Sonicake FIR spectra against five *real compiled* r8brain public source commits.
 
 ## Stage41 result (observed, not assumed)
 
@@ -48,3 +48,16 @@ python research/htkpa/stages/stage42/audit_transition.py \
 The script reuses the existing ignored local bare Git source cache and fetches **only missing public commits**, then builds them into temporary directories. Outputs are hash/error metadata; no original DLL, proprietary NAM/audio or native spectra enter Git.
 
 **Interpretation:** If v7.3–v7.5 spectra match v7.2 and v7.6 alone diverges, we can localize the latest-public implementation change to v7.6's math-base update. This is *still not* proof that Sonicake took source exactly from v6.5, v7.2 or v7.5. To discriminate among *numerically identical public implementations*, inspect vendor binary fingerprints/build dates and underlying compiled functions separately.
+
+## Actual user-run Stage42 result
+
+Confirmed `status=COMPLETED`, with source SHAs verified and original FIR data local/private. **First different public FIR spectra = v7.6**. Versions v7.2, v7.3, v7.4, v7.5 generated **byte-identical** spectra on both 1417- and 1543-tap filter probes:
+
+| Public version | RMS error vs Sonicake | Exact native f64 / 8192 |
+| --- | ---: | ---: |
+| v7.2 / v7.3 / v7.4 / v7.5 | `1.3529207911675724e-19` | 2511 |
+| v7.6 | `5.30608307059938e-15` | 8 |
+
+This closes the public-spectrum transition question. Source diff between public v7.5 and v7.6 contains changes only to `README.md` and `r8bbase.h`, including fast math / Bessel refactoring. The data are **consistent with** that change affecting generated FIR values but do not isolate a particular changed function as the numerical cause.
+
+**Vendor version still unknown:** Stage41 v6.5–v7.2 and Stage42 v7.3–v7.5 together show that all **v6.5 through v7.5** give identical public output for these 2 FIR configurations. This fingerprint cannot distinguish their historical releases. Firmware/product chronology favors earlier source retention, but does not prove it. Consider additional machine-code/architecture comparisons or **actual legacy compiled full `CDSPBlockConvolver`** numerical output as the next useful verification. Do not repeatedly sweep the same two spectra. See `evidence.json`.
