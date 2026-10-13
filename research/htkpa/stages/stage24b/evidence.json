@@ -70,5 +70,23 @@
     "No proof that two native filter instances correspond to a specific cutoff/rate branch",
     "No source/native exact coefficient parity, completed FIR stream, gains or CLO equivalence"
   ],
-  "next": "Run bounded native_generator_trace.py on Windows during one normal import. Compare raw IEEE-754 generator/filter fields by filter pointer with Stage23H/Stage23Z source-derived values before changing any equations."
+  "next": "Run bounded native_generator_trace.py on Windows during one normal import. Compare raw IEEE-754 generator/filter fields by filter pointer with Stage23H/Stage23Z source-derived values before changing any equations.",
+  "two_source_derived_cutoff_cases": {
+    "case_0": {
+      "cutoff": 0.5,
+      "G_before_floor": 708.9209756461122,
+      "G_floor": 708,
+      "taps": 1417,
+      "native_buffer_hash": "649adeb70df4bb17f73ca09c0e4bc8bd3511271fa388d989bb2094ead22b0770"
+    },
+    "case_1": {
+      "cutoff": 0.459375,
+      "formula": "0.5*44100/48000",
+      "G_before_floor": 771.614667369918,
+      "G_floor": 771,
+      "taps": 1543,
+      "native_buffer_hash": "ccb1dcb24dc73dfa5b273a22f96d6093713f52518cadf26e595e94ff9ee6b9cc"
+    },
+    "scope": "Both G/tap counts predicted from SAME source-derived width and rate-ratio branch, without adapting coefficients. Actual per-filter cutoff values are still unobserved in live RAM."
+  }
 }
