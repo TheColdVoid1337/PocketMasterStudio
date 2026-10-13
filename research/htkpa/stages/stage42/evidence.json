@@ -1,0 +1,40 @@
+{
+  "stage": 42,
+  "date": "2026-10-14",
+  "status": "COMPLETED_USER_WSL",
+  "question": "Which public r8brain release first changes the same two zero-phase FIR spectral arrays relative to v7.2?",
+  "answer": "v7.6",
+  "native_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "public_legacy_group": {
+    "versions": [
+      "v7.2",
+      "v7.3",
+      "v7.4",
+      "v7.5"
+    ],
+    "both_fir_spectra_sha256_identical_across_versions": true,
+    "public_filter_1417_sha256": "319bf6e13f2f82a1b9773bb241ce0e25082adb466b66168c875a4808385219ef",
+    "public_filter_1543_sha256": "0f36b3d121981ae165f69ed755f87921db8c4deb223fd5856ceff13e28212016",
+    "compared_vendor_f64": 8192,
+    "native_bit_exact": 2511,
+    "rms": 1.3529207911675724e-19,
+    "max_abs": 4.336808689942018e-19
+  },
+  "v76": {
+    "sha": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+    "compared_vendor_f64": 8192,
+    "native_bit_exact": 8,
+    "rms": 5.30608307059938e-15,
+    "max_abs": 7.650661788122237e-14,
+    "first_divergence": true
+  },
+  "pins": {
+    "v72": "8fff6f3db26f14a8f5e8fb871000613673db5753",
+    "v73": "901cfd827dc6881b45232676670efb54dee9378f",
+    "v74": "26f847bf05853fa9e69a90c088c51a2ee46f3c97",
+    "v75": "9e73d2dd59fd5b95108fdb4f590083e35758b45f",
+    "v76": "cb2abb9977efe2471979b380ed95daa56ab4fdb9"
+  },
+  "causal_hypothesis": "v7.6 public r8bbase.h fast math and Bessel changes (Git diff v7.5→v7.6 only README and r8bbase.h) plausible source of divergence, NOT direct root-cause isolation",
+  "limits": "Public Linux compiled FIR spectra, no identification of embedded vendor version within historical family; native DLL 2026-07-29 PE timestamp (not authenticated) would exclude v7.3+ if genuine; no end-to-end conversion parity; no vendor input stored in repository."
+}
