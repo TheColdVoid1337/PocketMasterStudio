@@ -1,0 +1,29 @@
+{
+  "stage": "25",
+  "status": "PASS_NATIVE_INTERNAL_ONLY",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "source": "private user-uploaded stage23w_native(1).zip, overlap_capture same filter identity",
+  "crc": "PASS",
+  "processing": "two temporal FFT blocks both use coeff_post_fft_00; coeff_post_fft_01 is a separate filter object",
+  "blocks": [
+    {
+      "block": 0,
+      "multiply_unequal": 0,
+      "inverse_max_abs_error": 8.673617379884035e-19,
+      "inverse_rms_error": 1.9745843965683605e-19
+    },
+    {
+      "block": 1,
+      "multiply_unequal": 0,
+      "inverse_max_abs_error": 1.1926223897340549e-18,
+      "inverse_rms_error": 2.5795210778584996e-19
+    }
+  ],
+  "limitations": [
+    "real pre-FFT input snapshot timing in earlier trace invalid",
+    "no same-call post-FIR time stream boundary",
+    "no fractional interpolator output",
+    "no PCM24 writer-reload signal parity",
+    "no end-to-end NAM-CLO parity"
+  ]
+}
