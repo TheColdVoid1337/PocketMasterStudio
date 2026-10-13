@@ -1,0 +1,60 @@
+{
+  "stage": 43,
+  "status": "COMPLETED_USER_WSL",
+  "observed_date": "2026-10-14",
+  "test": "Six actual pinned r8brain-free-src C++ CDSPBlockConvolver versions fed original Sonicake first 2680 input f64 and compared against original first 1972 output f64",
+  "native_validation": {
+    "sha_input": "9519d98a65e88f0858819a2579202768c945f9b9604ae4cd9fc656162d173acf",
+    "sha_output": "4e80e6e12343f2b1b618e351d2ecfe5e0851993af0ee10636149f7bd6a979cb6",
+    "stage33_input_prefix_exact_f64": 2048,
+    "history_overlap_exact_f64": 708,
+    "stage35_output_exact_f64": 1972
+  },
+  "shared_geometry": {
+    "filter_taps": 1417,
+    "fft_length": 4096,
+    "input_f64": 2680,
+    "output_f64": 1972,
+    "compared_f64": 1972
+  },
+  "legacy_group": {
+    "versions": [
+      "v6.5",
+      "v7.0",
+      "v7.1",
+      "v7.2",
+      "v7.5"
+    ],
+    "pins": {
+      "v65": "3c930bf6825c0cfea4a813210c83b1a650c820b5",
+      "v70": "a7d812d3153b0fda845db9fc0498e78d7337d0f0",
+      "v71": "1ad3b3707b9339a7144b301752318bbb902220d2",
+      "v72": "8fff6f3db26f14a8f5e8fb871000613673db5753",
+      "v75": "9e73d2dd59fd5b95108fdb4f590083e35758b45f"
+    },
+    "max_abs": 8.673617379884035e-19,
+    "rms": 2.2951391745135605e-19,
+    "bit_exact": 380,
+    "count": 1972,
+    "return_code": 0,
+    "observed_exact_metrics_identical": true
+  },
+  "modern_control": {
+    "version": "v7.6",
+    "pin": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+    "max_abs": 2.402592014227878e-16,
+    "rms": 7.738254656116845e-17,
+    "bit_exact": 0,
+    "count": 1972,
+    "return_code": 0
+  },
+  "rms_improvement_legacy_over_modern": 337.15840599326253,
+  "conclusions": [
+    "Measured first FIR convolution stage numerical parity of historical pre-v7.6 public source is within 8.67e-19 absolute.",
+    "Historical source versions tested cannot be distinguished from output metrics on this 1972-double benchmark.",
+    "Legacy source can be selected as research baseline; v6.5 preferred historically for 2024-era launch but not authenticated embedded revision.",
+    "Bit parity incomplete (380 of 1972); historical Microsoft compiler, optimization and library modifications remain unidentified.",
+    "Fractional interpolation and final 44100-to-48000 output not validated; vendor NAM fitting not established."
+  ],
+  "privacy": "Only numerical metrics, source SHA and original buffer cryptographic digests committed. No raw captures, DLL, audio or NAM data."
+}
