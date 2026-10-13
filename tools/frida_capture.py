@@ -216,7 +216,7 @@ def capture(args,cfg,folder):
                 raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
             report('TARGET','Spawning with hooks before resume:',args.exe)
             pid=device.spawn([str(args.exe)]);spawned=True
-    state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0)
+    state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0,site_hits={},last_hit_monotonic=None)
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
     def on_message(msg,data):
@@ -230,6 +230,8 @@ def capture(args,cfg,folder):
         if e.get('kind')=='ready':state['ready']=e.get('installed')==e.get('requested')
         if e.get('kind')=='hit':
             state['hits']+=1
+            state['site_hits'][e.get('site','?')]=state['site_hits'].get(e.get('site','?'),0)+1
+            state['last_hit_monotonic']=time.monotonic()
             fields=e.get('fields',{})
             errors=sum(isinstance(v,dict) and 'error' in v for v in fields.values())
             state['field_errors']+=errors
@@ -247,7 +249,7 @@ def capture(args,cfg,folder):
         script.on('message',on_message)
         script.load()
         if spawned:device.resume(pid)
-        report('STARTED','PID',pid,'Run the target action. Press Enter after it finishes.')
+        report('STARTED','PID',pid,'Auto-finish available when configured.')
         input_done=threading.Event()
         if sys.stdin.isatty():
             def read_enter():
@@ -256,8 +258,18 @@ def capture(args,cfg,folder):
             threading.Thread(target=read_enter,daemon=True).start()
         start=time.monotonic()
         while time.monotonic()-start<args.timeout:
-            if input_done.wait(0.25):
-                return ('CAPTURED' if state['ready'] and state['runtime_verified'] and state['hits'] and state['valid_field_hits'] and not state['field_errors'] and not state['hook_errors'] else 'INCOMPLETE','operator_enter',state,pid)
+            input_done.wait(0.25)
+            with lock:
+                valid=(state['ready'] and state['runtime_verified'] and state['valid_field_hits']
+                    and not state['field_errors'] and not state['hook_errors']
+                    and all(state['site_hits'].get(site['name'],0)>0 for site in cfg['sites']))
+                quiet=(state['last_hit_monotonic'] is not None and
+                    time.monotonic()-state['last_hit_monotonic']>=args.auto_quiet)
+            if args.auto_quiet and valid and quiet:
+                report('ARCHIVE','All configured sites observed, quiet period complete')
+                return ('CAPTURED_HOOKS_ONLY','auto_quiet_after_hooks',state,pid)
+            if input_done.is_set():
+                return ('CAPTURED_HOOKS_ONLY' if valid else 'INCOMPLETE','operator_enter',state,pid)
         return ('INCOMPLETE','timeout',state,pid)
     finally:
         if script:
@@ -296,11 +308,13 @@ def main():
     ap.add_argument('--exe',type=Path,default=Path(os.environ.get('ProgramFiles','C:/Program Files'))/'Sonicake'/'Sonicake Manager'/'Sonicake Manager.exe')
     ap.add_argument('--module-file',type=Path,help='original DLL/EXE to SHA-verify before hooking')
     ap.add_argument('--timeout',type=int,default=900)
+    ap.add_argument('--auto-quiet',type=float,default=0,help='finish after all sites and N quiet seconds; no import completion claim')
     ap.add_argument('--out',type=Path,default=DEFAULT_OUT)
     ap.add_argument('--self-test',action='store_true')
     args=ap.parse_args()
     if args.self_test:self_test();return 0
     if not 5<=args.timeout<=7200:ap.error('timeout must be 5..7200')
+    if args.auto_quiet and not 3<=args.auto_quiet<=300:ap.error('auto-quiet must be 3..300')
     try:cfg=build_config(args)
     except (ValueError,KeyError,TypeError) as e:ap.error(str(e))
     args.out.mkdir(parents=True,exist_ok=True)
@@ -326,6 +340,6 @@ def main():
     dest=folder.with_suffix('.tar.gz')
     archive(folder,dest)
     report('ARCHIVE',dest,'[RESULT]',status)
-    return 0 if status=='CAPTURED' else 2
+    return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY') else 2
 
 if __name__=='__main__':raise SystemExit(main())
