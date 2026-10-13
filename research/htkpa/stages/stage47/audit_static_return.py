@@ -136,7 +136,7 @@ def main() -> None:
         raise ValueError("Fractional pointer-ref or call behavior changed: "+repr((calls,refs)))
 
     result = {
-        "stage":47, "status":"STATIC_POST_FRACTIONAL_OUTPUT_SITE_VERIFIED",
+        "stage":47, "status":"STATIC_LAST_STAGE_RETURN_SITE_VERIFIED",
         "dll_sha256":digest, "imagebase":hex(BASE),
         "key_addresses":{key:hex(value) for key,value in ADDR.items()},
         "wrapper_call_path":[
