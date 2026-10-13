@@ -1,0 +1,44 @@
+{
+  "stage": 48,
+  "status": "PREPARED_NOT_RUNTIME_EXECUTED",
+  "prepared_date": "2026-10-14",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "proposed_site_rva": "0x1190c",
+  "proposed_va_at_pe_imagebase": "0x18001190c",
+  "expected_dynamic_fractional_vftable_rva": "0x245170",
+  "reused_stage47_findings": {
+    "last_stage_call_va": "0x180011909",
+    "after_return_va": "0x18001190c",
+    "count_register": "EAX",
+    "caller_output_ptr_ref": "R15 (double**)",
+    "last_stage_object_pointer_location": "RBX+0x50",
+    "pointer_lifetime": "Not yet observed in native runtime; output may be scratch or caller input"
+  },
+  "implementation": {
+    "script": "research/htkpa/stages/stage48/metadata_probe.py",
+    "wsl_wrapper": "research/htkpa/stages/stage48/STAGE48_WSL.sh",
+    "frida_hook_count": 1,
+    "metadata_only": true,
+    "max_valid_f64": 4096,
+    "max_callback_observations": 256,
+    "never_capture_audio": true,
+    "only_run_with_existing_manager": true,
+    "requires_prearm_module_backing_file_sha": true,
+    "requires_source_dll_sha": true,
+    "checks_fractional_runtime_vtable": true,
+    "checks_output_ptr_mapped_alignment_and_span": true,
+    "completes_if_new_or_modified_clo_stable_3seconds": true
+  },
+  "offline_qa": {
+    "embedded_agent_js_syntax": "PASS_V8_SYNTAX_COMPILE_CHECK",
+    "frida_interceptor_attach_occurrences": 1,
+    "frida_agent_calls_readByteArray_readDouble_readFloat": false,
+    "original_DLL_read_only_disassembly_site_rechecked": true,
+    "original_DLL_digest_rechecked": true,
+    "python_script_self_test": "PENDING_WSL_USER_RUN",
+    "frida_agent_native_execution": "NOT_EXECUTED"
+  },
+  "acceptance": "METADATA_GUARD_PASS_CLO_STABLE from actual user Windows run AND Manager visibly completes conversion without crash",
+  "limitations": "Readability/mapping does not prove allocated buffer capacity; output f64 content NOT read; metadata evidence cannot establish output parity, hook stability across other runs, or exact embedded r8brain release.",
+  "safety": "Never use paired original input C220 and copy C838 hooks; no production source changes, no raw vendor data in GitHub."
+}
