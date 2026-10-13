@@ -1,0 +1,29 @@
+{
+  "stage": 40,
+  "observed_date": "2026-10-14",
+  "observed_runner": "user WSL, same old and compact private ZIP",
+  "public_revision": "cb2abb9977efe2471979b380ed95daa56ab4fdb9",
+  "original_status": "INVALID_SPECTRAL_REPRESENTATION_COMPARISON",
+  "correction_commit": "b1de1b8323310c66928e2ad15e7359c311598695",
+  "reason": "Original Sonicake coeff_post_fft captured raw Ooura spectrum before CDSPRealFFT.convertToZP. Public getKernelBlock returns after convertToZP; comparing slots 3,5,.. between raw imaginary and duplicated real falsely shows ~0.0009765625 mismatches.",
+  "native_validation": [
+    {
+      "kernel": 0,
+      "native_raw_fft_vs_numpy_max_abs": 4.336808689942018e-19,
+      "native_raw_fft_vs_numpy_rms": 1.1994770827383831e-19,
+      "native_converted_zp_sha256": "85d4c24b4f04d6115a758c47dd5e0131d645ee304663dc7fee86f4f752c53a45",
+      "raw_vs_zp_max_abs": 0.00097656250036732,
+      "raw_vs_zp_rms": 0.0004832420947043102
+    },
+    {
+      "kernel": 1,
+      "native_raw_fft_vs_numpy_max_abs": 4.336808689942018e-19,
+      "native_raw_fft_vs_numpy_rms": 1.1796966723263094e-19,
+      "native_converted_zp_sha256": "a1b4ae871b0bc9a17afaefe0b55f13c4b59c59137c484a61abe863c1d1351b03",
+      "raw_vs_zp_max_abs": 0.0009765625008143163,
+      "raw_vs_zp_rms": 0.0004631843325599409
+    }
+  ],
+  "new_public_vs_native_zp_results": "PENDING_USER_WSL_RERUN",
+  "limits": "No historical r8brain version attribution from original Stage40 invalid comparison. Stage39 full convolver numeric PASS remains unaffected."
+}
