@@ -1,0 +1,75 @@
+{
+  "stage": 47,
+  "date": "2026-10-14",
+  "status": "STATIC_POST_FRACTIONAL_OUTPUT_SITE_VERIFIED",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "method": "Read-only LLVM 17.0.0 objdump on original PE64; independent Python regular-expression anchor gate ran successfully on all inspected functions. No live Manager, Frida or vendor program execution.",
+  "PE_imagebase": "0x180000000",
+  "analyzed_functions": [
+    {
+      "name": "r8b::CDSPResampler24::process",
+      "start": "0x180011850",
+      "observed_instructions": 67,
+      "mid_loop_process": "0x1800118B1",
+      "mid_result_pointer_on_stack": "[RSP+0x40]",
+      "last_stage_call": "0x180011909",
+      "post_last_call_candidate": "0x18001190C",
+      "output_pointer_setup": "0x1800118FA: mov RAX,[R15] (AT&T movq %rax,(%r15))",
+      "result_count": "EAX on return from last stage"
+    },
+    {
+      "name": "r8b::CDSPFracInterpolator<...>::process",
+      "start": "0x1800135C0",
+      "observed_instructions": 347,
+      "output_pointer_load": "0x1800135CB: mov R12,[R9]",
+      "output_sample_write": "0x180013C38: movsd [R12],XMM3",
+      "output_sample_advance": "0x180013C3E: add R12,8",
+      "final_output_count": "0x180013D15..0x180013D1D: (R12 - [R13])/8 -> EAX",
+      "interior_calls": 0,
+      "output_reference_loads_only": [
+        "0x180013D15"
+      ],
+      "conclusion": "No direct modification of output pointer-reference [R13] within this observed inlined method; doesn't prove pointer valid outside caller or in different versions."
+    },
+    {
+      "name": "r8b::CDSPResampler24::clear",
+      "control_vftable_test": "0x180011A4F..0x180011A56",
+      "expected_fractional_vftable": "0x180245170",
+      "conclusion": "Static original class-specific fractional vftable comparison confirms resampler knows that specialization; not proof any particular runtime instance executes that path."
+    },
+    {
+      "name": "resampler final-stage setup",
+      "range": "0x180012213..0x180012267",
+      "observed_instructions": 26,
+      "set_last_stage": "0x18001222A: mov [RBX+0x50],RSI",
+      "max_out_len_virtual_call": "0x180012237: call [vtable+0x20]",
+      "possible_buffer_origins": [
+        "0x18001223F: [RBX+0x58] preallocated/intermediate buffer",
+        "0x18001224E: zero [RBX+0x70] selects fallback in-place via caller input",
+        "0x18001225A..0x180012263: allocate/reuse [RBX+0x68] and set [RBX+0x70]"
+      ],
+      "conclusion": "Final output pointer must be read dynamically via [R15] on immediate return; not hard-coded from static analysis."
+    }
+  ],
+  "independent_static_check": {
+    "status": "PASS",
+    "platform": "Linux LLVM 17.0.0",
+    "exact_Dll_sha": true,
+    "wrapper_anchors_checked": 4,
+    "setup_anchors_checked": 4,
+    "frac_anchors_checked": 4,
+    "clear_anchors_checked": 1
+  },
+  "runtime_candidate": {
+    "address": "0x18001190C",
+    "RVA": "0x1190C",
+    "precondition": "Reachability of final stage and final stage vftable equal original 0x180245170, final output count in 0<EAX<=checked_capacity, output pointer from *R15 readable on same call thread",
+    "possible_repeated_conversion_calls": true,
+    "source_validity": "Caller may reuse scratch buffers on next call; any permitted eventual capture must immediately copy or inspect metadata while same call is active.",
+    "currently_approved_for_capture": false,
+    "native_final_48k_samples_captured": false,
+    "hook_stability_verified": false
+  },
+  "restrictions": "Do not install paired hooks 0x18000C220+0x18000C838; they correlated with repeated app crashes. Stage47 did not execute original DLL or Frida, does not establish vendor fractional output parity, and leaves production unchanged.",
+  "privacy": "Contains only symbolic instruction metadata/hashes, no proprietary DLL, decompiled byte streams or vendor audio."
+}
