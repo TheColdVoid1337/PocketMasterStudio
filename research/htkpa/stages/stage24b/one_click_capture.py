@@ -128,25 +128,25 @@ def write_handoff(folder: Path, state: dict, status: str, method: str, problem: 
         '# Stage24B — Native FIR generator arguments handoff', '',
         f'**Status:** {status}  ', f'**Completion signal:** {method}  ',
         f'**Problem or limitation:** {problem or "none recorded"}  ',
-        f'**DLL SHA256:** \`{DLL_SHA}\`  ',
+        f'**DLL SHA256:** `{DLL_SHA}`  ',
         f'**Runtime-loaded DLL SHA verified:** {state["runtime_verified"]}  ',
         f'**Filter events:** {f}; **generator events:** {g}; **paired object identities:** {paired}.', '',
         '## Native evidence (if present)', '',
         'The JSON lines below are observed scalar values, including exact IEEE-754 bits; '
         'no reconstructed, fitted or guessed values are marked as native.', '',
-        '\`\`\`json', *[json.dumps(x, sort_keys=True) for x in selected], '\`\`\`', '',
+        '```json', *[json.dumps(x, sort_keys=True) for x in selected], '```', '',
         '## Static reference only — do not overwrite observed values', '',
-        '- PE original image base: \`0x180000000\`. Hook sites: \`0x18000BD12\` (filter) and \`0x18000B981\` (generator).',
+        '- PE original image base: `0x180000000`. Hook sites: `0x18000BD12` (filter) and `0x18000B981` (generator).',
         '- Stage23H candidate: cutoff 0.5 -> G_before_floor 708.9209756461122 -> 1417 taps.',
         '- Alternate branch candidate: cutoff 0.459375 -> G_before_floor 771.614667369918 -> 1543 taps.',
         '- Stage23Z corrected exponent candidate ≈ 0.15823713794954866; predicted theta ≈ 1.5428478841482018 rad.',
         '- Stage23Z maximum native coefficient difference ≈ 9.282550449007586e-10; exact bitwise coefficient parity OPEN.', '',
         '## Next static RE action', '',
-        'Pair the events by \`filter\` pointer. Compare each **native IEEE754 bits** of cutoff/G/theta/gamma/beta '
+        'Pair the events by `filter` pointer. Compare each **native IEEE754 bits** of cutoff/G/theta/gamma/beta '
         'to source-derived Stage23H/Z/A values. Trace the first mismatched calculation at '
-        '\`0x18000B2B8–0x18000B844\` and \`0x180014810\`. No coefficient fitting.', '',
+        '`0x18000B2B8–0x18000B844` and `0x180014810`. No coefficient fitting.', '',
         '## Included files', '',
-        '\`manifest.json\`, \`native_events.jsonl\`, \`ready.json\`, this handoff. '
+        '`manifest.json`, `native_events.jsonl`, `ready.json`, this handoff. '
         'Raw vendor DLL, WAV/NAM/CLO, RAM/FFT arrays and Python environment excluded.', ''
     ]
     (folder/'STAGE24B_HANDOFF.md').write_text('\n'.join(lines), encoding='utf-8')
