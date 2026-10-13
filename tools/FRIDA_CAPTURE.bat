@@ -6,12 +6,8 @@ if errorlevel 1 exit /b 1
 set "WINPY=research\_LOCAL_FILES\stage23w_native\.venv\Scripts\python.exe"
 set "ARGS=%*"
 if "%~1"=="" (
- echo [CONFIG] Enter JSON config path relative to repo root.
- set /p "CFG=Config [tools\frida_examples\htkpa_stage24b.json]: "
- if not defined CFG set "CFG=tools\frida_examples\htkpa_stage24b.json"
- set /p "PID=Existing target PID (required): "
- if not defined PID (echo [ERROR] No PID supplied. & goto :fail)
- set "ARGS=--config "%CFG%" --pid %PID%"
+ echo [CONFIG] Using Stage24C XMM example, automatic Manager PID discovery.
+ set "ARGS=--config tools\frida_examples\htkpa_stage24c_xmm.json --module-file research\_LOCAL_FILES\vendor\5868USB.dll"
 )
 if exist "%WINPY%" (
  "%WINPY%" "tools\frida_capture.py" %ARGS%
