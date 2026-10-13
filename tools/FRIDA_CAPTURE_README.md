@@ -11,7 +11,7 @@ research\_LOCAL_FILES\stage23w_native\.venv\Scripts\python.exe tools\frida_captu
 research\_LOCAL_FILES\stage23w_native\.venv\Scripts\python.exe tools\frida_capture.py --config tools\frida_examples\htkpa_stage24b.json --pid 12345 --module-file research\_LOCAL_FILES\vendor\5868USB.dll
 ```
 
-Or run from Windows Explorer: double-click `tools\FRIDA_CAPTURE.bat` in a terminal with arguments, e.g. `tools\FRIDA_CAPTURE.bat --config tools\frida_examples\htkpa_stage24b.json --pid 12345`. Without arguments the launcher reports missing configuration (rather than silently picking probes). `--pid` attaches to a running process; `--exe PATH` spawns the specified app (and leaves it open). Prefer spawning when you need early constructor hits. **Use Windows Python with Frida installed; WSL Python cannot attach.**
+Or run `tools\FRIDA_CAPTURE.bat` with arguments. Without arguments the BAT offers a default configuration and asks for a PID (legacy interactive shortcut). The Python CLI now automatically attaches to the sole detected Sonicake Manager or spawns it from the default install path if absent; `--pid` overrides discovery, and `--exe PATH` specifies an alternate executable for spawn. Prefer spawning when you need early constructor hits. **Use Windows Python with Frida installed; WSL Python cannot attach.**
 
 After hooks are installed, perform the local action and press **Enter after completion**. Success requires target module hooks installed, runtime-loaded module SHA verified, at least one hit, and no Frida hook errors. Silence/timeout or pressing Enter early does not count as success. The observer does not attempt to decide whether a NAM→CLO conversion or other application task actually completed: it merely records the operator's completion signal.
 
@@ -50,3 +50,26 @@ tools\FRIDA_CAPTURE.bat --config tools\frida_examples\htkpa_stage24c_xmm.json --
 Replace 12345 with Manager PID. Prefer a **fresh Manager process** so hooks are installed before its first normal conversion. Do one conversion, press Enter in the console, and share only the generated `frida_*.tar.gz`. If Manager is not yet running, replace `--pid 12345` with `--exe "C:\Program Files\Sonicake\Sonicake Manager\Sonicake Manager.exe"` (adjust path as needed); launcher spawns and resumes it with hooks attached.
 
 **Validation limit:** Python config/source self-test is not a Windows execution test. XMM context access must be confirmed by seeing real `hit` events containing valid numeric `fields` and `bits`, with no `error` values.
+
+## Automatic PID discovery and colored console (2026-10-13)
+
+No `--pid` is required for the Sonicake Manager workflow. If exactly one matching Manager process is already running, the Python launcher attaches automatically. If none is running it spawns the configured `--exe` (by default the normal Program Files Sonicake installation) and installs hooks before resuming. If multiple matches exist it **fails safely** and asks for an explicit PID; it never guesses or terminates a running Manager. `--fresh` requires closing running Manager instances and forces the spawn branch.
+
+When attached to an existing process, early constructor calls may already have happened; if no hooks fire, exit the session, close Manager, then rerun. Never use `--fresh` to kill processes: it refuses when Manager is open.
+
+Console labels show ANSI coloring on supported terminals: cyan target, yellow note, green started/archive, magenta Frida event, red error. Set `NO_COLOR=1` to disable. Coloring does not alter captured data.
+
+For HTKPA Stage24C, PowerShell with a real Windows private venv:
+
+```powershell
+Set-Location 'F:\PocketMasterStudio\PocketMasterStudio_Void_mod'
+$venv = (Resolve-Path '.\research\_LOCAL_FILES\stage23w_native\.venv').Path
+$env:VIRTUAL_ENV = $venv
+$env:PATH = (Join-Path $venv 'Scripts') + [IO.Path]::PathSeparator + $env:PATH
+Write-Host '[SETUP] Windows private venv activated' -ForegroundColor Cyan
+python -c "import sys, frida; print(sys.executable); print('Frida',frida.__version__)"
+Write-Host '[RUN] Stage24C source-first XMM probe' -ForegroundColor Yellow
+python tools\frida_capture.py --config tools\frida_examples\htkpa_stage24c_xmm.json --module-file research\_LOCAL_FILES\vendor\5868USB.dll
+```
+
+Verify that the initial project location is really yours; change the literal `F:\...` path if your checkout was moved. Always use Windows PowerShell, not WSL.
