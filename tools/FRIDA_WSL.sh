@@ -64,8 +64,22 @@ python "$ROOT/tools/frida_capture.py" --self-test
 msg "$YELLOW" SAFETY "Exact DLL SHA checked before attachment (and loaded SHA before guarded hook)"
 if [[ "$MODE" == "guarded_metadata" ]]; then
   msg "$MAGENTA" HOOK "Guarded single-site metadata only; no audio read"
-  msg "$YELLOW" ACTION "Open Manager first; wait for [HOOK], then ONE normal conversion"
-  msg "$CYAN" WATCH "Windows APPDATA path from JSON completion, unless FRIDA_WATCH_CLO supplied"
+  LIFECYCLE_START="$(python - "$CFG" <<'PY'
+import json,sys
+print(json.load(open(sys.argv[1],encoding="utf-8")).get("lifecycle",{}).get("start","attach_only"))
+PY
+)"
+  if [[ "$LIFECYCLE_START" == "fresh" ]]; then
+    msg "$YELLOW" ACTION "CLOSE existing Manager first. Universal Frida will launch its own instance."
+    msg "$GREEN" CLOSE "After experiment, gracefully close ONLY the tool-launched Manager PID."
+  elif [[ "$LIFECYCLE_START" == "if_missing" ]]; then
+    msg "$CYAN" TARGET "Reuses an existing Manager (leaves it open) or launches its own."
+    msg "$GREEN" CLOSE "Only a tool-launched Manager is closed automatically."
+  else
+    msg "$YELLOW" ACTION "Open Manager first; attach-only mode."
+  fi
+  msg "$YELLOW" ACTION "After [HOOK], perform ONE normal conversion"
+  msg "$CYAN" WATCH "CLO output path from JSON completion, unless FRIDA_WATCH_CLO supplied"
 else
   msg "$MAGENTA" FRIDA "Legacy scalar/binary capture mode, original config preserved"
 fi
