@@ -1,3 +1,7 @@
+> **CURRENT HTKPA STATE (2026-10-14):** This is the original **Stage 1** record, kept as a historical checkpoint. The active source-first continuation is now [the canonical 2026-10-14 HTKPA rollover](dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md), with verified original native Stage48 fractional metadata + stable CLO, a separate shared-GUI-close PASS, and Stage49 native 48-kHz sample values **not captured**. Do not restart at Stage1.
+
+---
+
 # NAM → CLO: Sonicake 5868USB.dll HTKPA reverse engineering
 
 **2026-10-12 · Stage 1 · Static analysis only.** This research is independent of the current browser-only converter and does not change default DSP behavior. The user's proprietary Windows DLL, source NAM, and captured WAV/CLO files are **not** committed to the repository.
