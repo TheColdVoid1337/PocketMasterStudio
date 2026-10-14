@@ -1,3 +1,7 @@
+> **NEW CURRENT CHAT HANDOFF — 2026-10-14:** Continue from [docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md](dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md), NOT from this historical Stage22/23 text or its 2026-10-13 Stage23O pointer. Stage48 native fractional metadata and stable CLO are confirmed; independent universal Frida owned-GUI shutdown passed. Native 48-kHz f64 content and full NAM→CLO parity remain OPEN. This 2026-10-12 document remains preserved for historical stage provenance.
+
+---
+
 > **NEW RESEARCH HANDOFF — 2026-10-13 (Stage23O):** [Current HTKPA RE status](NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md) is the canonical *latest* stage register and next-task entry point. The 2026-10-12 historical handoff below deliberately retains its old Stage22/23C dates, counts and notes. Do not restart from Stage23 or infer native FFT/audio/CLO parity from source-pinned synthetic tests.
 
 ---
