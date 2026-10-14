@@ -32,6 +32,8 @@ function readable(p, n) {
     p.add(n-1).compare(r.base.add(r.size)) < 0;
 }
 function reject(reason) {
+  if (spec.trace && observed <= spec.trace.max_events)
+    emit({kind:'trace_reject',site:site.name,observed:observed,reason:reason});
   if (!firstRejectSent) {
     firstRejectSent = true;
     emit({kind:'first_rejected_return',site:site.name,reason:reason,observed:observed});
@@ -48,7 +50,8 @@ rpc.exports = {
     if (mapped === null || mapped.protection.indexOf('x') < 0) return false;
     try {
       hook = Interceptor.attach(loc, {onEnter() {
-        if (metadataSent) return;
+        if (metadataSent && !spec.trace) return;
+        if (spec.trace && observed >= spec.trace.max_events) return;
         if (++observed > g.max_observations) {
           if (observed === g.max_observations+1)
             emit({kind:'observation_limit',site:site.name,limit:g.max_observations});
@@ -65,6 +68,14 @@ rpc.exports = {
           const expected = m.base.add(g.vtable_rva);
           if (!vtable.equals(expected)) return reject('processor vtable mismatch');
           const count = c[g.count_reg].and(ptr('0xffffffff')).toUInt32();
+          if (spec.trace) {
+            emit({kind:'trace_return',site:site.name,observed:observed,
+                  owner_pointer:owner.toString(),processor_pointer:proc.toString(),
+                  input_pointer:c.rdi.toString(),output_f64:count,
+                  count_in_range:count <= g.max_samples});
+            if (observed === spec.trace.max_events)
+              emit({kind:'trace_cap_reached',site:site.name,observations:observed});
+          }
           if (count < 1 || count > g.max_samples)
             return reject('return count zero or out of bounds');
           const ref = c[g.output_ref_reg];
@@ -73,6 +84,7 @@ rpc.exports = {
           if (!output.and(ptr('0x7')).isNull()) return reject('result not f64 aligned');
           const bytes = count * 8;
           if (!readable(output, bytes)) return reject('result span not readable');
+          if (spec.trace && metadataSent) return;
           BINARY_EXTENSION_POINT
           metadataSent = true;
           emit({kind:'metadata_hit',valid:true,site:site.name,observed:observed,
@@ -105,6 +117,12 @@ def validate_config(cfg: dict, address_fn) -> dict:
     mode=cfg.get("mode")
     if mode not in ("guarded_metadata","guarded_f64_binary"):
         raise ValueError("guarded mode must be guarded_metadata or guarded_f64_binary")
+    trace=cfg.get("trace")
+    if trace is not None:
+        if (mode!="guarded_f64_binary" or not isinstance(trace,dict) or
+                set(trace)!={"max_events"} or
+                type(trace["max_events"]) is not int or trace["max_events"]!=64):
+            raise ValueError("trace requires guarded_f64_binary and exactly max_events=64")
     if not isinstance(cfg.get("module"),str) or not re.fullmatch(r"[A-Za-z0-9_. -]+\.(dll|exe)",cfg["module"],re.I):
         raise ValueError("simple module basename required")
     if not isinstance(cfg.get("sha256"),str) or not re.fullmatch(r"[A-Fa-f0-9]{64}",cfg["sha256"]):
@@ -143,6 +161,8 @@ def validate_config(cfg: dict, address_fn) -> dict:
         raise ValueError("owner_offset must be pointer aligned")
     max_samples=integer(g["max_samples"],"max_samples",1,4096)
     max_observations=integer(g["max_observations"],"max_observations",1,1024)
+    if trace is not None and max_observations<trace["max_events"]:
+        raise ValueError("trace max_events exceeds max_observations")
     vtable=address_fn(g["vtable_rva"],base)
     if vtable<0 or vtable>=0x10000000:
         raise ValueError("implausible vtable RVA")
@@ -227,12 +247,13 @@ def validate_config(cfg: dict, address_fn) -> dict:
     elif "binary_capture" in cfg:
         raise ValueError("metadata mode must never receive binary_capture")
     if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites",
-                "lifecycle","binary_capture"}:
+                "lifecycle","binary_capture","trace"}:
         raise ValueError("unknown top-level guarded config key")
     return {
         "module":cfg["module"],"sha256":cfg["sha256"].lower(),
         "mode":mode,"image_base":base,
         **({"binary_capture":binary} if binary is not None else {}),
+        **({"trace":{"max_events":64}} if trace is not None else {}),
         "target":{"process_name_contains":match},
         "completion":dict(completion),
         **({"lifecycle":lifecycle} if lifecycle is not None else {}),
@@ -629,6 +650,12 @@ def reconcile(folder: Path, state: dict):
                     pass
         elif kind == "first_rejected_return":
             state["first_rejection"] = e.get("reason")
+        elif kind == "trace_return":
+            state["trace_returns"] = state.get("trace_returns",0)+1
+        elif kind == "trace_reject":
+            state["trace_rejections"] = state.get("trace_rejections",0)+1
+        elif kind == "trace_cap_reached":
+            state["trace_cap_reached"] = True
 
 
 def interrupted_status(state: dict) -> str:
@@ -759,7 +786,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
     state.update(pid=pid,runtime_verified=False,ready=False,hits=0,
                  valid_field_hits=0,metadata_valid=False,binary_valid=False,hook_attached=False,
                  hook_errors=0,field_errors=0,site_hits={},
-                 first_rejection=None,completion_verified=False)
+                 first_rejection=None,completion_verified=False,
+                 trace_returns=0,trace_rejections=0,trace_cap_reached=False)
     events=folder/"events.jsonl"
     lock=threading.RLock()
     pending=[]
@@ -808,6 +836,9 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind in ("arm_error","frida_error","unexpected_binary_payload","invalid_event"):
                     state["hook_errors"]+=1
                 elif kind=="observation_limit":state["observation_limit_reached"]=True
+                elif kind=="trace_return":state["trace_returns"]+=1
+                elif kind=="trace_reject":state["trace_rejections"]+=1
+                elif kind=="trace_cap_reached":state["trace_cap_reached"]=True
             if kind=="hook_attached":
                 report("HOOK","Verified single hook:",e.get("site"),"| RVA",hex(e.get("rva",0)))
             elif kind in ("metadata_hit","binary_hit"):
@@ -822,6 +853,9 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                     report("READY","BINARY VERIFIED; awaiting stable new/changed CLO")
             elif kind=="first_rejected_return":
                 report("NOTE","Initial return rejected:",e.get("reason"))
+            elif kind=="trace_cap_reached":
+                report("TRACE","*** MAX 64 OBSERVATIONS RECORDED ***",
+                       "native output counts stored in events.jsonl")
             elif kind in ("arm_error","frida_error"):
                 report("ERROR",kind,e.get("error"))
 
@@ -905,10 +939,15 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                     (cfg["mode"]=="guarded_metadata" or state["binary_valid"]) and
                     state["completion_verified"] and not errors):
                 if cfg["mode"]=="guarded_f64_binary":
+                    if cfg.get("trace"):
+                        report("TRACE","*** STREAM TRACE VERIFIED ***",
+                               "| returns:",state.get("trace_returns",0),
+                               "| rejects:",state.get("trace_rejections",0),
+                               "| limit hit:",state.get("trace_cap_reached",False))
                     report("PASS","*** NATIVE F64 + STABLE CLO VERIFIED ***",
                            state.get("binary_bytes"),"private sample bytes | CLO",
                            state.get("completion_size_bytes"),"bytes")
-                    report("PASS","Stage49 prefix capture complete; NOT numerical parity.")
+                    report("PASS","Bounded native prefix capture complete; NOT numerical parity.")
                 return (("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
                          else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE"),
                         "stable_clo_after_guard",pid)
