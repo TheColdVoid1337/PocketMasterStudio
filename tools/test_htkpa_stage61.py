@@ -62,9 +62,20 @@ class Stage61Tests(unittest.TestCase):
                 "metrics":{"rms_error":1e-7,"max_abs_error":2e-7,"bit_equal":0}}
         self.assertLess(audit.row_rank(second),audit.row_rank(first))
 
-    def test_reject_bogus_metadata_before_loading_binary(self):
-        # A geometry-mismatch record must NEVER score its unavailable bytes.
-        self.assertIn("geometry_ok",audit.run_one.__code__.co_consts)
+    def test_geometry_mismatch_is_not_scored(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as d:
+            dest=Path(d)/"untouched.f64le"
+            response=SimpleNamespace(returncode=0,
+                stdout='{"geometry_ok":false,"taps":22,"phases":673}\\n',
+                stderr="")
+            with patch.object(audit.subprocess,"run",return_value=response):
+                metadata,samples=audit.run_one(Path(d)/"fake_public",dest,180.15,0)
+            self.assertEqual(metadata["taps"],22)
+            self.assertIsNone(samples)
+            self.assertFalse(dest.exists())
 
 
 if __name__=="__main__":
