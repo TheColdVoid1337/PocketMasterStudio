@@ -219,7 +219,10 @@ def build_config(args):
     return validate(cfg)
 
 def archive(directory, destination):
-    members=['config.json','manifest.json','events.jsonl','HANDOFF.md'] + sorted(p.name for p in directory.glob('block_*.bin'))
+    members=(['config.json','manifest.json','events.jsonl','HANDOFF.md']
+             + sorted(p.name for p in directory.glob('block_*.bin'))
+             + [name for name in ('input_0001.bin','input_0002.bin')
+                if (directory/name).is_file()])
     digest={}
     with tarfile.open(destination,'w:gz') as t:
         for name in members:
@@ -543,7 +546,8 @@ def main():
         expected_sha256=cfg['sha256'],
         hook_count=(1 if state.get('hook_attached') else 0) if guarded
                    else (len(cfg['sites']) if state.get('ready') else 0),
-        contains_audio_bytes=(bool(state.get('binary_valid',False)) if guarded
+        contains_audio_bytes=(bool(state.get('binary_valid',False)
+                                     or state.get('input_prefix_events',0)) if guarded
             else bool(any(f['type'] in ('f64_binary','f64_block','f64_slice','f64')
                          for site in cfg['sites'] for f in site['fields']))),
         completion_verified=bool(state.get('completion_verified',False)),
@@ -551,7 +555,9 @@ def main():
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
-                 else 'SHA/vtable guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads'
+                 else ('SHA/vtable-guarded fractional I/O with exactly 3+256 native 96k input f64'
+                       if cfg.get('input_probe') else
+                       'SHA/vtable-guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads')
                  if cfg['mode']=='guarded_fractional_io'
                  else 'SHA/vtable/pointer-guarded one-shot native f64 prefix') if guarded
                else 'bounded read-only scalar observation'))
@@ -559,6 +565,12 @@ def main():
     evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
                    'a new stable CLO are mandatory for Stage48 PASS.')
                    if cfg.get('mode')=='guarded_metadata' else
+                   ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
+                    'EAX output onLeave; exactly 3+256 private 96000-Hz f64 captured '
+                    'from native RDX for a single 96000->44100 processor; no native '
+                    'output audio copied. Compare to previously SHA-pinned 32-f64 native '
+                    'output; stable CLO mandatory; parity NOT claimed.')
+                   if cfg.get('input_probe') else
                    ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
                     'EAX output onLeave, SAME instance; no waveform reads; stable CLO mandatory; '
                     'does not prove native/public numerical parity.')
@@ -596,6 +608,7 @@ def main():
             return 3
     return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE',
                            'FRACTIONAL_IO_TRACE_CLO_STABLE',
+                           'FRACTIONAL_INPUT_PREFIXES_CLO_STABLE',
                            'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
