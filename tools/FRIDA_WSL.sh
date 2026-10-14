@@ -62,8 +62,12 @@ msg "$MAGENTA" MODE "$MODE"
 msg "$GREEN" CHECK "Universal Frida Python self-test (offline)"
 python "$ROOT/tools/frida_capture.py" --self-test
 msg "$YELLOW" SAFETY "Exact DLL SHA checked before attachment (and loaded SHA before guarded hook)"
-if [[ "$MODE" == "guarded_metadata" ]]; then
-  msg "$MAGENTA" HOOK "Guarded single-site metadata only; no audio read"
+if [[ "$MODE" == "guarded_metadata" || "$MODE" == "guarded_f64_binary" ]]; then
+  if [[ "$MODE" == "guarded_metadata" ]]; then
+    msg "$MAGENTA" HOOK "Guarded single-site metadata only; no audio read"
+  else
+    msg "$YELLOW" HOOK "Stage49 opt-in: ONE output prefix, MAX 32 f64 / 256 bytes"
+  fi
   LIFECYCLE_START="$(python - "$CFG" <<'PY'
 import json,sys
 print(json.load(open(sys.argv[1],encoding="utf-8")).get("lifecycle",{}).get("start","attach_only"))
@@ -91,7 +95,7 @@ if [[ -n "${FRIDA_WATCH_CLO:-}" ]]; then
   msg "$CYAN" WATCH "Override: $FRIDA_WATCH_CLO"
 fi
 QUIET_ARGS=()
-if [[ "$MODE" != "guarded_metadata" ]]; then
+if [[ "$MODE" != "guarded_metadata" && "$MODE" != "guarded_f64_binary" ]]; then
   QUIET_ARGS=(--auto-quiet "${FRIDA_AUTO_QUIET:-12}")
 fi
 msg "$CYAN" OUTPUT "research/_LOCAL_FILES/frida_captures/frida_*.tar.gz"
