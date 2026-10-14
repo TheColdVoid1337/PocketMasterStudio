@@ -221,7 +221,8 @@ def build_config(args):
 def archive(directory, destination):
     members=(['config.json','manifest.json','events.jsonl','HANDOFF.md']
              + sorted(p.name for p in directory.glob('block_*.bin'))
-             + [name for name in ('input_0001.bin','input_0002.bin','output_0001.bin')
+             + [name for name in ('input_0001.bin','input_0002.bin','output_0001.bin',
+                                'frac_coeff_bank_673x72.f64le.bin')
                 if (directory/name).is_file()])
     digest={}
     with tarfile.open(destination,'w:gz') as t:
@@ -610,6 +611,7 @@ def main():
     return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE',
                            'FRACTIONAL_IO_TRACE_CLO_STABLE',
                            'FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE',
+                           'FRACTIONAL_COEFF_BANK_CLO_STABLE',
                            'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
