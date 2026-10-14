@@ -1,0 +1,34 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "mode": "guarded_metadata",
+  "target": {
+    "process_name_contains": "sonicake"
+  },
+  "completion": {
+    "type": "changed_clo",
+    "appdata_subdir": "Sonicake/Sonicake Manager",
+    "recursive": true,
+    "stable_seconds": 3
+  },
+  "sites": [
+    {
+      "name": "post_fractional_output",
+      "address": "0x1190c",
+      "max_hits": 1,
+      "required": true,
+      "fields": [],
+      "guard": {
+        "kind": "processor_output",
+        "owner_reg": "rbx",
+        "owner_offset": 80,
+        "vtable_rva": "0x245170",
+        "output_ref_reg": "r15",
+        "count_reg": "rax",
+        "max_samples": 4096,
+        "max_observations": 256
+      }
+    }
+  ]
+}
