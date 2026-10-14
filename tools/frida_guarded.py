@@ -761,6 +761,14 @@ def reconcile(folder: Path, state: dict):
         if kind == "hook_attached" and e.get("hooks_installed") == 1:
             state["ready"] = True
             state["hook_attached"] = True
+        elif kind == "fractional_io" and e.get("valid") is True:
+            if (type(e.get("input_f64")) is int and type(e.get("output_f64")) is int
+                    and 0<=e["input_f64"]<=7000000
+                    and 0<=e["output_f64"]<=7000000):
+                state["metadata_valid"]=True
+                state["hits"]=max(1,state.get("hits",0))
+                state["io_events"]=max(state.get("io_events",0),1)
+                state["last_metadata"]=e
         elif kind == "metadata_hit" and e.get("valid") is True:
             state["valid_field_hits"] = max(1,state.get("valid_field_hits",0))
             state["hits"] = max(1,state.get("hits",0))
@@ -866,15 +874,15 @@ def finalize_guarded_capture(device,pid,state,cfg,report,script,session):
     while a completed binary capture's target still runs. Metadata-only Stage48
     and unsuccessful/attach-only cases preserve the original teardown order.
     """
-    close_first=(cfg.get("mode")=="guarded_f64_binary" and
-                 state.get("runtime_verified") and state.get("hook_attached") and
-                 state.get("binary_valid") and state.get("completion_verified") and
-                 state.get("launched_by_tool") and
-                 (cfg.get("lifecycle") or {}).get("close")=="if_launched")
+    close_first=((cfg.get("mode")=="guarded_f64_binary" and state.get("binary_valid")
+                 or cfg.get("mode")=="guarded_fractional_io" and state.get("io_events",0)>0)
+                 and state.get("runtime_verified") and state.get("hook_attached")
+                 and state.get("completion_verified") and state.get("launched_by_tool")
+                 and (cfg.get("lifecycle") or {}).get("close")=="if_launched")
     report("NOTE","Capture loop ended; beginning owned-GUI/Frida cleanup")
     if close_first:
         state["cleanup_order"]="OWNED_GUI_BEFORE_FRIDA"
-        report("CLOSE","Verified binary + CLO persisted. Requesting WM_CLOSE for owned PID",
+        report("CLOSE","Verified native evidence + CLO persisted. Requesting WM_CLOSE for owned PID",
                pid,"BEFORE potentially blocking Frida unload")
         close_owned_target(device,pid,state,cfg,report)
         if process_exists(device,pid) is False:
@@ -925,7 +933,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                  valid_field_hits=0,metadata_valid=False,binary_valid=False,hook_attached=False,
                  hook_errors=0,field_errors=0,site_hits={},
                  first_rejection=None,completion_verified=False,
-                 trace_returns=0,trace_rejections=0,trace_cap_reached=False)
+                 trace_returns=0,trace_rejections=0,trace_cap_reached=False,
+                 io_events=0)
     events=folder/"events.jsonl"
     lock=threading.RLock()
     pending=[]
@@ -964,12 +973,14 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="hook_attached":
                     state["ready"]=True
                     state["hook_attached"]=True
-                elif kind in ("metadata_hit","binary_hit") and e.get("valid") is True:
+                elif kind in ("metadata_hit","binary_hit","fractional_io") and e.get("valid") is True:
                     state["metadata_valid"]=True
                     state["valid_field_hits"]+=1
                     state["hits"]+=1
                     state["site_hits"][e["site"]]=1
                     state["last_metadata"]=e
+                    if kind=="fractional_io":
+                        state["io_events"]+=1
                 elif kind=="first_rejected_return":state["first_rejection"]=e.get("reason")
                 elif kind in ("arm_error","frida_error","unexpected_binary_payload","invalid_event"):
                     state["hook_errors"]+=1
@@ -977,6 +988,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="trace_return":state["trace_returns"]+=1
                 elif kind=="trace_reject":state["trace_rejections"]+=1
                 elif kind=="trace_cap_reached":state["trace_cap_reached"]=True
+                elif kind=="io_cap_reached":state["io_cap_reached"]=True
+                elif kind=="io_first_reject":state["io_first_rejection"]=e.get("reason")
             if kind=="hook_attached":
                 report("HOOK","Verified single hook:",e.get("site"),"| RVA",hex(e.get("rva",0)))
             elif kind in ("metadata_hit","binary_hit"):
@@ -989,6 +1002,13 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                            "|",e.get("file"))
                     report("CAPTURE","SHA256:",e.get("sha256"))
                     report("READY","BINARY VERIFIED; awaiting stable new/changed CLO")
+            elif kind=="fractional_io":
+                report("IO","Actual fractional input",e.get("input_f64"),
+                       "→ output",e.get("output_f64"),"| call",e.get("observed"))
+            elif kind=="io_cap_reached":
+                report("IO","Single-hook trace reached fixed 64-observation limit")
+            elif kind=="io_first_reject":
+                report("NOTE","First guarded fractional entry rejected:",e.get("reason"))
             elif kind=="first_rejected_return":
                 report("NOTE","Initial return rejected:",e.get("reason"))
             elif kind=="trace_cap_reached":
@@ -1042,7 +1062,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 if not script.exports_sync.arm():
                     raise RuntimeError("Frida arm() refused to install guarded hook")
                 report("FRIDA","Loaded DLL SHA verified. ONE",
-                       "metadata-only" if cfg["mode"]=="guarded_metadata" else "bounded-f64",
+                       ("bounded-f64" if cfg["mode"]=="guarded_f64_binary"
+                        else "single-site native fractional I/O metadata"),
                        "hook armed.")
                 report("NOTE","Perform exactly ONE normal conversion in target app.")
             if now>=next_pid_check:
@@ -1074,7 +1095,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 report("WAIT","elapsed",round(now-start),"s | hook",hooked,
                        "| metadata",metadata,"| CLO",state["completion_verified"])
             if (state["runtime_verified"] and hooked and metadata and
-                    (cfg["mode"]=="guarded_metadata" or state["binary_valid"]) and
+                    (cfg["mode"] in ("guarded_metadata","guarded_fractional_io")
+                     or state["binary_valid"]) and
                     state["completion_verified"] and not errors):
                 if cfg["mode"]=="guarded_f64_binary":
                     if cfg.get("trace"):
@@ -1086,9 +1108,13 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                            state.get("binary_bytes"),"private sample bytes | CLO",
                            state.get("completion_size_bytes"),"bytes")
                     report("PASS","Bounded native prefix capture complete; NOT numerical parity.")
-                return (("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
-                         else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE"),
-                        "stable_clo_after_guard",pid)
+                if cfg["mode"]=="guarded_fractional_io":
+                    report("PASS","*** NATIVE FRACTIONAL I/O TRACE + STABLE CLO VERIFIED ***",
+                           state.get("io_events",0),"input/output pairs; ZERO audio reads")
+                status=("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
+                        else "FRACTIONAL_IO_TRACE_CLO_STABLE" if cfg["mode"]=="guarded_fractional_io"
+                        else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE")
+                return (status,"stable_clo_after_guard",pid)
         return (("BINARY_OBSERVED_CLO_UNVERIFIED_TIMEOUT" if cfg["mode"]=="guarded_f64_binary"
                  else "METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT")
                 if state["metadata_valid"] else "INCOMPLETE_TIMEOUT","timeout",pid)
