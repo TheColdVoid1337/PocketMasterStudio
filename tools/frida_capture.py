@@ -456,6 +456,8 @@ def main():
             f['type'] in ('f64_binary','f64_block','f64_slice','f64')
             for site in cfg['sites'] for f in site['fields'])),
         completion_verified=bool(state.get('completion_verified',False)),
+        launched_by_tool=bool(state.get('launched_by_tool',False)),
+        process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
@@ -474,6 +476,11 @@ def main():
            '| metadata:',state.get('metadata_valid',False),
            '| stable CLO:',state.get('completion_verified',False))
     report('ARCHIVE',dest,'[RESULT]',status)
+    if guarded and state.get('launched_by_tool') and cfg.get('lifecycle',{}).get('close')=='if_launched':
+        if state.get('cleanup_status') not in ('CLOSED_GRACEFULLY','ALREADY_EXITED'):
+            report('WARN','Native observation status above is independent of application shutdown;',
+                   'automatic close did not complete:',state.get('cleanup_status'))
+            return 3
     return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
