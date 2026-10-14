@@ -146,3 +146,9 @@ bash research/htkpa/stages/stage48/STAGE48_WSL.sh
 ```
 
 Wait for `[HOOK]`, then one normal conversion. The console should print a `[META]` event upon observing actual returned f64 count. A new/changed stable CLO plus valid metadata is still mandatory for `METADATA_GUARD_PASS_CLO_STABLE`. Otherwise the runner preserves a truthful partial result on timeout or Ctrl+C. The **fix is in GitHub but has not been verified on the user's Windows session**; run the WSL offline `--self-test` before hooking. Never escalate to dual input/output Frida hooks after a crash.
+
+### Later safety refinement: stop if Manager disappears
+
+The restored Windows host checks the selected PID approximately every 3 seconds using process enumeration only (no additional Frida hooks or native memory operations). If Manager exits unexpectedly, Stage48 returns `BLOCKED_MANAGER_EXITED` or `BLOCKED_MANAGER_EXITED_AFTER_METADATA`, preserving the already logged event journal and recovered metadata. This avoids silent waiting until timeout after a genuine process exit; an interrupted operator session and a process crash are kept distinct.
+
+**Current engineering validation:** read-only review of the source, structural invariants and V8 compilation of the embedded Frida JS were checked in the assistant environment; the updated Python/WSL files still require the user-side `--self-test` and first controlled Windows run. Do not report the UX fix as Windows-verified until those results arrive.
