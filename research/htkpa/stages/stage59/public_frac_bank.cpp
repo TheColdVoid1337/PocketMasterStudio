@@ -32,8 +32,13 @@ int main(int argc,char** argv) {
     out.write(reinterpret_cast<const char*>(p),bytes);
     if(!out) throw std::runtime_error("cannot write public coefficient bytes");
     bank.unref();
+#if defined(R8B_SIMD_ISH)
+    const char* layout="simd_pairs_2tap";
+#else
+    const char* layout="scalar_triplets";
+#endif
     std::cout<<"{\"phases\":673,\"taps\":24,\"element_size\":3,"
-             <<"\"bytes\":387648,\"requested_attenuation\":"<<req
+             <<"\"bytes\":387648,\"layout\":\""<<layout<<"\",\"requested_attenuation\":"<<req
              <<"}\n";
     return 0;
   } catch(const std::exception& e) {
