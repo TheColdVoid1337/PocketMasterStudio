@@ -245,10 +245,10 @@ def validate_config(cfg: dict, address_fn) -> dict:
 
 BINARY_EXTENSION = r"""
           const bcfg = spec.binary_capture;
-          const slot = owner.add(bcfg.scratch_output_offset);
-          if (!readable(slot,Process.pointerSize))
+          const scratchSlot = owner.add(bcfg.scratch_output_offset);
+          if (!readable(scratchSlot,Process.pointerSize))
             return reject('scratch slot unreadable');
-          const scratch = slot.readPointer();
+          const scratch = scratchSlot.readPointer();
           const selected = scratch.isNull() ? c[bcfg.fallback_input_reg] : scratch;
           if (!output.equals(selected))
             return reject('output pointer provenance mismatch');
