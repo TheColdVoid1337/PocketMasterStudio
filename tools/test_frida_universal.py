@@ -106,6 +106,49 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(running["cleanup_status"],"CLOSED_GRACEFULLY")
         self.assertEqual(d.killed,[14001])
 
+    def test_win32_enumwindows_requires_lparam_and_only_closes_owned_pid(self):
+        """Stage48 regression: EnumWindows(callback) raised because Win32 needs LPARAM."""
+        import ctypes
+        from types import SimpleNamespace
+        calls=[]
+        class ApiFunction:
+            def __init__(self, fn):
+                self.fn=fn
+                self.argtypes=None
+                self.restype=None
+            def __call__(self,*args):
+                return self.fn(*args)
+
+        def enumerate_windows(callback,lparam):
+            calls.append(("EnumWindows",lparam))
+            assert lparam == 0
+            # One window belongs to our tool-owned PID, one does NOT.
+            assert callback(111,0)
+            assert callback(222,0)
+            return 1
+
+        def get_window_pid(hwnd,out_pid):
+            out_pid._obj.value = 4524 if hwnd == 111 else 2222
+            return 1
+
+        def send_close(hwnd,msg,wparam,lparam):
+            calls.append(("WM_CLOSE",hwnd,msg,wparam,lparam))
+            return 1
+
+        user32=SimpleNamespace(
+            EnumWindows=ApiFunction(enumerate_windows),
+            GetWindowThreadProcessId=ApiFunction(get_window_pid),
+            IsWindow=ApiFunction(lambda hwnd: True),
+            PostMessageW=ApiFunction(send_close),
+        )
+        with patch.object(ctypes,"WinDLL",return_value=user32,create=True), \
+             patch.object(ctypes,"WINFUNCTYPE",
+                          side_effect=lambda *signature:(lambda callback:callback),
+                          create=True):
+            sent=guarded.request_graceful_close_windows(4524)
+        self.assertEqual(sent,1)
+        self.assertEqual(calls,[("EnumWindows",0),("WM_CLOSE",111,0x0010,0,0)])
+
     def test_one_delayed_hook_no_audio_reads(self):
         js=guarded.agent_source(self.cfg)
         self.assertEqual(js.count("Interceptor.attach("),1)
