@@ -1,0 +1,51 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "mode": "guarded_f64_binary",
+  "target": {
+    "process_name_contains": "sonicake"
+  },
+  "completion": {
+    "type": "changed_clo",
+    "path": "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
+    "recursive": true,
+    "stable_seconds": 3
+  },
+  "sites": [
+    {
+      "name": "post_fractional_output",
+      "address": "0x1190c",
+      "max_hits": 1,
+      "required": true,
+      "fields": [],
+      "guard": {
+        "kind": "processor_output",
+        "owner_reg": "rbx",
+        "owner_offset": 80,
+        "vtable_rva": "0x245170",
+        "output_ref_reg": "r15",
+        "count_reg": "rax",
+        "max_samples": 4096,
+        "max_observations": 256
+      }
+    }
+  ],
+  "lifecycle": {
+    "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
+    "start": "fresh",
+    "close": "if_launched",
+    "close_timeout_seconds": 8
+  },
+  "binary_capture": {
+    "max_samples_per_event": 32,
+    "max_events": 1,
+    "max_total_bytes": 256,
+    "scratch_output_offset": 112,
+    "fallback_input_reg": "rdi"
+  },
+  "trace": {
+    "max_events": 64,
+    "input_count_reg": "r8"
+  }
+}
