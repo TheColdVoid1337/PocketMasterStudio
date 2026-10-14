@@ -121,6 +121,40 @@ Expected exception/timeout statuses include `METADATA_OBSERVED_OPERATOR_INTERRUP
 
 No original DLL, audio, NAM or CLO files may enter Git; exact original DLL hashes and evidence/metrics alone are allowed.
 
+## Stage49: strictly opt-in guarded native post-fractional f64 prefix
+
+The Stage48 `guarded_metadata` contract above is **unchanged** and STILL never copies audio. Stage49 adds the distinct validated `guarded_f64_binary` config mode in the SAME `tools/frida_capture.py` + `tools/frida_guarded.py` shared implementation and SAME `tools/FRIDA_WSL.sh` launcher. The only stage-specific executable configuration is `research/htkpa/stages/stage49/frida.json`; there is **no Stage49 Python/Bash runner**.
+
+The new descriptor `binary_capture` requires exactly:
+- `max_samples_per_event`: 1..32
+- `max_events`: exactly 1
+- `max_total_bytes`: 8..256 and enough for configured samples
+- `scratch_output_offset`: bounded aligned byte offset on wrapper owner object
+- `fallback_input_reg`: one validated x64 general-purpose register
+
+These values are configured for original V1.5.2 at RVA `0x1190C`, vtable RVA `0x245170`, `scratch_output_offset=112` (the caller's `[RBX+0x70]` scratch), `fallback_input_reg=rdi` (original input fallback). The native fractional processor writes contiguous f64 via `movsd [R12],XMM3; R12+=8` and returns `EAX=(R12-*R9)/8`; see [Stage49 source gate](../research/htkpa/stages/stage49/README.md). Runtime additionally requires original loaded DLL SHA, matching actual processor vtable, bounded return count, aligned mapped pointer, and equality of `*R15` with the actual caller-selected scratch or fallback buffer. Only after those conditions may the generated JS make one **256-byte maximum** `readByteArray` prefix copy and send an ArrayBuffer, never JSON audio values. The Windows host rejects inconsistent event/payload/count/size/provenance, atomically allocates a single local `block_0001.bin`, hashes it and journals the event. A missing/unchanged CLO cannot count as Stage49 success.
+
+The only positive Stage49 status is `NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE`, meaning a **small native fragment** was captured and a new/changed CLO stabilized, **NOT vendor/public resampler numerical parity**. Stage48 remains `METADATA_GUARD_PASS_CLO_STABLE`. Both modes use a single Frida hook and the same managed app lifecycle; `--auto-quiet` is never injected for guarded modes. Binary outputs go only to `research/_LOCAL_FILES/frida_captures/` in the allowlisted local tar archive. Stage49 has **not yet run on Windows**; offline WSL tests/preflight are also pending user execution.
+
+```bash
+set -e
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+git pull --ff-only origin main
+python tools/frida_capture.py --self-test
+python -m unittest discover -s tools -p 'test_frida_universal.py' -v
+bash -n tools/FRIDA_WSL.sh
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage49/frida.json --preflight
+```
+
+After PASS, with Manager closed, one intentional conversion can be observed via:
+
+```bash
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage49/frida.json
+```
+
 ## New-chat / development handoff (2026-10-14)
 
 For the complete current reverse-engineering status, measured r8brain comparisons, original DLL RVA/vtable map, exact WSL/Windows paths, accepted Stage48 runtime and guarded Stage49 next-step specification, read the [canonical HTKPA rollover](../docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md). The old standalone Stage48 Frida Python/shell wrappers are retired: **do not copy them for Stage49+**. The local private rollover ZIP described in that document is never committed to Git; the assistant in a new chat can inspect it only when the user attaches it explicitly. Universal tests were **13/13 user-confirmed**; owned GUI WM_CLOSE smoke returned exit 0 with ZERO hooks. Actual vendor 48-kHz sample values are not yet captured.
