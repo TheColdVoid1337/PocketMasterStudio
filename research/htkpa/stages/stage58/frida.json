@@ -1,0 +1,48 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "mode": "guarded_fractional_io",
+  "target": {
+    "process_name_contains": "sonicake"
+  },
+  "completion": {
+    "type": "changed_clo",
+    "path": "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
+    "recursive": true,
+    "stable_seconds": 3
+  },
+  "sites": [
+    {
+      "name": "fractional_entry_io",
+      "address": "0x135c0",
+      "max_hits": 1,
+      "required": true,
+      "fields": [],
+      "guard": {
+        "kind": "fractional_entry_io",
+        "vtable_rva": "0x245170",
+        "max_observations": 64,
+        "max_input_f64": 7000000,
+        "max_output_f64": 7000000
+      }
+    }
+  ],
+  "lifecycle": {
+    "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
+    "start": "fresh",
+    "close": "if_launched",
+    "close_timeout_seconds": 8
+  },
+  "rate_probe": {
+    "numerator_offset": 4104,
+    "denominator_offset": 4112
+  },
+  "coeff_probe": {
+    "table_rva": 2913632,
+    "phase_count": 673,
+    "stride_f64": 72,
+    "total_max_bytes": 387648,
+    "trigger_input_f64": 3
+  }
+}
