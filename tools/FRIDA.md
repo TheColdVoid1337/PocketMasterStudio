@@ -29,6 +29,14 @@ The same universal `tools/FRIDA_WSL.sh` / `tools/frida_capture.py` also supports
 }
 ```
 
+**Optional path-only preflight before launching Manager:**
+
+```bash
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --preflight
+```
+
+This runs the already-installed Windows Python to check the configured EXE and CLO directory exist and verifies the original private DLL SHA, **without calling Frida attach, spawning Manager or installing hooks**. Particularly useful because the EXE path is not yet confirmed on this computer.
+
 The EXE path is the *previous generic fallback assumption* and **must be verified** against the user's actual installation. The original CLO directory above was explicitly supplied by the user. Missing configured paths are reported clearly, **before starting the process or installing any hook**. Use absolute forward-slash Windows paths in JSON.
 
 - `start=fresh`: refuse if another matching Manager process is running (never silently close someone else's app), otherwise use `frida.get_local_device().spawn([EXE])` suspended; attach the script and its module observer, then `resume(PID)`. Delayed **actual loaded DLL SHA validation** still happens before the one guarded hook is armed.
