@@ -124,7 +124,7 @@ IO_AGENT = r"""
 'use strict';
 const spec = JSON_SPEC, site = spec.sites[0], guard = site.guard;
 let moduleFound = null, attached = false, observed = 0, firstReject = false;
-let inputProbeProcessor = null, inputProbeStep = 0;
+let inputProbeProcessor = null, inputProbeStep = 0, outputProbeDone = false;
 function emit(data) { send(Object.assign({kind:'note',thread:Process.getCurrentThreadId()},data)); }
 function readable(p, n) {
   if (p.isNull() || n < 1) return false;
@@ -148,6 +148,7 @@ rpc.exports = {
       Interceptor.attach(loc,{
         onEnter() {
           this.observation = null;
+          this.outputRef = null;
           if (observed >= guard.max_observations) return;
           const nth = ++observed;
           if (nth === guard.max_observations)
@@ -163,6 +164,7 @@ rpc.exports = {
                           processor_pointer:processor.toString()};
             RATE_PROBE_EXTENSION
             INPUT_PROBE_EXTENSION
+            OUTPUT_PROBE_ENTER_EXTENSION
             this.observation = record;
           } catch(e) { reject('enter exception: '+String(e).slice(0,120),nth); }
         },
@@ -172,6 +174,7 @@ rpc.exports = {
             const outputCount = retval.and(ptr('0xffffffff')).toUInt32();
             if (outputCount > guard.max_output_f64)
               return reject('output count outside guard',this.observation.observed);
+            OUTPUT_PROBE_LEAVE_EXTENSION
             emit(Object.assign({kind:'fractional_io',valid:true,site:site.name,
                 output_f64:outputCount},this.observation));
           } catch(e) { reject('leave exception: '+String(e).slice(0,120),
@@ -248,11 +251,51 @@ IO_INPUT_EXTENSION = r"""
 """
 
 
+# Exact native output first 32 f64 from the first full-size 88200->48000
+# fractional call. RVA 0x135CB reads *R9; RVA 0x13D15 computes R12-*R9.
+IO_OUTPUT_ENTER_EXTENSION = r"""
+            const want=spec.output_probe;
+            if (!outputProbeDone && record.step_numerator===want.numerator &&
+                record.step_denominator===want.denominator &&
+                inputCount===want.first_input_f64) {
+              const ref=this.context.r9;
+              if (!readable(ref,Process.pointerSize))
+                return reject('48k output pointer-ref unreadable',nth);
+              this.outputRef=ref;
+            }
+"""
+IO_OUTPUT_LEAVE_EXTENSION = r"""
+            if (this.outputRef !== null && !outputProbeDone) {
+              const want=spec.output_probe;
+              if (outputCount !== want.first_output_f64)
+                return reject('48k output count mismatch',this.observation.observed);
+              const ref=this.outputRef;
+              if (!readable(ref,Process.pointerSize))
+                return reject('48k output reference expired',this.observation.observed);
+              const output=ref.readPointer();
+              const bytes=want.output_samples*8;
+              if (!output.and(ptr('0x7')).isNull() || !readable(output,bytes))
+                return reject('48k output prefix unreadable',this.observation.observed);
+              const copied=output.readByteArray(bytes);
+              if (copied===null || copied.byteLength!==bytes)
+                return reject('48k output copy incomplete',this.observation.observed);
+              outputProbeDone=true;
+              send({kind:'fractional_output_prefix',valid:true,site:site.name,
+                    observed:this.observation.observed,
+                    processor_pointer:this.observation.processor_pointer,
+                    input_f64:this.observation.input_f64,output_f64:outputCount,
+                    copied_f64:want.output_samples,copied_bytes:bytes,
+                    rate_numerator:want.numerator,rate_denominator:want.denominator,
+                    provenance:'fractional_r9_ref_onleave'},copied);
+            }
+"""
+
+
 def validate_fractional_io(cfg: dict, address_fn) -> dict:
     """Reuse strict SHA/Windows path lifecycle validation; separate entry-hook guard."""
     if not isinstance(cfg,dict) or cfg.get("mode")!="guarded_fractional_io":
         raise ValueError("expected guarded_fractional_io descriptor")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe"}:
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe","output_probe"}:
         raise ValueError("unexpected fractional I/O config fields")
     rate_probe=cfg.get("rate_probe")
     if rate_probe is not None:
@@ -271,6 +314,16 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
                 or probe!={"first_f64":3,"second_f64":256,"total_max_bytes":2072,
                            "numerator":96000,"denominator":44100}):
             raise ValueError("Stage54 input probe must be exactly 3+256 f64 at 96000->44100")
+    out_probe=cfg.get("output_probe")
+    if out_probe is not None:
+        if (rate_probe is None or not isinstance(out_probe,dict)
+                or set(out_probe)!={"output_samples","total_max_bytes","numerator",
+                                    "denominator","first_input_f64","first_output_f64"}
+                or any(type(v) is not int for v in out_probe.values())
+                or out_probe!={"output_samples":32,"total_max_bytes":256,
+                               "numerator":88200,"denominator":48000,
+                               "first_input_f64":6170612,"first_output_f64":3358150}):
+            raise ValueError("Stage54 48k output prefix requires exact guarded full-stream geometry")
     sites=cfg.get("sites")
     if not isinstance(sites,list) or len(sites)!=1:
         raise ValueError("fractional IO accepts exactly one hook")
@@ -298,6 +351,7 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
     proxy=dict(cfg)
     proxy.pop("rate_probe",None)
     proxy.pop("input_probe",None)
+    proxy.pop("output_probe",None)
     proxy["mode"]="guarded_metadata"
     proxy["sites"]=[dict(site,guard={
         "kind":"processor_output","owner_reg":"rbx","owner_offset":80,
@@ -310,6 +364,8 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
         normalized["rate_probe"]=dict(rate_probe)
     if probe is not None:
         normalized["input_probe"]=dict(probe)
+    if out_probe is not None:
+        normalized["output_probe"]=dict(out_probe)
     normalized["sites"]=[dict(normalized["sites"][0],guard={
         "kind":"fractional_entry_io",
         "vtable_rva":normalized["sites"][0]["guard"]["vtable_rva"],
@@ -605,6 +661,10 @@ def agent_source(cfg: dict) -> str:
                                  IO_RATE_EXTENSION if cfg.get("rate_probe") else "")
                  .replace("INPUT_PROBE_EXTENSION",
                           IO_INPUT_EXTENSION if cfg.get("input_probe") else "")
+                 .replace("OUTPUT_PROBE_ENTER_EXTENSION",
+                          IO_OUTPUT_ENTER_EXTENSION if cfg.get("output_probe") else "")
+                 .replace("OUTPUT_PROBE_LEAVE_EXTENSION",
+                          IO_OUTPUT_LEAVE_EXTENSION if cfg.get("output_probe") else "")
                  .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
     return (AGENT.replace("BINARY_EXTENSION_POINT",
                           BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
