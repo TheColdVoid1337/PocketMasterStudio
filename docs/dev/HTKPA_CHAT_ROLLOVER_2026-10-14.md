@@ -28,7 +28,7 @@ You are inheriting the real `POCKET_MASTER` / `PocketMasterStudio Void Mod` inve
 
 ### Response and WSL formatting contract
 
-For terminal commands, use **one clean, copy-pasteable fenced Bash block** (or the interface's editable `CodeBlock language="bash"`), with newline-separated commands, `set -e` where appropriate, no `$ ` prompts, correct Bash `\\` line continuation, quoted paths with spaces/parentheses, and **no decorative text inside the command**. Under real user outputs, show brief measured statuses or a compact comparison table, mark **PASS vs PENDING**, link exact GitHub files/commits. Don't force repetitive questions when paths are known. Treat code's self-tests as offline gates, not proof of native Windows compatibility. Do not guess a user's terminal PID, file locations, executable existence or whether a GUI closed — user logs are proof.
+For terminal commands, use **one clean, copy-pasteable fenced Bash block** (or the interface's editable `CodeBlock language="bash"`), with newline-separated commands, `set -e` where appropriate, no `$ ` prompts, a **single trailing backslash** for Bash line continuation, quoted paths with spaces/parentheses, and **no decorative text inside the command**. Under real user outputs, show brief measured statuses or a compact comparison table, mark **PASS vs PENDING**, link exact GitHub files/commits. Don't force repetitive questions when paths are known. Treat code's self-tests as offline gates, not proof of native Windows compatibility. Do not guess a user's terminal PID, file locations, executable existence or whether a GUI closed — user logs are proof.
 
 Canonical checkout and baseline:
 
