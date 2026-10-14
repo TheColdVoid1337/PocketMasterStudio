@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
         if (!file) throw std::runtime_error("private input read failed");
         for (double x: input)
             if (!std::isfinite(x)) throw std::runtime_error("nonfinite native input");
-        const auto phase_kind = phase == 0 ? r8b::fprLinearPhase : r8b::fprMinimumPhase;
+        const auto phase_kind = phase == 0 ? r8b::fprLinearPhase : r8b::fprMinPhase;
         r8b::CDSPResampler res(44100.0, 48000.0, 2680, trans, atten, phase_kind);
         double* out = nullptr;
         int count = res.process(input.data(), 2680, out);
