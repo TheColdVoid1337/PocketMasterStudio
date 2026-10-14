@@ -65,8 +65,8 @@ class Stage65Tests(unittest.TestCase):
             "process_cleanup_status":"CLOSED_GRACEFULLY",
             "hook_count":1
         }
-        fwd=bytes(range(256))+b"\x00"*(1067*8-256)
-        rev=bytes(reversed(range(256)))+b"\x01"*(114*8-256)
+        fwd=struct.pack("<1067d",*(i/1000.0 for i in range(1067)))
+        rev=struct.pack("<114d",*(-i/10.0 for i in range(114)))
         fixtures={"forward":fwd,"reverse":rev}
         first32={side:hashlib.sha256(blob[:256]).hexdigest()
                  for side,blob in fixtures.items()}
