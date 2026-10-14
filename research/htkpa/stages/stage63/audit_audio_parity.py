@@ -69,6 +69,8 @@ def check_stage62(path:Path)->dict:
             or best["window"]["beta_f64_hex"]!=stage62.NATIVE_BETA.hex()
             or best["window"]["power_f64_hex"]!=stage62.NATIVE_POWER.hex()
             or m.get("bank_sha256")!=STAGE62_COEFF_PUBLIC_SHA
+            or m.get("bit_equal")!=4722
+            or m.get("max_abs_error")!=1.4958796666088812e-15
             or not math.isclose(m.get("rms_error",float("inf")),
                                 STAGE62_NUMERIC_RMS,rel_tol=1e-13,abs_tol=1e-19)):
         raise ValueError("Stage62 coefficient parity gate does not match")
