@@ -96,6 +96,95 @@ Process.attachModuleObserver({onAdded(m) {
 """
 
 
+
+def validate_config(cfg: dict, address_fn) -> dict:
+    """Strict declarative guard schema; arbitrary script payloads are forbidden."""
+    if not isinstance(cfg,dict):
+        raise ValueError("config must be an object")
+    if cfg.get("mode") != "guarded_metadata":
+        raise ValueError("expected guarded_metadata mode")
+    if not isinstance(cfg.get("module"),str) or not re.fullmatch(r"[A-Za-z0-9_. -]+\.(dll|exe)",cfg["module"],re.I):
+        raise ValueError("simple module basename required")
+    if not isinstance(cfg.get("sha256"),str) or not re.fullmatch(r"[A-Fa-f0-9]{64}",cfg["sha256"]):
+        raise ValueError("original module SHA256 mandatory")
+    base = int(str(cfg.get("image_base","0x180000000")),0)
+    sites=cfg.get("sites")
+    if not isinstance(sites,list) or len(sites)!=1:
+        raise ValueError("guarded_metadata requires exactly one site")
+    s=sites[0]
+    if not isinstance(s,dict) or set(s)-{"name","address","required","max_hits","guard","fields"}:
+        raise ValueError("guarded site has unknown properties")
+    if s.get("fields"):
+        raise ValueError("guarded mode rejects scalar and binary fields; metadata only")
+    if not isinstance(s.get("name"),str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}",s["name"]):
+        raise ValueError("invalid site name")
+    if s.get("required",True) is not True or s.get("max_hits",1)!=1:
+        raise ValueError("guarded site must be required with max_hits=1")
+    g=s.get("guard")
+    permitted={"kind","owner_reg","owner_offset","vtable_rva","output_ref_reg",
+               "count_reg","max_samples","max_observations"}
+    if not isinstance(g,dict) or set(g)!=permitted:
+        raise ValueError("guard fields must match the fixed processor_output schema exactly")
+    if g["kind"]!="processor_output":
+        raise ValueError("unknown guarded metadata kind")
+    regs={"rax","rbx","rcx","rdx","rsi","rdi","rbp","rsp",
+          "r8","r9","r10","r11","r12","r13","r14","r15"}
+    for key in ("owner_reg","output_ref_reg","count_reg"):
+        if g[key] not in regs:
+            raise ValueError("unsupported register in "+key)
+    def integer(value,key,minimum,maximum):
+        if type(value) is not int or not minimum<=value<=maximum:
+            raise ValueError(key+" must be an integer in allowed bounds")
+        return value
+    off=integer(g["owner_offset"],"owner_offset",0,4096)
+    if off%8:
+        raise ValueError("owner_offset must be pointer aligned")
+    max_samples=integer(g["max_samples"],"max_samples",1,4096)
+    max_observations=integer(g["max_observations"],"max_observations",1,1024)
+    vtable=address_fn(g["vtable_rva"],base)
+    if vtable<0 or vtable>=0x10000000:
+        raise ValueError("implausible vtable RVA")
+    rv=address_fn(s.get("address"),base)
+    if rv>=0x10000000:
+        raise ValueError("implausible code RVA")
+
+    target=cfg.get("target")
+    if not isinstance(target,dict) or set(target)!={"process_name_contains"}:
+        raise ValueError("target must provide process_name_contains only")
+    match=target["process_name_contains"]
+    if not isinstance(match,str) or not re.fullmatch(r"[A-Za-z0-9_. -]{3,100}",match):
+        raise ValueError("invalid process match string")
+    completion=cfg.get("completion")
+    if not isinstance(completion,dict):
+        raise ValueError("completion must be a declarative object")
+    allowed={"type","appdata_subdir","recursive","stable_seconds"}
+    if set(completion)!=allowed or completion["type"]!="changed_clo":
+        raise ValueError("guarded mode requires exact changed_clo completion keys")
+    sub=completion["appdata_subdir"]
+    if not isinstance(sub,str) or not sub or ":" in sub or "\\" in sub or sub.startswith("/"):
+        raise ValueError("appdata_subdir must be safe slash-separated relative segments")
+    if any(part in ("",".","..") or not re.fullmatch(r"[A-Za-z0-9_. -]+",part)
+           for part in sub.split("/")):
+        raise ValueError("unsafe appdata_subdir")
+    if type(completion["recursive"]) is not bool:
+        raise ValueError("recursive must be a boolean")
+    stable=completion["stable_seconds"]
+    if type(stable) not in (int,float) or not 2<=stable<=30:
+        raise ValueError("stable_seconds must be 2..30")
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites"}:
+        raise ValueError("unknown top-level guarded config key")
+    return {
+        "module":cfg["module"],"sha256":cfg["sha256"].lower(),
+        "mode":"guarded_metadata","image_base":base,
+        "target":{"process_name_contains":match},
+        "completion":dict(completion),
+        "sites":[{"name":s["name"],"rva":rv,"required":True,"max_hits":1,
+                  "fields":[],"guard":dict(g,owner_offset=off,vtable_rva=vtable,
+                                            max_samples=max_samples,
+                                            max_observations=max_observations)}],
+    }
+
+
 def agent_source(cfg: dict) -> str:
     return AGENT.replace("JSON_SPEC", json.dumps(cfg, ensure_ascii=True))
 
