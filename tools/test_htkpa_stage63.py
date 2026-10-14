@@ -112,6 +112,7 @@ class Stage63OfflineTests(unittest.TestCase):
                     "power_f64_hex":audit.stage62.NATIVE_POWER.hex()},
                     "metrics":{"bank_sha256":audit.STAGE62_COEFF_PUBLIC_SHA,
                                "rms_error":audit.STAGE62_NUMERIC_RMS,
+                               "max_abs_error":1.4958796666088812e-15,
                                "bit_equal":4722}}}}
             with tarfile.open(where,"w:gz") as t:
                 for name,content in (
