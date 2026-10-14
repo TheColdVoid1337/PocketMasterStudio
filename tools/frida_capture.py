@@ -7,6 +7,8 @@ import os
 import platform
 import re
 import sys
+import shutil
+import tempfile
 import tarfile
 import threading
 import time
@@ -19,6 +21,8 @@ TYPES = {'f64','f32','u8','u16','u32','u64','i32','ptr','reg_ptr','reg_u64','f64
 XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
+# Keep ALL loose capture files outside _LOCAL_FILES. Only verified .tar.gz goes there.
+FRIDA_STAGING = Path(__file__).resolve().parents[1] / 'research' / '.research_run_staging'
 
 COLORS = {'TARGET':'\x1b[36m','NOTE':'\x1b[36m','FRIDA':'\x1b[35m',
           'HOOK':'\x1b[35m','META':'\x1b[32m','CLO':'\x1b[32m',
@@ -230,6 +234,63 @@ def archive(directory, destination):
             assert hashlib.sha256(t.extractfile(m).read()).hexdigest()==digest[m.name.split('/')[1]]
     return digest
 
+def new_staged_capture():
+    """Private capture writes NEVER go directly under research/_LOCAL_FILES."""
+    FRIDA_STAGING.mkdir(parents=True,exist_ok=True)
+    return Path(tempfile.mkdtemp(prefix='frida_',dir=FRIDA_STAGING))
+
+def publish_capture(folder, out):
+    """Publish a verified tar.gz in one atomic rename; retain staging on failure."""
+    out.mkdir(parents=True,exist_ok=True)
+    destination=out/(folder.name+'.tar.gz')
+    if destination.exists():
+        raise ValueError('refusing to overwrite a native capture archive: '+str(destination))
+    partial=folder.with_suffix('.packing.tar.gz')
+    try:
+        archive(folder,partial)
+        os.replace(partial,destination)
+        shutil.rmtree(folder)
+    finally:
+        partial.unlink(missing_ok=True)
+    return destination
+
+def recover_frida_staging(out):
+    """OFFLINE rescue after interruption; NEVER claim verified runtime success.
+
+    Run only when no Frida capture is active. No app execution, hook, attach,
+    or auto cleanup. Existing successful archive members are never overwritten.
+    """
+    if not FRIDA_STAGING.is_dir():
+        report('RECOVER','No staged captures')
+        return 0
+    count=0
+    for folder in sorted(FRIDA_STAGING.glob('frida_*')):
+        if not folder.is_dir() or not (folder/'config.json').is_file():
+            continue
+        if not (folder/'events.jsonl').is_file():
+            (folder/'events.jsonl').touch()
+        if not (folder/'manifest.json').is_file():
+            (folder/'manifest.json').write_text(json.dumps({
+                'status':'RECOVERED_UNVERIFIED_INTERRUPTED',
+                'reason':'Recovered private files after unfinished wrapper or host exit',
+                'contains_audio_bytes':bool(list(folder.glob('block_*.bin'))),
+                'completion_verified':False,
+                'original_runtime_verified':False,
+                'scope':'forensic only, not a validated Frida experiment'
+            },indent=2)+'\n',encoding='utf-8')
+        if not (folder/'HANDOFF.md').is_file():
+            (folder/'HANDOFF.md').write_text(
+                '# Recovered Frida run\n\nState unverified; treat only as forensic data.\n',
+                encoding='utf-8')
+        try:
+            destination=publish_capture(folder,out)
+            report('ARCHIVE','Recovered (UNVERIFIED):',destination)
+            count+=1
+        except (ValueError,OSError,AssertionError,tarfile.TarError) as exc:
+            report('WARN','Recovery archive failed; original staging preserved:',folder,exc)
+    report('RECOVER','Sealed',count,'staged capture(s) into verified tar.gz')
+    return 0
+
 def capture(args,cfg,folder,state):
     if os.name!='nt' or platform.architecture()[0]!='64bit':
         raise RuntimeError('Run under Windows x64 Python (not WSL)')
@@ -402,10 +463,14 @@ def main():
     ap.add_argument('--auto-quiet',type=float,default=0,help='finish after all sites and N quiet seconds; no import completion claim')
     ap.add_argument('--out',type=Path,default=DEFAULT_OUT)
     ap.add_argument('--self-test',action='store_true')
+    ap.add_argument('--recover',action='store_true',
+                    help='OFFLINE: pack interrupted staged files as UNVERIFIED tar.gz; run with no active capture')
     ap.add_argument('--list-processes',action='store_true',help='list Windows process candidates, ZERO hooks')
     ap.add_argument('--preflight',action='store_true',help='verify configured Windows EXE/CLO paths without Frida attach')
     ap.add_argument('--lifecycle-smoke',action='store_true',help='start and WM_CLOSE owned GUI using JSON; NO hook or conversion')
     args=ap.parse_args()
+    if args.recover:
+        return recover_frida_staging(args.out)
     if args.self_test:
         self_test()
         report('NOTE',frida_guarded.self_test(validate))
@@ -444,9 +509,7 @@ def main():
         ap.error('guarded metadata uses JSON lifecycle.start, not --fresh')
     if guarded and args.auto_quiet:
         ap.error('guarded metadata needs a verified CLO, not --auto-quiet')
-    args.out.mkdir(parents=True,exist_ok=True)
-    folder=args.out/('frida_'+datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f'))
-    folder.mkdir()
+    folder=new_staged_capture()
     (folder/'config.json').write_text(json.dumps(cfg,indent=2)+'\n')
     (folder/'events.jsonl').touch()
     state={};status='BLOCKED';method='none';problem=''
@@ -502,8 +565,12 @@ def main():
     (folder/'HANDOFF.md').write_text('# Universal Frida capture\n\nStatus: '+status+
         '\n\nCompletion: '+method+'\n\nIssue: '+problem+
         '\n\n'+evidence_note+'\n')
-    dest=folder.with_suffix('.tar.gz')
-    archive(folder,dest)
+    try:
+        dest=publish_capture(folder,args.out)
+    except (OSError,ValueError,AssertionError,tarfile.TarError) as exc:
+        report('ERROR','Capture archive not published; recovery files retained at',folder,exc)
+        report('NOTE','Run python tools/frida_capture.py --recover when no native capture is active')
+        return 2
     report('STATUS',status,'| hook:',state.get('hook_attached',state.get('ready',False)),
            '| metadata:',state.get('metadata_valid',False),
            '| stable CLO:',state.get('completion_verified',False))
