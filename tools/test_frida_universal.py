@@ -18,6 +18,7 @@ import frida_capture as core
 import frida_guarded as guarded
 
 STAGE48=HERE.parent/"research"/"htkpa"/"stages"/"stage48"/"frida.json"
+STAGE49=HERE.parent/"research"/"htkpa"/"stages"/"stage49"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -189,6 +190,99 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertIn("Process.attachModuleObserver",js)
         for forbidden in (".readByteArray(", ".readDouble(", ".readFloat(", ".writeByteArray("):
             self.assertNotIn(forbidden,js)
+
+    def test_stage49_guarded_single_prefix_and_stage48_no_audio(self):
+        raw=json.loads(STAGE49.read_text(encoding="utf-8"))
+        cfg=core.validate(raw)
+        self.assertEqual(cfg["mode"],"guarded_f64_binary")
+        self.assertEqual(len(cfg["sites"]),1)
+        self.assertEqual(cfg["sites"][0]["rva"],0x1190c)
+        self.assertEqual(cfg["sites"][0]["guard"]["vtable_rva"],0x245170)
+        self.assertEqual(cfg["sha256"],self.cfg["sha256"])
+        self.assertEqual(cfg["binary_capture"]["max_events"],1)
+        self.assertEqual(cfg["binary_capture"]["max_samples_per_event"],32)
+        self.assertEqual(cfg["binary_capture"]["max_total_bytes"],256)
+        self.assertEqual(cfg["binary_capture"]["scratch_output_offset"],112)
+        self.assertEqual(cfg["binary_capture"]["fallback_input_reg"],"rdi")
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertIn("output pointer provenance mismatch",js)
+        self.assertNotIn("readDouble(",js)
+        self.assertNotIn("readFloat(",js)
+        stage48js=guarded.agent_source(self.cfg)
+        self.assertEqual(stage48js.count("Interceptor.attach("),1)
+        self.assertNotIn(".readByteArray(",stage48js)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                f=Path(d)/"agent49.js"
+                f.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage49_binary_schema_rejects_unsafe_overrides(self):
+        raw=json.loads(STAGE49.read_text(encoding="utf-8"))
+        def invalid(edit):
+            c=copy.deepcopy(raw)
+            edit(c)
+            with self.assertRaises((ValueError,KeyError,TypeError)):
+                core.validate(c)
+        invalid(lambda c:c["binary_capture"].update(max_samples_per_event=33))
+        invalid(lambda c:c["binary_capture"].update(max_total_bytes=2048))
+        invalid(lambda c:c["binary_capture"].update(max_events=2))
+        invalid(lambda c:c["binary_capture"].update(max_events=True))
+        invalid(lambda c:c["binary_capture"].update(scratch_output_offset=113))
+        invalid(lambda c:c["binary_capture"].update(fallback_input_reg="invalid"))
+        invalid(lambda c:c["binary_capture"].update(javascript="readEverything()"))
+        invalid(lambda c:c["sites"][0].update(fields=[{"name":"x","type":"f64_binary"}]))
+        invalid(lambda c:c.update(mode="guarded_metadata"))
+        invalid(lambda c:c["sites"].append(copy.deepcopy(c["sites"][0])))
+
+    def test_stage49_bounded_binary_host_persistence_recovery_and_archive(self):
+        cfg=core.validate(json.loads(STAGE49.read_text(encoding="utf-8")))
+        event={"kind":"binary_hit","valid":True,"site":"post_fractional_output",
+               "observed":18,"output_f64":114,"output_bytes":912,
+               "copied_f64":32,"copied_bytes":256,"readable_range":True,
+               "provenance":"selected_scratch_or_input"}
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            st={"binary_valid":False}
+            payload=bytes(range(256))
+            e=guarded.persist_guarded_binary(cfg,st,root,event,payload)
+            self.assertTrue(st["binary_valid"])
+            self.assertEqual(st["binary_bytes"],256)
+            self.assertEqual((root/"block_0001.bin").read_bytes(),payload)
+            import hashlib
+            self.assertEqual(e["sha256"],hashlib.sha256(payload).hexdigest())
+            with self.assertRaises(ValueError):
+                guarded.persist_guarded_binary(cfg,st,root,event,payload)
+            (root/"events.jsonl").write_text(json.dumps(e)+"\n",encoding="utf-8")
+            recovered={}
+            guarded.reconcile(root,recovered)
+            self.assertTrue(recovered["binary_valid"])
+            self.assertTrue(recovered["metadata_valid"])
+            (root/"block_0001.bin").write_bytes(b"x"*256)
+            tampered={}
+            guarded.reconcile(root,tampered)
+            self.assertFalse(tampered.get("binary_valid",False))
+            (root/"block_0001.bin").write_bytes(payload)
+            for name in ("config.json","manifest.json","HANDOFF.md"):
+                (root/name).write_text("test",encoding="utf-8")
+            (root/"do_not_archive.wav").write_bytes(b"SECRET")
+            import tarfile
+            core.archive(root,root/"test.tar.gz")
+            with tarfile.open(root/"test.tar.gz") as tar:
+                names=[member.name for member in tar]
+            self.assertIn("frida_capture/block_0001.bin",names)
+            self.assertFalse(any("do_not_archive" in name for name in names))
+        with tempfile.TemporaryDirectory() as d:
+            st={}
+            with self.assertRaises(ValueError):
+                guarded.persist_guarded_binary(cfg,st,Path(d),event,b"too short")
+            with self.assertRaises(ValueError):
+                guarded.persist_guarded_binary(cfg,st,Path(d),
+                    dict(event,provenance="unverified"),bytes(range(256)))
+            self.assertFalse(st.get("binary_valid",False))
 
     def test_legacy_unchanged(self):
         old=core.validate({"module":"5868USB.dll","sha256":"f"*64,
