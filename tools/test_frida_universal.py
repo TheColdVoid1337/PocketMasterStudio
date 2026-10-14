@@ -19,6 +19,7 @@ import frida_guarded as guarded
 
 STAGE48=HERE.parent/"research"/"htkpa"/"stages"/"stage48"/"frida.json"
 STAGE49=HERE.parent/"research"/"htkpa"/"stages"/"stage49"/"frida.json"
+STAGE50=HERE.parent/"research"/"htkpa"/"stages"/"stage50"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -279,6 +280,94 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage50_same_single_hook_64_return_trace_one_audio_prefix(self):
+        raw=json.loads(STAGE50.read_text(encoding="utf-8"))
+        cfg=core.validate(raw)
+        original=core.validate(json.loads(STAGE49.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["mode"],"guarded_f64_binary")
+        self.assertEqual(len(cfg["sites"]),1)
+        self.assertEqual(cfg["sites"][0]["rva"],0x1190c)
+        self.assertEqual(cfg["sites"][0]["guard"]["vtable_rva"],0x245170)
+        self.assertEqual(cfg["sha256"],self.cfg["sha256"])
+        self.assertEqual(cfg["trace"],{"max_events":64})
+        self.assertEqual(cfg["binary_capture"],original["binary_capture"])
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertIn("kind:'trace_return'",js)
+        self.assertIn("kind:'trace_reject'",js)
+        self.assertIn("spec.trace && metadataSent",js)
+        self.assertIn("observed >= spec.trace.max_events",js)
+        self.assertNotIn("readDouble(",js)
+        self.assertNotIn("writeByteArray(",js)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                agent=Path(d)/"stage50_agent.js"
+                agent.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(agent)],capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+        # Stage48 remains free of any wave reads; Stage49 one-shot unchanged.
+        self.assertNotIn(".readByteArray(",guarded.agent_source(self.cfg))
+        self.assertNotIn("trace",original)
+
+    def test_stage50_trace_override_is_strictly_bounded(self):
+        raw=json.loads(STAGE50.read_text(encoding="utf-8"))
+        for edit in [
+            lambda c:c["trace"].update(max_events=65),
+            lambda c:c["trace"].update(max_events=0),
+            lambda c:c["trace"].update(max_events=True),
+            lambda c:c["trace"].update(javascript="evil"),
+            lambda c:c["sites"][0]["guard"].update(max_observations=63),
+            lambda c:c["sites"].append(copy.deepcopy(c["sites"][0])),
+            lambda c:c["binary_capture"].update(max_total_bytes=257),
+        ]:
+            cfg=copy.deepcopy(raw)
+            edit(cfg)
+            with self.assertRaises((ValueError,TypeError,KeyError)):
+                core.validate(cfg)
+        cfg=copy.deepcopy(self.raw)
+        cfg["trace"]={"max_events":64}
+        with self.assertRaises(ValueError):
+            core.validate(cfg)
+
+    def test_universal_capture_publishes_only_tar_and_recovers_crash_offline(self):
+        import tarfile
+        with tempfile.TemporaryDirectory() as d:
+            temp=Path(d)
+            private=temp/"research"/"_LOCAL_FILES"/"frida_captures"
+            stage=temp/"research"/".research_run_staging"
+            with patch.object(core,"FRIDA_STAGING",stage):
+                folder=core.new_staged_capture()
+                for name in ["config.json","manifest.json","events.jsonl","HANDOFF.md"]:
+                    (folder/name).write_text(name,encoding="utf-8")
+                (folder/"block_0001.bin").write_bytes(bytes(range(32)))
+                (folder/"secret.wav").write_bytes(b"NEVER ARCHIVE ME")
+                saved=core.publish_capture(folder,private)
+                self.assertTrue(saved.is_file())
+                self.assertFalse(folder.exists())
+                self.assertEqual(list(private.iterdir()),[saved])
+                with tarfile.open(saved,"r:gz") as t:
+                    self.assertIn("frida_capture/block_0001.bin",t.getnames())
+                    self.assertFalse(any("secret" in m for m in t.getnames()))
+                # Wrapper crash before manifest finish retains loose private
+                # files only in ignored STAGING, NEVER under _LOCAL_FILES.
+                abandoned=core.new_staged_capture()
+                (abandoned/"config.json").write_text("{}",encoding="utf-8")
+                (abandoned/"events.jsonl").write_text(
+                    '{"kind":"binary_hit","valid":true}\n',encoding="utf-8")
+                (abandoned/"block_0001.bin").write_bytes(b"captured")
+                reports=[]
+                self.assertEqual(core.recover_frida_staging(private),0)
+                self.assertEqual(len(list(private.glob("*.tar.gz"))),2)
+                self.assertEqual(len([x for x in private.iterdir() if x.is_dir()]),0)
+                self.assertFalse(abandoned.exists())
+                recovered=private/(abandoned.name+".tar.gz")
+                with tarfile.open(recovered) as t:
+                    manifest=json.loads(t.extractfile("frida_capture/manifest.json").read())
+                    self.assertEqual(manifest["status"],"RECOVERED_UNVERIFIED_INTERRUPTED")
+                    self.assertFalse(manifest["original_runtime_verified"])
+                    self.assertEqual(t.extractfile("frida_capture/block_0001.bin").read(),b"captured")
 
     def test_stage49_binary_schema_rejects_unsafe_overrides(self):
         raw=json.loads(STAGE49.read_text(encoding="utf-8"))
