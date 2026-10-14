@@ -120,7 +120,7 @@
   },
   "canonical_tool_migration": {
     "date": "2026-10-14",
-    "status": "IMPLEMENTED_IN_GIT_PENDING_WSL_OFFLINE_AND_WINDOWS_RUNTIME_VERIFICATION",
+    "status": "OFFLINE_ACCEPTED_WINDOWS_RERUN_PENDING",
     "entrypoint": "tools/frida_capture.py",
     "wsl_launcher": "tools/FRIDA_WSL.sh",
     "guarded_library": "tools/frida_guarded.py",
@@ -141,6 +141,20 @@
     },
     "completion": "Only valid metadata AND new/changed CLO stable 3 s is metadata runtime PASS",
     "legacy_f64_behavior": "Preserved via mode=scalar default and generic archive",
-    "online_result": "Not yet user-run on Windows after migration; previous Stage48 114-f64 event still original evidence"
+    "online_result": "Not yet user-run on Windows after migration; previous Stage48 114-f64 event still original evidence",
+    "offline_wsl_acceptance": {
+      "date": "2026-10-14",
+      "python_compile": "PASS",
+      "universal_self_test": "PASS",
+      "guarded_metadata_self_test": "PASS",
+      "unittest": "PASS 7/7 (0.575s)",
+      "node_generated_js_syntax": "PASS (test_js_syntax_if_node_exists ran ok)",
+      "legacy_f64_compat_regression": "PASS",
+      "malicious_guard_config_rejection": "PASS",
+      "ctrl_c_journal_114_f64_regression": "PASS",
+      "nested_clo_lookup": "PASS",
+      "wsl_bash_syntax": "PASS",
+      "native_runtime_after_migration": "NOT YET RUN"
+    }
   }
 }
