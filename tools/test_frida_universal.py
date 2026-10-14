@@ -9,6 +9,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
@@ -30,6 +32,79 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(self.cfg["sites"][0]["guard"]["vtable_rva"],0x245170)
         self.assertEqual(self.cfg["sha256"],
             "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa")
+
+    def test_stage48_json_executable_and_clo_paths(self):
+        self.assertEqual(self.cfg["lifecycle"]["start"],"fresh")
+        self.assertEqual(self.cfg["lifecycle"]["close"],"if_launched")
+        self.assertTrue(self.cfg["lifecycle"]["executable"].endswith(".exe"))
+        self.assertEqual(self.cfg["completion"]["path"],
+            "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager")
+
+    def test_guarded_lifecycle_invalid_paths_and_controls(self):
+        changes=[
+            lambda c:c["lifecycle"].update(executable="../unsafe.exe"),
+            lambda c:c["lifecycle"].update(executable="C:/bad/../escape.exe"),
+            lambda c:c["lifecycle"].update(executable=""),
+            lambda c:c["lifecycle"].update(start="force_kill_all"),
+            lambda c:c["lifecycle"].update(close="kill_any_pid"),
+            lambda c:c["lifecycle"].update(close_timeout_seconds=0),
+            lambda c:c["completion"].update(path="../relative"),
+            lambda c:c["completion"].update(path="C:/bad/../escape"),
+            lambda c:c["completion"].update(appdata_subdir="also/ambiguous"),
+        ]
+        for i,fn in enumerate(changes):
+            with self.subTest(case=i):
+                copy_config=copy.deepcopy(self.raw)
+                fn(copy_config)
+                with self.assertRaises((ValueError,TypeError,KeyError)):
+                    core.validate(copy_config)
+
+    def test_managed_launch_refuses_existing_and_starts_only_its_own(self):
+        config=self.cfg
+        logs=[]
+        class FakeDevice:
+            def __init__(self,processes):self.processes=processes;self.spawned=[]
+            def enumerate_processes(self):return self.processes
+            def spawn(self,argv):
+                self.spawned.append(argv)
+                return 14777
+        existing=FakeDevice([SimpleNamespace(name="Sonicake Manager.exe",pid=14000)])
+        with self.assertRaises(ValueError):
+            guarded.launch_target(existing,SimpleNamespace(pid=None),
+                config,lambda *x:logs.append(x),{})
+        self.assertEqual(existing.spawned,[])
+        no_processes=FakeDevice([])
+        state={}
+        with patch("frida_guarded.Path.is_file",return_value=True):
+            pid,owned=guarded.launch_target(no_processes,SimpleNamespace(pid=None),
+                config,lambda *x:logs.append(x),state)
+        self.assertEqual(pid,14777)
+        self.assertTrue(owned)
+        self.assertTrue(state["launched_by_tool"])
+        self.assertFalse(state["target_resumed"])
+        self.assertEqual(len(no_processes.spawned),1)
+
+    def test_close_only_owned_and_graceful(self):
+        config=self.cfg
+        class FakeDevice:
+            def __init__(self):self.killed=[]
+            def kill(self,pid):self.killed.append(pid)
+        d=FakeDevice()
+        nonowned={"launched_by_tool":False}
+        guarded.close_owned_target(d,14000,nonowned,config,lambda *x:None)
+        self.assertEqual(nonowned["cleanup_status"],"NOT_OWNED_OR_DISABLED")
+        self.assertEqual(d.killed,[])
+        suspended={"launched_by_tool":True,"target_resumed":False}
+        with patch("frida_guarded.process_exists",return_value=True):
+            guarded.close_owned_target(d,14001,suspended,config,lambda *x:None)
+        self.assertEqual(suspended["cleanup_status"],"KILLED_OWN_SUSPENDED_TARGET")
+        self.assertEqual(d.killed,[14001])
+        running={"launched_by_tool":True,"target_resumed":True}
+        with patch("frida_guarded.process_exists",side_effect=[True,False]), \
+             patch("frida_guarded.request_graceful_close_windows",return_value=1):
+            guarded.close_owned_target(d,14002,running,config,lambda *x:None)
+        self.assertEqual(running["cleanup_status"],"CLOSED_GRACEFULLY")
+        self.assertEqual(d.killed,[14001])
 
     def test_one_delayed_hook_no_audio_reads(self):
         js=guarded.agent_source(self.cfg)
