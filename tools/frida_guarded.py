@@ -869,6 +869,68 @@ def persist_fractional_coeff_bank(cfg: dict, state: dict, folder: Path,
     return dict(event,file=name,sha256=digest)
 
 
+# Independently SHA-pinned Stage54 forward and Stage49 reverse first32 f64.
+# Stage64 blocks must extend those exact original native waveform prefixes.
+LONG_PREFIX_SHA = {
+    "forward":"6221729cf455706ac4b5ab9bedbada953836089ae2399d10fc6c87de3f4a1782",
+    "reverse":"65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae",
+}
+LONG_FILENAMES = {
+    "forward":"forward_1067.f64le.bin",
+    "reverse":"reverse_114.f64le.bin",
+}
+
+
+def persist_fractional_long_output(cfg: dict, state: dict, folder: Path,
+                                   event: dict, binary: bytes) -> dict:
+    """Stage64 one-shot 1067+114 native output f64, SHA/prefix/owner guarded."""
+    if (cfg.get("mode")!="guarded_fractional_io" or
+            "long_probe" not in cfg or not isinstance(event,dict)):
+        raise ValueError("extended capture is not enabled")
+    side=event.get("side")
+    if side not in LONG_FILENAMES:
+        raise ValueError("unknown Stage64 side")
+    spec=cfg["long_probe"][side]
+    owner=event.get("processor_pointer")
+    total=spec["copied_f64"]*8
+    if (event.get("kind")!="fractional_extended_output" or
+            event.get("valid") is not True or
+            event.get("site")!=cfg["sites"][0]["name"] or
+            type(event.get("observed")) is not int or
+            event.get("observed")!=spec["observed"] or
+            event.get("input_f64")!=spec["input_f64"] or
+            event.get("output_f64")!=spec["output_f64"] or
+            event.get("copied_f64")!=spec["copied_f64"] or
+            event.get("copied_bytes")!=total or
+            event.get("rate_numerator")!=spec["numerator"] or
+            event.get("rate_denominator")!=spec["denominator"] or
+            event.get("provenance")!="fractional_r9_ref_onleave_extended" or
+            not isinstance(owner,str) or not re.fullmatch(r"0x[0-9a-fA-F]+",owner)
+            or state.get(f"long_{side}_valid",False)):
+        raise ValueError("wrong or duplicate Stage64 native output")
+    data=bytes(binary)
+    if (len(data)!=total or total>cfg["long_probe"]["total_max_bytes"] or
+            state.get("long_total_bytes",0)+total>cfg["long_probe"]["total_max_bytes"]):
+        raise ValueError("Stage64 exact byte limit exceeded")
+    if hashlib.sha256(data[:256]).hexdigest()!=LONG_PREFIX_SHA[side]:
+        raise ValueError("Stage64 output does not extend independent Stage49/54 native prefix")
+    # Forward and reverse refer to distinct native fractional processors.
+    other="reverse" if side=="forward" else "forward"
+    if owner==state.get(f"long_{other}_processor"):
+        raise ValueError("Stage64 forward/reverse processors unexpectedly identical")
+    filename=LONG_FILENAMES[side]
+    with (folder/filename).open("xb") as target:
+        target.write(data)
+        target.flush()
+        os.fsync(target.fileno())
+    digest=hashlib.sha256(data).hexdigest()
+    state[f"long_{side}_valid"]=True
+    state[f"long_{side}_processor"]=owner
+    state[f"long_{side}_sha256"]=digest
+    state["long_total_bytes"]=state.get("long_total_bytes",0)+total
+    return dict(event,file=filename,sha256=digest,first32_sha256=LONG_PREFIX_SHA[side])
+
+
 def agent_source(cfg: dict) -> str:
     if cfg["mode"]=="guarded_fractional_io":
         return (IO_AGENT.replace("RATE_PROBE_EXTENSION",
@@ -1232,6 +1294,40 @@ def reconcile(folder: Path, state: dict):
                         state["input_prefix_valid"]=(step==2)
                 except OSError:
                     pass
+        elif kind == "fractional_extended_output" and e.get("valid") is True:
+            side=e.get("side")
+            if side in LONG_FILENAMES:
+                spec={
+                    "forward":(1,6170612,3358150,1067,88200,48000),
+                    "reverse":(18,256,114,114,96000,44100),
+                }[side]
+                obs,inp,out,n,num,den=spec
+                filename=LONG_FILENAMES[side]
+                other="reverse" if side=="forward" else "forward"
+                owner=e.get("processor_pointer")
+                if (e.get("file")==filename and e.get("observed")==obs
+                        and e.get("input_f64")==inp and e.get("output_f64")==out
+                        and e.get("copied_f64")==n and e.get("copied_bytes")==n*8
+                        and e.get("rate_numerator")==num
+                        and e.get("rate_denominator")==den
+                        and e.get("provenance")=="fractional_r9_ref_onleave_extended"
+                        and e.get("first32_sha256")==LONG_PREFIX_SHA[side]
+                        and re.fullmatch(r"[0-9a-f]{64}",e.get("sha256") or "")
+                        and re.fullmatch(r"0x[0-9a-fA-F]+",owner or "")
+                        and owner!=state.get(f"long_{other}_processor")):
+                    file=folder/filename
+                    try:
+                        blob=file.read_bytes()
+                        if (len(blob)==n*8 and
+                                hashlib.sha256(blob).hexdigest()==e["sha256"] and
+                                hashlib.sha256(blob[:256]).hexdigest()==LONG_PREFIX_SHA[side]):
+                            if not state.get(f"long_{side}_valid"):
+                                state["long_total_bytes"]=state.get("long_total_bytes",0)+n*8
+                            state[f"long_{side}_valid"]=True
+                            state[f"long_{side}_processor"]=owner
+                            state[f"long_{side}_sha256"]=e["sha256"]
+                    except OSError:
+                        pass
         elif kind == "fractional_coeff_bank" and e.get("valid") is True:
             if (e.get("file")=="frac_coeff_bank_673x72.f64le.bin" and
                     e.get("copied_bytes")==387648 and
@@ -1413,7 +1509,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                  io_events=0,input_prefix_events=0,input_prefix_total_bytes=0,
                  input_prefix_valid=False,input_probe_processor=None,
                  output_probe_valid=False,output_probe_bytes=0,
-                 coeff_bank_valid=False,coeff_bank_bytes=0)
+                 coeff_bank_valid=False,coeff_bank_bytes=0,
+                 long_forward_valid=False,long_reverse_valid=False,long_total_bytes=0)
     events=folder/"events.jsonl"
     lock=threading.RLock()
     pending=[]
@@ -1444,6 +1541,10 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                           and isinstance(payload,dict)
                           and payload.get("kind")=="fractional_coeff_bank"):
                         e=persist_fractional_coeff_bank(cfg,state,folder,payload,binary)
+                    elif (cfg["mode"]=="guarded_fractional_io"
+                          and isinstance(payload,dict)
+                          and payload.get("kind")=="fractional_extended_output"):
+                        e=persist_fractional_long_output(cfg,state,folder,payload,binary)
                     else:
                         e=persist_guarded_binary(cfg,state,folder,payload,binary)
                 except (OSError,ValueError,TypeError) as exc:
@@ -1454,7 +1555,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 if not isinstance(e,dict):e={"kind":"invalid_event"}
                 elif (cfg["mode"]=="guarded_f64_binary" and e.get("kind") in ("metadata_hit","binary_hit")
                       or cfg["mode"]=="guarded_fractional_io" and e.get("kind") in
-                             ("fractional_input_prefix","fractional_output_prefix","fractional_coeff_bank")):
+                             ("fractional_input_prefix","fractional_output_prefix","fractional_coeff_bank",
+                              "fractional_extended_output")):
                     e={"kind":"invalid_event","error":"binary event requires paired bytes"}
             else:
                 e={"kind":"frida_error","error":str(msg)[:400]}
@@ -1484,6 +1586,11 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="trace_cap_reached":state["trace_cap_reached"]=True
                 elif kind=="io_cap_reached":state["io_cap_reached"]=True
                 elif kind=="io_first_reject":state["io_first_rejection"]=e.get("reason")
+            if kind=="fractional_extended_output":
+                report("CAPTURE","*** NATIVE EXTENDED FRACTIONAL OUTPUT SAVED ***",
+                       e.get("side"),e.get("copied_f64"),"f64 /",
+                       e.get("copied_bytes"),"bytes |",
+                       e.get("file"),"| SHA256",e.get("sha256"))
             if kind=="fractional_coeff_bank":
                 report("CAPTURE","*** NATIVE FRACTIONAL COEFFICIENT BANK SAVED ***",
                        e.get("copied_bytes"),"bytes |",e.get("file"),
@@ -1620,12 +1727,23 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 report("WARN","Stage58 native coefficient capture absent after stable CLO;",
                        "preserving incomplete run evidence in private tar.gz")
                 return ("INCOMPLETE_COEFF_BANK","stable_clo_missing_coeff_bank",pid)
+            if (cfg.get("long_probe") and state["completion_verified"] and
+                    stable_since is not None and now-stable_since>stable_seconds+6 and
+                    not (state.get("long_forward_valid") and
+                         state.get("long_reverse_valid"))):
+                report("WARN","Stage64 native extended outputs incomplete after stable CLO;",
+                       "forward",state.get("long_forward_valid",False),
+                       "reverse",state.get("long_reverse_valid",False))
+                return ("INCOMPLETE_EXTENDED_OUTPUTS","stable_clo_missing_extended_output",pid)
             if (state["runtime_verified"] and hooked and metadata and
                     (cfg["mode"]=="guarded_metadata" or
                      cfg["mode"]=="guarded_fractional_io" and
                         (not cfg.get("input_probe") or state["input_prefix_valid"]) and
                         (not cfg.get("output_probe") or state["output_probe_valid"]) and
-                        (not cfg.get("coeff_probe") or state["coeff_bank_valid"]) or
+                        (not cfg.get("coeff_probe") or state["coeff_bank_valid"]) and
+                        (not cfg.get("long_probe") or
+                            state.get("long_forward_valid",False) and
+                            state.get("long_reverse_valid",False)) or
                      state["binary_valid"]) and
                     state["completion_verified"] and not errors):
                 if cfg["mode"]=="guarded_f64_binary":
@@ -1639,7 +1757,11 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                            state.get("completion_size_bytes"),"bytes")
                     report("PASS","Bounded native prefix capture complete; NOT numerical parity.")
                 if cfg["mode"]=="guarded_fractional_io":
-                    if cfg.get("coeff_probe"):
+                    if cfg.get("long_probe"):
+                        report("PASS","*** NATIVE EXTENDED FORWARD+REVERSE F64 VERIFIED ***",
+                               state.get("long_total_bytes",0),
+                               "private bytes, 1067 + 114 f64; CLO stable")
+                    elif cfg.get("coeff_probe"):
                         report("PASS","*** NATIVE GENERATED FRACTIONAL COEFFICIENT BANK VERIFIED ***",
                                state.get("coeff_bank_bytes",0),
                                "private bytes; SHA verified; stable CLO")
@@ -1651,7 +1773,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                         report("PASS","*** NATIVE FRACTIONAL I/O TRACE + STABLE CLO VERIFIED ***",
                                state.get("io_events",0),"input/output pairs; ZERO audio reads")
                 status=("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
-                        else ("FRACTIONAL_COEFF_BANK_CLO_STABLE" if cfg.get("coeff_probe")
+                        else ("FRACTIONAL_EXTENDED_OUTPUTS_CLO_STABLE" if cfg.get("long_probe")
+                              else "FRACTIONAL_COEFF_BANK_CLO_STABLE" if cfg.get("coeff_probe")
                               else "FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE" if cfg.get("input_probe")
                               else "FRACTIONAL_IO_TRACE_CLO_STABLE") if cfg["mode"]=="guarded_fractional_io"
                         else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE")
