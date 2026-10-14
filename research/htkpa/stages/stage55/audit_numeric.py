@@ -82,7 +82,7 @@ def archive_bytes(path: Path, expected_sha: str, parts: dict[str, tuple[int, str
 def validate_provenance(old: dict, new: dict) -> None:
     if new["manifest"].get("status") != "FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE":
         raise ValueError("Stage54 incomplete")
-    if (new["config"].get("sites", [{}])[0].get("address") != 0x135c0 or
+    if (new["config"].get("sites", [{}])[0].get("rva") != 0x135c0 or
         new["config"].get("input_probe", {}).get("total_max_bytes") != 2072 or
         new["config"].get("output_probe", {}).get("total_max_bytes") != 256):
         raise ValueError("Stage54 descriptor is not expected")
