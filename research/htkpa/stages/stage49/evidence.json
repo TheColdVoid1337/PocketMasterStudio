@@ -1,0 +1,67 @@
+{
+  "stage": 49,
+  "date": "2026-10-14",
+  "target_manager": "Sonicake Manager V1.5.2 for Windows",
+  "target_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "status": "PREPARED_OFFLINE_QA_PENDING_WINDOWS_NOT_RUN",
+  "gate_a": {
+    "status": "STATIC_POINTER_PROVENANCE_PASS_WITH_LIFETIME_AND_CAPACITY_LIMITATIONS",
+    "machine_code_verified_with": "LLVM 17.0.0 objdump, original private DLL",
+    "hook_rva": "0x1190c",
+    "fractional_process_rva": "0x135c0",
+    "frac_vtable_rva": "0x245170",
+    "frac_instruction_count": 347,
+    "frac_call_instructions": 0,
+    "write_f64_va": "0x180013c38",
+    "increment_va": "0x180013c3e",
+    "returned_count_va": "0x180013d1d",
+    "caller_pointer_publish_va": "0x1800118fa",
+    "scratch_origin": "[RBX+0x70]",
+    "input_fallback_register": "RDI",
+    "buffer_allocation_capacity_observed": false,
+    "thread_lifetime_concurrency_proven": false
+  },
+  "stage48_independently_accepted": {
+    "status": "METADATA_GUARD_PASS_CLO_STABLE",
+    "observed_f64_metadata": 114,
+    "observed_bytes_metadata": 912,
+    "stable_clo_bytes": 8840,
+    "sample_values_captured": false,
+    "gui_lifecycle_smoke_passed_separately": true
+  },
+  "gate_b": {
+    "status": "IMPLEMENTED_IN_GITHUB_UNVERIFIED_OFFLINE",
+    "mode": "guarded_f64_binary",
+    "config": "research/htkpa/stages/stage49/frida.json",
+    "universal_cli": "tools/frida_capture.py",
+    "shared_impl": "tools/frida_guarded.py",
+    "launcher": "tools/FRIDA_WSL.sh",
+    "max_valid_count": 4096,
+    "max_callback_observations": 256,
+    "max_binary_capture_events": 1,
+    "max_binary_samples_per_event": 32,
+    "max_binary_bytes_total": 256,
+    "memory_origin_guard": "output == [RBX+0x70] when scratch non-null; otherwise output == RDI",
+    "original_runtime_module_sha_required": true,
+    "dynamic_vtable_guard_required": true,
+    "clo_completion_required": true,
+    "binary_output_private_only": "research/_LOCAL_FILES/frida_captures/frida_*/block_0001.bin",
+    "offline_suite_result": "PENDING_USER_WSL_RUN",
+    "native_windows_result": "NOT_RUN"
+  },
+  "user_required_windows_gate": [
+    "WSL pull",
+    "python --self-test",
+    "python unittest universal",
+    "bash syntax check",
+    "one controlled Manager conversion after confirmed hook"
+  ],
+  "limitations": [
+    "No native 48k f64 values captured by this Stage49 change yet",
+    "No public/native numerical parity claim",
+    "Initial 32 sample prefix is not aligned to 1067 public startup samples",
+    "PE mapping alone is not buffer allocation capacity proof",
+    "Production DSP and NAM->CLO fitter unchanged",
+    "No private DLL/WAV/NAM/CLO/sample data in Git"
+  ]
+}
