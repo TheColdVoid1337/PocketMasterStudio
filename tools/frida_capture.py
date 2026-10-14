@@ -401,6 +401,7 @@ def main():
     ap.add_argument('--out',type=Path,default=DEFAULT_OUT)
     ap.add_argument('--self-test',action='store_true')
     ap.add_argument('--list-processes',action='store_true',help='list Windows process candidates, ZERO hooks')
+    ap.add_argument('--preflight',action='store_true',help='verify configured Windows EXE/CLO paths without Frida attach')
     args=ap.parse_args()
     if args.self_test:
         self_test()
@@ -413,6 +414,14 @@ def main():
     if args.list_processes:
         return frida_guarded.list_processes(report,cfg)
     guarded=cfg.get('mode')=='guarded_metadata'
+    if args.preflight:
+        if args.module_file and sha(args.module_file)!=cfg['sha256']:
+            ap.error('configured original DLL SHA does not match')
+        if guarded:
+            return frida_guarded.preflight_paths(args,cfg,report)
+        report('NOTE','Legacy config and optional private DLL SHA verified;',
+               'no managed path preflight in legacy mode')
+        return 0
     if guarded and args.fresh:
         ap.error('guarded metadata requires an existing process; --fresh is forbidden')
     if guarded and args.auto_quiet:
