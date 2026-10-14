@@ -75,10 +75,11 @@ rpc.exports = {
                   owner_pointer:owner.toString(),processor_pointer:proc.toString(),
                   input_pointer:c.rdi.toString(),output_f64:count,
                   count_in_range:count <= g.max_samples};
-            // Only a stage with a separately verified no-clobber proof opts in.
-            // No extra pointer dereference or audio read.
+            // Historical Stage51 config key is retained for archive replay,
+            // but static inspection proves the callee CLOBBERS R8D.
+            // This is a post-call scratch/phase register, NOT input_f64.
             if (spec.trace.input_count_reg === 'r8')
-              traceEvent.input_f64 = c.r8.and(ptr('0xffffffff')).toUInt32();
+              traceEvent.postcall_r8d = c.r8.and(ptr('0xffffffff')).toUInt32();
             emit(traceEvent);
           }
           if (count < 1 || count > g.max_samples)
@@ -129,7 +130,7 @@ def validate_config(cfg: dict, address_fn) -> dict:
                 type(trace["max_events"]) is not int or trace["max_events"]!=64):
             raise ValueError("trace requires guarded_f64_binary and max_events=64")
         if "input_count_reg" in trace and trace["input_count_reg"]!="r8":
-            raise ValueError("input_count_reg must be r8 (requires static preservation proof)")
+            raise ValueError("legacy Stage51 input_count_reg accepts only r8 as postcall debug register")
     if not isinstance(cfg.get("module"),str) or not re.fullmatch(r"[A-Za-z0-9_. -]+\.(dll|exe)",cfg["module"],re.I):
         raise ValueError("simple module basename required")
     if not isinstance(cfg.get("sha256"),str) or not re.fullmatch(r"[A-Fa-f0-9]{64}",cfg["sha256"]):
