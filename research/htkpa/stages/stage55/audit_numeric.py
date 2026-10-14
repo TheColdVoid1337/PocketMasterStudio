@@ -219,10 +219,18 @@ def main():
                 [str(wav2680),str(forward_out),"2680"],forward_out)
             if len(backward)!=reverse_info["total_f64"]*8 or len(forward)!=forward_info["output_f64"]*8:
                 raise ValueError("public output length contradicts C++ metadata")
+            reverse_ok=(reverse_info["output_f64"]==[0,114])
+            forward_ok=(forward_info["output_f64"]==1067)
             row={"pinned_commit":commit,"reverse_counts":reverse_info["output_f64"],
                  "forward_f64":forward_info["output_f64"],
-                 "reverse_prefix":metric(old["block_0001.bin"],backward),
-                 "forward_prefix":metric(new["output_0001.bin"],forward),
+                 "reverse_count_geometry_match":reverse_ok,
+                 "forward_count_geometry_match":forward_ok,
+                 "reverse_prefix":(metric(old["block_0001.bin"],backward) if reverse_ok
+                                   else {"status":"GEOMETRY_MISMATCH_NO_SAMPLE_PARITY",
+                                         "expected":[0,114],"actual":reverse_info["output_f64"]}),
+                 "forward_prefix":(metric(new["output_0001.bin"],forward) if forward_ok
+                                   else {"status":"GEOMETRY_MISMATCH_NO_SAMPLE_PARITY",
+                                         "expected":1067,"actual":forward_info["output_f64"]}),
                  "forward_whole_sha256":sha(forward)}
             if version=="v6.5":
                 row["stage44_original_public_sha_match"]=(sha(forward)==EXPECTED["public_full_v65"])
@@ -233,6 +241,9 @@ def main():
             report["comparisons"][version]=row
     if report["comparisons"]["v6.5"]["stage44_original_public_sha_match"] is False:
         report["status"]="PUBLIC_BASELINE_MISMATCH_REVIEW_REQUIRED"
+    elif any(not row["reverse_count_geometry_match"] or not row["forward_count_geometry_match"]
+             for row in report["comparisons"].values()):
+        report["status"]="COUNT_GEOMETRY_MISMATCH_NO_NUMERIC_PARITY"
     if work_out:
         output=Path(work_out)
         output.mkdir(parents=True,exist_ok=True)
