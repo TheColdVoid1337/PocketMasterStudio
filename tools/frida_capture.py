@@ -10,6 +10,7 @@ import sys
 import tarfile
 import threading
 import time
+import frida_guarded
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -19,9 +20,12 @@ XMM_REGS = {'xmm'+str(i) for i in range(16)}
 MAX_SITES, MAX_FIELDS, MAX_HITS = 64, 16, 10000
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' / 'frida_captures'
 
-COLORS = {'TARGET':'\x1b[36m','NOTE':'\x1b[33m','FRIDA':'\x1b[35m','STARTED':'\x1b[32m','ARCHIVE':'\x1b[32m','ERROR':'\x1b[31m'}
+COLORS = {'TARGET':'\x1b[36m','NOTE':'\x1b[36m','FRIDA':'\x1b[35m',
+          'HOOK':'\x1b[35m','META':'\x1b[32m','CLO':'\x1b[32m',
+          'WAIT':'\x1b[33m','WARN':'\x1b[33m','STARTED':'\x1b[32m',
+          'STATUS':'\x1b[32m','ARCHIVE':'\x1b[32m','ERROR':'\x1b[31m'}
 def report(kind,*parts):
-    enabled = sys.stdout.isatty() and os.environ.get('NO_COLOR') is None
+    enabled = os.environ.get('NO_COLOR') is None and (sys.stdout.isatty() or os.environ.get('FORCE_COLOR')=='1')
     prefix='['+kind+']'
     if enabled:prefix=COLORS.get(kind,'')+prefix+'\x1b[0m'
     print(prefix,*parts,flush=True)
@@ -40,6 +44,8 @@ def address(value, image_base):
     return v
 
 def validate(cfg):
+    if isinstance(cfg,dict) and cfg.get('mode')=='guarded_metadata':
+        return frida_guarded.validate_config(cfg,address)
     if not isinstance(cfg,dict): raise ValueError('config must be an object')
     required = ('module','sha256','sites')
     for k in required:
@@ -222,18 +228,20 @@ def archive(directory, destination):
             assert hashlib.sha256(t.extractfile(m).read()).hexdigest()==digest[m.name.split('/')[1]]
     return digest
 
-def capture(args,cfg,folder):
+def capture(args,cfg,folder,state):
     if os.name!='nt' or platform.architecture()[0]!='64bit':
         raise RuntimeError('Run under Windows x64 Python (not WSL)')
     try: import frida
     except ImportError as e:raise RuntimeError('Frida missing in this Windows Python') from e
     device=frida.get_local_device()
     if args.pid is not None:
+        chosen=next((p for p in device.enumerate_processes() if p.pid==args.pid),None)
+        if chosen is None:raise RuntimeError('Explicit PID is no longer running')
         pid=args.pid; spawned=False
-        report('TARGET','Explicit PID:',pid)
+        report('TARGET','Verified explicit PID:',pid,chosen.name)
     else:
         matches=[p for p in device.enumerate_processes()
-                 if 'sonicake' in p.name.lower() and 'manager' in p.name.lower()]
+                 if 'sonicake' in p.name.lower()]
         if args.fresh:
             matches=[]
         if len(matches)>1:
@@ -245,12 +253,12 @@ def capture(args,cfg,folder):
         else:
             if args.exe is None or not args.exe.is_file():
                 raise FileNotFoundError('No running Sonicake Manager; --exe path required to spawn')
-            if args.fresh and any('sonicake' in p.name.lower() and 'manager' in p.name.lower()
+            if args.fresh and any('sonicake' in p.name.lower()
                                    for p in device.enumerate_processes()):
                 raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
             report('TARGET','Spawning with hooks before resume:',args.exe)
             pid=device.spawn([str(args.exe)]);spawned=True
-    state=dict(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0,site_hits={},last_hit_monotonic=None)
+    state.update(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0,site_hits={},last_hit_monotonic=None)
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
     def on_message(msg,data):
@@ -392,12 +400,23 @@ def main():
     ap.add_argument('--auto-quiet',type=float,default=0,help='finish after all sites and N quiet seconds; no import completion claim')
     ap.add_argument('--out',type=Path,default=DEFAULT_OUT)
     ap.add_argument('--self-test',action='store_true')
+    ap.add_argument('--list-processes',action='store_true',help='list Windows process candidates, ZERO hooks')
     args=ap.parse_args()
-    if args.self_test:self_test();return 0
+    if args.self_test:
+        self_test()
+        report('NOTE',frida_guarded.self_test(validate))
+        return 0
     if not 5<=args.timeout<=7200:ap.error('timeout must be 5..7200')
     if args.auto_quiet and not 3<=args.auto_quiet<=300:ap.error('auto-quiet must be 3..300')
     try:cfg=build_config(args)
     except (ValueError,KeyError,TypeError) as e:ap.error(str(e))
+    if args.list_processes:
+        return frida_guarded.list_processes(report,cfg)
+    guarded=cfg.get('mode')=='guarded_metadata'
+    if guarded and args.fresh:
+        ap.error('guarded metadata requires an existing process; --fresh is forbidden')
+    if guarded and args.auto_quiet:
+        ap.error('guarded metadata needs a verified CLO, not --auto-quiet')
     args.out.mkdir(parents=True,exist_ok=True)
     folder=args.out/('frida_'+datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f'))
     folder.mkdir()
@@ -407,20 +426,39 @@ def main():
     try:
         if args.module_file:
             if sha(args.module_file)!=cfg['sha256']:raise RuntimeError('module-file SHA mismatch')
-        status,method,state,pid=capture(args,cfg,folder)
-    except (Exception,KeyboardInterrupt) as e:
+        if guarded:
+            status,method,pid=frida_guarded.capture(args,cfg,folder,state,report,sha)
+        else:
+            status,method,state,pid=capture(args,cfg,folder,state)
+    except KeyboardInterrupt:
+        problem='Operator Ctrl+C; preserving already emitted event journal'
+        status=('METADATA_OBSERVED_OPERATOR_INTERRUPTED' if guarded and state.get('metadata_valid')
+                else 'OPERATOR_INTERRUPTED')
+        method='operator_interrupt'
+        report('WARN',problem)
+    except Exception as e:
         problem=f'{type(e).__name__}: {e}'
+        status='BLOCKED_AFTER_METADATA' if guarded and state.get('metadata_valid') else 'BLOCKED'
         report('ERROR',problem)
+    if guarded:
+        frida_guarded.reconcile(folder,state)
+        if method=='operator_interrupt':
+            status=frida_guarded.interrupted_status(state)
+        elif status=='BLOCKED' and state.get('metadata_valid'):
+            status='BLOCKED_AFTER_METADATA'
     manifest=dict(status=status,method=method,problem=problem,
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
-        expected_sha256=cfg['sha256'],state=state,scope='bounded read-only scalar observation')
+        expected_sha256=cfg['sha256'],state=state,scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     (folder/'HANDOFF.md').write_text('# Generic Frida capture\n\nStatus: '+status+
         '\n\nCompletion: '+method+'\n\nIssue: '+problem+
         '\n\nNative values are only events marked hit in events.jsonl, and require runtime SHA verified.\n')
     dest=folder.with_suffix('.tar.gz')
     archive(folder,dest)
+    report('STATUS',status,'| hook:',state.get('hook_attached',state.get('ready',False)),
+           '| metadata:',state.get('metadata_valid',False),
+           '| stable CLO:',state.get('completion_verified',False))
     report('ARCHIVE',dest,'[RESULT]',status)
-    return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY') else 2
+    return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
