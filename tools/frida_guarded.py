@@ -57,6 +57,8 @@ rpc.exports = {
             emit({kind:'observation_limit',site:site.name,limit:g.max_observations});
           return;
         }
+        if (spec.trace && observed === spec.trace.max_events)
+          emit({kind:'trace_cap_reached',site:site.name,observations:observed});
         try {
           const c = this.context;
           const owner = c[g.owner_reg];
@@ -73,8 +75,6 @@ rpc.exports = {
                   owner_pointer:owner.toString(),processor_pointer:proc.toString(),
                   input_pointer:c.rdi.toString(),output_f64:count,
                   count_in_range:count <= g.max_samples});
-            if (observed === spec.trace.max_events)
-              emit({kind:'trace_cap_reached',site:site.name,observations:observed});
           }
           if (count < 1 || count > g.max_samples)
             return reject('return count zero or out of bounds');
