@@ -66,7 +66,16 @@ if [[ "$MODE" == "guarded_metadata" || "$MODE" == "guarded_f64_binary" || "$MODE
   if [[ "$MODE" == "guarded_metadata" ]]; then
     msg "$MAGENTA" HOOK "Guarded single-site metadata only; no audio read"
   elif [[ "$MODE" == "guarded_fractional_io" ]]; then
-    msg "$MAGENTA" HOOK "Stage52 opt-in: ONE fractional entrypoint hook, at most 64 paired I/O counts, ZERO audio reads"
+    INPUT_PROBE="$(python - "$CFG" <<'PY'
+import json,sys
+print(bool(json.load(open(sys.argv[1],encoding="utf-8")).get("input_probe")))
+PY
+)"
+    if [[ "$INPUT_PROBE" == "True" ]]; then
+      msg "$YELLOW" HOOK "Stage54: ONE fractional hook, capture precisely 3+256 private 96k f64 (2072 bytes)"
+    else
+      msg "$MAGENTA" HOOK "Fractional I/O metadata: ONE hook, at most 64 pairs, ZERO audio reads"
+    fi
   else
     msg "$YELLOW" HOOK "Stage49-style opt-in: ONE output prefix, MAX 32 f64 / 256 bytes"
   fi
