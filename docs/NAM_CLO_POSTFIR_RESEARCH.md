@@ -1,3 +1,7 @@
+> **HISTORICAL RESEARCH NOTE:** This post-FIR refit experiment is not the original Sonicake fitting implementation and is NOT the current HTKPA checkpoint. For the confirmed Stage48 native fractional metadata+CLO milestone, universal Frida workflow and Stage49 next step, use [2026-10-14 canonical chat rollover](dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md). Preserve the scientific results below as historical research, not evidence of vendor 48-kHz audio parity.
+
+---
+
 # NAM → CLO: Post-FIR refit research (2026-10-12)
 
 **Research stage only. This is NOT a Sonicake HTKPA reproduction, and is NOT enabled in the production Void Mod converter.**
