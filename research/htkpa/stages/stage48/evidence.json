@@ -156,5 +156,29 @@
       "wsl_bash_syntax": "PASS",
       "native_runtime_after_migration": "NOT YET RUN"
     }
+  },
+  "universal_managed_lifecycle": {
+    "date": "2026-10-14",
+    "state": "IMPLEMENTED_GITHUB_PENDING_OFFLINE_AND_WIN_RUN",
+    "requirement": "Stage JSON declares EXE and exact CLO output folder; one universal tools/frida_capture.py and FRIDA_WSL.sh manage startup/shutdown across future stages.",
+    "json_lifecycle": {
+      "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
+      "path_provenance": "previous hardcoded universal --exe default; user-specific installation location NOT VERIFIED",
+      "start": "fresh",
+      "close": "if_launched",
+      "close_timeout_seconds": 8
+    },
+    "completion": {
+      "path": "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
+      "path_provenance": "user explicitly confirmed",
+      "recursive": true,
+      "stable_seconds": 3
+    },
+    "startup": "If any Sonicake-named process already running, fail without closing it. Else check EXE path, Frida spawn suspended, attach module observer, resume spawned PID; exact loaded DLL SHA must still pass before a single metadata hook.",
+    "cleanup": "After normal completion, errors or Ctrl+C, unload/detach Frida then send WM_CLOSE only to top-level windows of exact tool-owned PID, waiting <=8 s. Never taskkill/force-kill a resumed GUI. Kill only own unresumed suspended process if startup aborted. Report cleanup_status in manifest and return nonzero on failure to auto-close.",
+    "provenance_limits": "No app launch or close executed by assistant. Local WSL and Windows regression to be run by user. This is not a native fractional audio capture.",
+    "shared_implementation": "tools/frida_guarded.py; tools/frida_capture.py; tools/FRIDA_WSL.sh",
+    "tests": "tools/test_frida_universal.py gained config path, negative schema, spawn refusal/ownership, graceful/suspended cleanup tests",
+    "runtime_status": "PENDING"
   }
 }
