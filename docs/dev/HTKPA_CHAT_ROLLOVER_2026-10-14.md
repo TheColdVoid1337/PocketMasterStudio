@@ -12,6 +12,16 @@
 
 ---
 
+## LIVE CONTINUATION ADDENDUM — Stage49 2026-10-14 (read before the historical handoff)
+
+**The numbered handoff below is a frozen pre-Stage49 snapshot, not the latest experimental stopping point.** The user subsequently ran Sonicake Manager **V1.5.2** with a SHA-checked single Frida hook at RVA `0x1190C` and successfully captured **32 true postfractional vendor 48k f64 samples / 256 bytes** from a native output block of 114 f64 (observation #18), together with a **new/changed stable 8840-byte CLO**. Private `block_0001.bin` SHA256 `65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae`, verified directly inside private `frida_20261014_131026_259514.tar.gz`. All 32 values are finite. **No aligned native-vs-public numerical parity, complete output stream, or NAM→CLO fitting/serialization parity yet**. Stage49 limited one-shot sample acquisition is **ACCEPTED**. Precise evidence: [Stage49 README](../../research/htkpa/stages/stage49/README.md), [Stage49 evidence.json](../../research/htkpa/stages/stage49/evidence.json) and the latest [RE_LOG](../../research/htkpa/RE_LOG.md).
+
+**Separate GUI teardown exception:** after capture+CLO success, the user had to manually close Manager; original code appeared to block at synchronous Frida `script.unload()` before `WM_CLOSE`. The historical run manifest reports `CLOSED_GRACEFULLY` but `close_messages_sent=0` and `detached_reason=process-terminated`: do **not** claim managed close verified for that run. Universal `tools/frida_guarded.py` now attempts PID-scoped owned-GUI close **before** Frida unload *only after a completed binary+CLO run*. A zero-message manual/external exit is no longer mislabeled as graceful. Terminal now emphasizes native capture with `[CAPTURE]`, `[READY]`, `[PASS]` **before** cleanup. New tool tests: **19/19** GitHub Actions PASS in [run 38570943745](https://github.com/TheColdVoid1337/PocketMasterStudio/actions/runs/38570943745). **Windows acceptance of teardown fix PENDING; don't repeat the successful original binary experiment solely for this.**
+
+**NEXT SCIENTIFIC GATE:** align original 32-sample vendor window to identical source/streaming state and determine whether/how it compares to historical public r8brain results, or design a future carefully bounded stream-provenance gate. Preserve single universal `tools/` Frida implementation, stage-specific JSON, private binary containment, Russian/WSL code blocks, GitHub write permission until `#nowritegh`, and no Codex unless explicitly requested.
+
+---
+
 ## 0. Instructions to the next ChatGPT engineering chat
 
 You are inheriting the real `POCKET_MASTER` / `PocketMasterStudio Void Mod` investigation. **Speak Russian with the user.** Internal comments, code identifiers, filenames, evidence schema and specialist source references remain in English. User expects exact, forensic/source-first engineering with GitHub commits, not abstract advice.
