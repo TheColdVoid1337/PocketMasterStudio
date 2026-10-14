@@ -450,9 +450,15 @@ def main():
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
         expected_sha256=cfg['sha256'],state=state,scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    (folder/'HANDOFF.md').write_text('# Generic Frida capture\n\nStatus: '+status+
+    evidence_note=('Guarded metadata: ONLY events marked metadata_hit are observations; '
+                   'no audio samples were captured. Runtime DLL SHA plus a new stable CLO '
+                   'must be checked before any metadata-completion PASS.'
+                   if guarded else
+                   'Legacy capture: native values require a valid hit event and '
+                   'runtime DLL SHA verification; binary data stays in the local archive.')
+    (folder/'HANDOFF.md').write_text('# Universal Frida capture\n\nStatus: '+status+
         '\n\nCompletion: '+method+'\n\nIssue: '+problem+
-        '\n\nNative values are only events marked hit in events.jsonl, and require runtime SHA verified.\n')
+        '\n\n'+evidence_note+'\n')
     dest=folder.with_suffix('.tar.gz')
     archive(folder,dest)
     report('STATUS',status,'| hook:',state.get('hook_attached',state.get('ready',False)),
