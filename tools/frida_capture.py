@@ -557,7 +557,9 @@ def main():
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
-                 else ('SHA/vtable-guarded fractional I/O with 3+256 native 96k input f64 and 32 native 48k output f64'
+                 else ('SHA/vtable-guarded one-shot generated 673x72 native fractional coefficient bank (no audio)'
+                       if cfg.get('coeff_probe') else
+                       'SHA/vtable-guarded fractional I/O with 3+256 native 96k input f64 and 32 native 48k output f64'
                        if cfg.get('input_probe') else
                        'SHA/vtable-guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads')
                  if cfg['mode']=='guarded_fractional_io'
@@ -567,6 +569,10 @@ def main():
     evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
                    'a new stable CLO are mandatory for Stage48 PASS.')
                    if cfg.get('mode')=='guarded_metadata' else
+                   ('Guarded SINGLE fractional entry hook; exactly 673*72 f64 generated '
+                    'coefficient table from original DLL .data RVA 0x2C7560, plus rate/count '
+                    'metadata; no waveform read, 387648-byte limit, private SHA and CLO gate.')
+                   if cfg.get('coeff_probe') else
                    ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
                     'EAX output onLeave; exactly 3+256 private 96000-Hz f64 captured '
                     'from native RDX for a single 96000->44100 processor; PLUS '
