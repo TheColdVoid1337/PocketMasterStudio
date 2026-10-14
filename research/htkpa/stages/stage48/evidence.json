@@ -1,6 +1,6 @@
 {
   "stage": 48,
-  "status": "NATIVE_FRACTIONAL_METADATA_OBSERVED_CLO_UNVERIFIED",
+  "status": "METADATA_GUARD_PASS_CLO_STABLE",
   "prepared_date": "2026-10-14",
   "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "proposed_site_rva": "0x1190c",
@@ -120,7 +120,7 @@
   },
   "canonical_tool_migration": {
     "date": "2026-10-14",
-    "status": "OFFLINE_ACCEPTED_WINDOWS_RERUN_PENDING",
+    "status": "WINDOWS_RUNTIME_META_AND_CLO_ACCEPTED",
     "entrypoint": "tools/frida_capture.py",
     "wsl_launcher": "tools/FRIDA_WSL.sh",
     "guarded_library": "tools/frida_guarded.py",
@@ -141,7 +141,7 @@
     },
     "completion": "Only valid metadata AND new/changed CLO stable 3 s is metadata runtime PASS",
     "legacy_f64_behavior": "Preserved via mode=scalar default and generic archive",
-    "online_result": "Not yet user-run on Windows after migration; previous Stage48 114-f64 event still original evidence",
+    "online_result": "Actual 2026-10-14 user Windows universal runner run returned METADATA_GUARD_PASS_CLO_STABLE with 114 f64 metadata and new stable CLO 8840 bytes. Owned GUI close failed independently; Win32 fix pending rerun.",
     "offline_wsl_acceptance": {
       "date": "2026-10-14",
       "python_compile": "PASS",
@@ -159,7 +159,7 @@
   },
   "universal_managed_lifecycle": {
     "date": "2026-10-14",
-    "state": "IMPLEMENTED_GITHUB_PENDING_OFFLINE_AND_WIN_RUN",
+    "state": "WINDOWS_SPAWN_AND_METADATA_CLO_PASS;_AUTOCLOSE_BUG_FIXED_IN_GIT_PENDING_USER_RERUN",
     "requirement": "Stage JSON declares EXE and exact CLO output folder; one universal tools/frida_capture.py and FRIDA_WSL.sh manage startup/shutdown across future stages.",
     "json_lifecycle": {
       "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
@@ -176,9 +176,56 @@
     },
     "startup": "If any Sonicake-named process already running, fail without closing it. Else check EXE path, Frida spawn suspended, attach module observer, resume spawned PID; exact loaded DLL SHA must still pass before a single metadata hook.",
     "cleanup": "After normal completion, errors or Ctrl+C, unload/detach Frida then send WM_CLOSE only to top-level windows of exact tool-owned PID, waiting <=8 s. Never taskkill/force-kill a resumed GUI. Kill only own unresumed suspended process if startup aborted. Report cleanup_status in manifest and return nonzero on failure to auto-close.",
-    "provenance_limits": "No app launch or close executed by assistant. Local WSL and Windows regression to be run by user. This is not a native fractional audio capture.",
+    "provenance_limits": "On 2026-10-14, user Windows confirmed configured EXE exists and Frida spawn works. Metadata+CLO reached PASS; normal auto-close failed due missing LPARAM in EnumWindows. Fix committed but not Windows-tested yet.",
     "shared_implementation": "tools/frida_guarded.py; tools/frida_capture.py; tools/FRIDA_WSL.sh",
     "tests": "tools/test_frida_universal.py gained config path, negative schema, spawn refusal/ownership, graceful/suspended cleanup tests",
-    "runtime_status": "PENDING"
+    "runtime_status": "GUI_SPAWN_PASS; FRACTIONAL_METADATA_PASS; STABLE_CLO_PASS; GUI_AUTO_CLOSE_FAILED_KNOWN_BUG"
+  },
+  "third_user_execution": {
+    "date_utc": "2026-10-14T11:20:57.253551+00:00",
+    "source": "User terminal log and uploaded frida_20261014_112002_862142.tar.gz; manifest.json and events.jsonl cross-checked",
+    "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+    "stage48_status": "METADATA_GUARD_PASS_CLO_STABLE",
+    "method": "stable_clo_after_guard",
+    "python_and_win_preflight": "PASS",
+    "offline_regression": "11 tests, OK (0.166s), including managed launch/cleanup mocks",
+    "tool_started_manager": true,
+    "owned_pid": 4524,
+    "executable_confirmed": "C:\\Program Files\\Sonicake\\Sonicake Manager\\Sonicake Manager.exe",
+    "module_base": "0x7ff85e490000",
+    "frida_hook_count": 1,
+    "postcall_site_va": "0x7ff85e4a190c",
+    "site_rva": "0x1190c",
+    "dynamic_fractional_vtable_va": "0x7ff85e6d5170",
+    "expected_vtable_rva": "0x245170",
+    "first_rejection": "return count zero or out of bounds, observed 1",
+    "metadata": {
+      "observed": 18,
+      "thread": 10940,
+      "output_f64": 114,
+      "output_bytes": 912,
+      "output_pointer": "0x12eb8d577a0",
+      "readable_range": true
+    },
+    "clo": {
+      "user_provided_watch_folder": "C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager",
+      "actual_path_suffix": "clo\\clofile.clo",
+      "stable": true,
+      "new_or_changed_since_baseline": true,
+      "size_bytes": 8840,
+      "archive_contains_clo_file": false
+    },
+    "evidence_archive": "User provided frida_20261014_112002_862142.tar.gz; 4 members: config.json, manifest.json, events.jsonl, HANDOFF.md",
+    "no_audio_samples_read": true,
+    "no_native_final_48k_parity_test": true,
+    "lifecycle_cleanup": {
+      "status": "GRACEFUL_CLOSE_FAILED",
+      "error": "this function takes 2 arguments (1 given)",
+      "cause": "ctypes WinDLL user32.EnumWindows.argtypes specifies callback and LPARAM, but implementation invoked EnumWindows(callback) with only one parameter.",
+      "observed_exit_code": 3,
+      "meaning": "Instrument's metadata completion PASSED; independent owned-process automatic shutdown failed."
+    },
+    "issue_fix": "tools/frida_guarded.py calls user32.EnumWindows(visit, 0); tools/test_frida_universal.py adds mock WinAPI regression asserting LPARAM and PID-scoped WM_CLOSE; progress logging shows unload/detach/shutdown phases.",
+    "fix_runtime_verified": false
   }
 }
