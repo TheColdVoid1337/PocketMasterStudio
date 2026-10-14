@@ -30,6 +30,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import numpy as np
 
 HERE=Path(__file__).resolve().parent
 STAGE59=HERE.parent/"stage59"/"audit_coeff.py"
@@ -85,6 +86,46 @@ def patch_public_header(source:str,trial:str)->tuple[str,dict]:
                     "native_beta_rva":"0x245240","native_power_rva":"0x245248",
                     "pin_effective_attenuation":182.1076,
                     "forced_filter_taps":24}
+
+
+def analytic_c0(beta:float,power:float)->np.ndarray:
+    """24-tap normalized sinc * Kaiser^power, phases 0..672 (scalar).
+
+    Directly follows the public/natively reconstructed wftKaiser
+    generateFrac pattern for the base polynomial coefficient c0.
+    This independent NumPy model is NOT a bit-exact native arithmetic
+    replay; compare RMS/max, never equality of IEEE754 bits.
+    """
+    if not math.isfinite(beta) or not math.isfinite(power) or beta<=0 or power<=0:
+        raise ValueError("invalid Kaiser analytical parameters")
+    phase=1.0-np.arange(673,dtype=np.float64)[:,None]/673.0
+    x=np.arange(-12,12,dtype=np.float64)[None,:]+phase
+    radius=np.maximum(0.0,1.0-(x/12.0)**2)
+    win=np.power(np.i0(beta*np.sqrt(radius))/np.i0(beta),power)
+    kernel=np.sinc(x)*win
+    kernel/=kernel.sum(axis=1,keepdims=True)
+    if kernel.shape!=(673,24) or not np.isfinite(kernel).all():
+        raise ValueError("invalid analytical kernel")
+    return kernel
+
+
+def analytic_c0_comparison(native:bytes)->dict:
+    n=np.frombuffer(native,dtype="<f8").reshape(673,24,3)[:,:,0]
+    out={}
+    for label,beta,power in (
+            ("public_nominal",PUBLIC_BETA,PUBLIC_POWER),
+            ("native_exact_dll",NATIVE_BETA,NATIVE_POWER)):
+        delta=n-analytic_c0(beta,power)
+        out[label]={"rms_error":float(np.sqrt(np.mean(delta**2))),
+                    "max_abs_error":float(np.max(np.abs(delta))),
+                    "normalization_max_error":float(np.max(
+                        np.abs(analytic_c0(beta,power).sum(axis=1)-1.0)))}
+    best=out["native_exact_dll"]["rms_error"]
+    if best>1e-8:
+        raise ValueError("native DLL params do not reproduce Stage58 c0 to stated bound")
+    out["rms_improvement_factor"]=out["public_nominal"]["rms_error"]/best if best else None
+    out["comparable_scope"]="16152 c0 coefficients only; other spline coefficients require compiled public source"
+    return out
 
 
 def summarize_metric(native:bytes,actual:bytes)->dict:
@@ -143,7 +184,12 @@ def main():
             "hypothesis":"native/public 24-tap Kaiser beta/power lookup-table mismatch",
             "mode":"same 673x24x3; same interpolation; only constructor window pair changes",
             "source_altered_only_in_private_temp":True,
-            "results":{}}
+            "results":{},
+            "analytic_c0":analytic_c0_comparison(native)}
+    print("[ANALYTIC-C0] native-param RMS",
+          report["analytic_c0"]["native_exact_dll"]["rms_error"],
+          "vs public nominal RMS",
+          report["analytic_c0"]["public_nominal"]["rms_error"],flush=True)
     with tempfile.TemporaryDirectory(prefix="htkpa_stage62_private_") as dir:
         root=Path(dir)
         src=root/"r8brain";src.mkdir()
