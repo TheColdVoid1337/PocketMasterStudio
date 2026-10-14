@@ -1,0 +1,12 @@
+# Canonical HTKPA research status. Update only after a SIGNIFICANT completed run.
+# Operational checkpoint, NOT general documentation. #syncdocs is a separate pass.
+schema_version: 1
+project: "HTKPA"
+stage: "stage49"
+updated_utc: "2026-10-14"
+decision: "accepted"
+run_id: "legacy_stage49_pre_capture_workflow"
+verified: "Sonicake Manager V1.5.2: SHA-gated one-hook capture of 32 native postfractional f64 (256 bytes, block SHA256 65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae) plus stable 8840-byte CLO."
+blocker: "Native output block absolute stream position and input/resampler state remain unknown; Windows teardown fix not runtime-tested."
+next_action: "Reconstruct exact streaming provenance and align native 32-f64 window with a same-input public reference; do not claim parity yet."
+reference: "research/htkpa/stages/stage49/evidence.json"
