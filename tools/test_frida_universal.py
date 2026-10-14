@@ -21,6 +21,7 @@ STAGE48=HERE.parent/"research"/"htkpa"/"stages"/"stage48"/"frida.json"
 STAGE49=HERE.parent/"research"/"htkpa"/"stages"/"stage49"/"frida.json"
 STAGE50=HERE.parent/"research"/"htkpa"/"stages"/"stage50"/"frida.json"
 STAGE51=HERE.parent/"research"/"htkpa"/"stages"/"stage51"/"frida.json"
+STAGE52=HERE.parent/"research"/"htkpa"/"stages"/"stage52"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -282,6 +283,88 @@ class UniversalFridaTests(unittest.TestCase):
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
 
+    def test_stage52_exact_fractional_entry_one_hook_on_enter_and_on_leave(self):
+        cfg=core.validate(json.loads(STAGE52.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["mode"],"guarded_fractional_io")
+        self.assertEqual(cfg["sha256"],self.cfg["sha256"])
+        self.assertEqual(cfg["sites"][0]["rva"],0x135c0)
+        self.assertEqual(cfg["sites"][0]["guard"]["vtable_rva"],0x245170)
+        self.assertEqual(cfg["sites"][0]["guard"]["max_observations"],64)
+        self.assertEqual(cfg["sites"][0]["guard"]["max_input_f64"],7000000)
+        self.assertEqual(cfg["sites"][0]["guard"]["max_output_f64"],7000000)
+        self.assertNotIn("binary_capture",cfg)
+        self.assertNotIn("trace",cfg)
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count("onEnter()"),1)
+        self.assertEqual(js.count("onLeave(retval)"),1)
+        self.assertIn("const inputCount = this.context.r8",js)
+        self.assertIn("const outputCount = retval",js)
+        self.assertIn("this.observation",js)
+        self.assertIn("kind:'fractional_io'",js)
+        for forbidden in ("readByteArray(","readDouble(","readFloat(","writeByteArray("):
+            self.assertNotIn(forbidden,js)
+        self.assertEqual(guarded.agent_source(self.cfg).count("Interceptor.attach("),1)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                f=Path(d)/"stage52.js"
+                f.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage52_reject_unchecked_or_oversized_trace_configs(self):
+        cfg=json.loads(STAGE52.read_text(encoding="utf-8"))
+        for edit in [
+            lambda c:c["sites"][0]["guard"].update(max_input_f64=7000001),
+            lambda c:c["sites"][0]["guard"].update(max_output_f64=8000000),
+            lambda c:c["sites"][0]["guard"].update(max_observations=1000),
+            lambda c:c["sites"][0]["guard"].update(javascript="bad"),
+            lambda c:c["sites"][0]["guard"].update(kind="processor_output"),
+            lambda c:c["sites"][0].update(address="-1"),
+            lambda c:c["sites"][0].update(fields=[{"type":"f64_binary"}]),
+            lambda c:c["sites"].append(copy.deepcopy(c["sites"][0])),
+            lambda c:c.update(binary_capture={"max_total_bytes":256}),
+            lambda c:c.update(trace={"max_events":64}),
+            lambda c:c.update(mode="guarded_f64_binary"),
+            lambda c:c["completion"].update(path="../unsafe"),
+        ]:
+            altered=copy.deepcopy(cfg)
+            edit(altered)
+            with self.assertRaises((ValueError,TypeError,KeyError)):
+                core.validate(altered)
+
+    def test_stage52_io_recovery_and_safe_gui_close_before_unload(self):
+        cfg=core.validate(json.loads(STAGE52.read_text(encoding="utf-8")))
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            e=[{"kind":"hook_attached","hooks_installed":1},
+               {"kind":"fractional_io","valid":True,"observed":18,
+                "site":"fractional_entry_io","input_f64":237,"output_f64":114}]
+            (root/"events.jsonl").write_text(
+                "".join(json.dumps(item)+"\n" for item in e),encoding="utf-8")
+            restored={}
+            guarded.reconcile(root,restored)
+            self.assertTrue(restored["metadata_valid"])
+            self.assertEqual(restored["last_metadata"]["output_f64"],114)
+            self.assertEqual(restored["io_events"],1)
+        log=[]
+        class Script:
+            def unload(self):log.append("unload")
+        class Session:
+            def detach(self):log.append("detach")
+        st={"launched_by_tool":True,"runtime_verified":True,"hook_attached":True,
+            "completion_verified":True,"metadata_valid":True,"io_events":21}
+        def close(device,pid,state,cfg,report):
+            log.append("close")
+            state["cleanup_status"]="CLOSED_GRACEFULLY"
+        with patch("frida_guarded.close_owned_target",side_effect=close), \
+             patch("frida_guarded.process_exists",return_value=False):
+            guarded.finalize_guarded_capture(object(),1234,st,cfg,
+                                             lambda *x:None,Script(),Session())
+        self.assertEqual(log,["close"])
+        self.assertEqual(st["cleanup_order"],"OWNED_GUI_BEFORE_FRIDA")
+        self.assertEqual(st["frida_cleanup_status"],"TARGET_EXIT_RELEASED_HOOK")
+
     def test_stage51_preserved_r8_input_count_same_single_hook(self):
         cfg=core.validate(json.loads(STAGE51.read_text(encoding="utf-8")))
         baseline=core.validate(json.loads(STAGE50.read_text(encoding="utf-8")))
@@ -293,7 +376,8 @@ class UniversalFridaTests(unittest.TestCase):
         js=guarded.agent_source(cfg)
         self.assertEqual(js.count("Interceptor.attach("),1)
         self.assertEqual(js.count(".readByteArray("),1)
-        self.assertIn("traceEvent.input_f64",js)
+        self.assertIn("traceEvent.postcall_r8d",js)
+        self.assertNotIn("traceEvent.input_f64",js)
         self.assertIn("c.r8.and(ptr('0xffffffff'))",js)
         self.assertIn("kind:'trace_return'",js)
         self.assertNotIn("readDouble(",js)
