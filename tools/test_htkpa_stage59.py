@@ -40,6 +40,35 @@ class Stage59Tests(unittest.TestCase):
         self.assertGreater(res["row_rms_p0"],0)
         self.assertEqual(res["row_rms_p336"],0)
 
+    def test_simd_pair_pack_unpack_roundtrip_48456_coefficients(self):
+        import numpy as np
+        scalar=np.arange(m.N,dtype="<f8").reshape(673,12,6)
+        packed=scalar[:,:,(0,3,1,4,2,5)].copy().tobytes()
+        restored=m.convert_public_layout(packed,"simd_pairs_2tap")
+        self.assertEqual(restored,scalar.tobytes())
+        self.assertEqual(m.metrics(scalar.tobytes(),restored)["bit_equal"],m.N)
+        self.assertGreater(m.metrics(scalar.tobytes(),packed)["max_abs_error"],0)
+
+    def test_stage59_layout_decoding_refuses_unknown_layout_or_wrong_size(self):
+        import numpy as np
+        raw=np.arange(m.N,dtype="<f8").tobytes()
+        self.assertEqual(m.convert_public_layout(raw,"scalar_triplets"),raw)
+        with self.assertRaises(ValueError):
+            m.convert_public_layout(raw,"unspecified")
+        with self.assertRaises(ValueError):
+            m.convert_public_layout(raw[:-8],"simd_pairs_2tap")
+
+    def test_simd_layout_permutation_matches_known_vector_example(self):
+        import numpy as np
+        sample=np.zeros((673,12,6),dtype="<f8")
+        sample[0,0,:]=[10,20,30,40,50,60]
+        packed=sample[:,:,(0,3,1,4,2,5)].copy().tobytes()
+        self.assertEqual(np.frombuffer(packed,dtype="<f8")[:6].tolist(),
+                         [10,40,20,50,30,60])
+        unpacked=m.convert_public_layout(packed,"simd_pairs_2tap")
+        self.assertEqual(np.frombuffer(unpacked,dtype="<f8")[:6].tolist(),
+                         [10,20,30,40,50,60])
+
     def test_corrupt_length_is_not_scored(self):
         with self.assertRaises(ValueError):
             m.metrics(b"\x00"*8,b"\x00"*8)
