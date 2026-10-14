@@ -516,13 +516,20 @@ def close_owned_target(device,pid,state,cfg,report):
         while time.monotonic()<deadline:
             alive=process_exists(device,pid)
             if alive is False:
-                state["cleanup_status"]="CLOSED_GRACEFULLY"
-                report("TARGET","Tool-launched application closed")
+                if sent:
+                    state["cleanup_status"]="CLOSED_GRACEFULLY"
+                    report("TARGET","Owned application exited after WM_CLOSE")
+                else:
+                    state["cleanup_status"]="EXITED_WITHOUT_WM_CLOSE"
+                    report("WARN","Process exited but no WM_CLOSE was sent;",
+                           "automatic close NOT confirmed (possibly manual/external)")
                 return
             time.sleep(.25)
-        state["cleanup_status"]="STILL_RUNNING_AFTER_WM_CLOSE"
+        state["cleanup_status"]=("STILL_RUNNING_AFTER_WM_CLOSE" if sent
+                                 else "STILL_RUNNING_NO_OWNED_WINDOW")
         report("WARN","Owned process",pid,"did not exit within",
-               lifecycle["close_timeout_seconds"],"s; LEFT RUNNING (never force-kill active GUI)")
+               lifecycle["close_timeout_seconds"],"s; WM_CLOSE sent:",sent,
+               "; LEFT RUNNING (never force-kill active GUI)")
     except Exception as e:
         state["cleanup_status"]="GRACEFUL_CLOSE_FAILED"
         state["cleanup_error"]=str(e)[:200]
@@ -686,6 +693,55 @@ def self_test(validate_fn):
     return "guarded metadata offline tests PASS (single hook, legacy journal recovery, auto PID, CLO recurse)"
 
 
+def finalize_guarded_capture(device,pid,state,cfg,report,script,session):
+    """For completed one-shot binary captures, close the OWNED GUI before unload.
+
+    The user's first successful Stage49 run hung in script.unload() until
+    Manager was closed manually. This avoids that synchronous unloading call
+    while a completed binary capture's target still runs. Metadata-only Stage48
+    and unsuccessful/attach-only cases preserve the original teardown order.
+    """
+    close_first=(cfg.get("mode")=="guarded_f64_binary" and
+                 state.get("runtime_verified") and state.get("hook_attached") and
+                 state.get("binary_valid") and state.get("completion_verified") and
+                 state.get("launched_by_tool") and
+                 (cfg.get("lifecycle") or {}).get("close")=="if_launched")
+    report("NOTE","Capture loop ended; beginning owned-GUI/Frida cleanup")
+    if close_first:
+        state["cleanup_order"]="OWNED_GUI_BEFORE_FRIDA"
+        report("CLOSE","Verified binary + CLO persisted. Requesting WM_CLOSE for owned PID",
+               pid,"BEFORE potentially blocking Frida unload")
+        close_owned_target(device,pid,state,cfg,report)
+        if process_exists(device,pid) is False:
+            state["frida_cleanup_status"]="TARGET_EXIT_RELEASED_HOOK"
+            report("CLOSE","Owned target exited; Frida hooks released by process exit;",
+                   "no synchronous script.unload() required")
+            return
+        report("WARN","Owned GUI still running; normal Frida teardown may block.",
+               "No active process will be force-killed.")
+    else:
+        state["cleanup_order"]="FRIDA_BEFORE_OWNED_GUI"
+    if script is not None:
+        try:
+            report("NOTE","Calling Frida script.unload()")
+            script.unload()
+            report("NOTE","Frida script unloaded")
+        except Exception as exc:
+            state["script_unload_error"]=str(exc)[:250]
+            report("WARN","Frida script unload:",str(exc)[:250])
+    if session is not None:
+        try:
+            report("NOTE","Calling Frida session.detach()")
+            session.detach()
+            report("NOTE","Frida session detached")
+        except Exception as exc:
+            state["session_detach_error"]=str(exc)[:250]
+            report("WARN","Frida session detach:",str(exc)[:250])
+    if not close_first:
+        report("TARGET","Cleanup phase: closing only owned PID",pid)
+        close_owned_target(device,pid,state,cfg,report)
+
+
 def capture(args, cfg, folder: Path, state: dict, report, sha):
     """Windows-only guarded capture; shared state survives interrupts.
 
@@ -758,6 +814,12 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 report("META","Native output:",e.get("output_f64"),"f64 /",
                        e.get("output_bytes"),"bytes",
                        "| observation",e.get("observed"))
+                if kind=="binary_hit" and state.get("binary_valid"):
+                    report("CAPTURE","*** NATIVE F64 DATA SAVED ***",
+                           e.get("copied_f64"),"f64 /",e.get("copied_bytes"),"bytes",
+                           "|",e.get("file"))
+                    report("CAPTURE","SHA256:",e.get("sha256"))
+                    report("READY","BINARY VERIFIED; awaiting stable new/changed CLO")
             elif kind=="first_rejected_return":
                 report("NOTE","Initial return rejected:",e.get("reason"))
             elif kind in ("arm_error","frida_error"):
@@ -842,6 +904,11 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
             if (state["runtime_verified"] and hooked and metadata and
                     (cfg["mode"]=="guarded_metadata" or state["binary_valid"]) and
                     state["completion_verified"] and not errors):
+                if cfg["mode"]=="guarded_f64_binary":
+                    report("PASS","*** NATIVE F64 + STABLE CLO VERIFIED ***",
+                           state.get("binary_bytes"),"private sample bytes | CLO",
+                           state.get("completion_size_bytes"),"bytes")
+                    report("PASS","Stage49 prefix capture complete; NOT numerical parity.")
                 return (("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
                          else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE"),
                         "stable_clo_after_guard",pid)
@@ -849,23 +916,4 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                  else "METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT")
                 if state["metadata_valid"] else "INCOMPLETE_TIMEOUT","timeout",pid)
     finally:
-        # Progress markers distinguish a slow Frida detach from a slow GUI
-        # close. The old Stage48 console printed only the stable CLO message,
-        # leaving the operator unable to tell which cleanup phase was active.
-        report("NOTE","Capture loop ended; removing Frida instrumentation")
-        if script is not None:
-            try:
-                script.unload()
-                report("NOTE","Frida script unloaded")
-            except Exception as exc:
-                state["script_unload_error"]=str(exc)[:250]
-                report("WARN","Frida script unload:",str(exc)[:250])
-        if session is not None:
-            try:
-                session.detach()
-                report("NOTE","Frida session detached")
-            except Exception as exc:
-                state["session_detach_error"]=str(exc)[:250]
-                report("WARN","Frida session detach:",str(exc)[:250])
-        report("TARGET","Cleanup phase: closing only owned PID",pid)
-        close_owned_target(device,pid,state,cfg,report)
+        finalize_guarded_capture(device,pid,state,cfg,report,script,session)
