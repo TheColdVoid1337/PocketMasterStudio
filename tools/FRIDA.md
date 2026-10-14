@@ -10,9 +10,40 @@
 
 **Do not create `stageNN_capture.py`, `STAGEN_WSL.sh` or modified copies of `tools/frida_capture.py` for future stages.** New capabilities go into the generic `/tools` modules as opt-in, validated config features; existing stage configurations must remain backward-compatible whenever possible.
 
+## Managed application lifecycle (configured per stage)
+
+The same universal `tools/FRIDA_WSL.sh` / `tools/frida_capture.py` also supports **automatic GUI application startup and graceful shutdown** for `guarded_metadata` runs. The stage JSON, **not Python code**, selects the Windows EXE and the exact CLO output directory:
+
+```json
+"lifecycle": {
+  "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
+  "start": "fresh",
+  "close": "if_launched",
+  "close_timeout_seconds": 8
+},
+"completion": {
+  "type": "changed_clo",
+  "path": "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
+  "recursive": true,
+  "stable_seconds": 3
+}
+```
+
+The EXE path is the *previous generic fallback assumption* and **must be verified** against the user's actual installation. The original CLO directory above was explicitly supplied by the user. Missing configured paths are reported clearly, **before starting the process or installing any hook**. Use absolute forward-slash Windows paths in JSON.
+
+- `start=fresh`: refuse if another matching Manager process is running (never silently close someone else's app), otherwise use `frida.get_local_device().spawn([EXE])` suspended; attach the script and its module observer, then `resume(PID)`. Delayed **actual loaded DLL SHA validation** still happens before the one guarded hook is armed.
+- `start=if_missing`: reuse a single running Manager without taking ownership, or spawn a new one. **Only a spawned/owned instance is auto-closed.**
+- `start=attach_only`: legacy attach-only guarded behavior.
+- `close=if_launched`: after result or interruption, unload/detach the one Frida hook, then request normal Windows **`WM_CLOSE`** for top-level windows of exactly the PID spawned by this invocation; wait at most `close_timeout_seconds`. If normal GUI shutdown fails, **leave the app open and flag cleanup_status**, without force-killing an active GUI or claiming cleanup worked. A failed startup before resume can cancel **only that tool-owned suspended PID**.
+- `close=never`: leave even a newly launched process running after detaching.
+
+The initial `--pid` option cannot be mixed with `start=fresh` or `start=if_missing` to avoid bypassing lifecycle ownership rules. All lifecycle metadata (`launched_by_tool`, `target_pid`, `target_resumed`, `cleanup_status`) is preserved in `manifest.json`.
+
+Stage48 currently uses `start=fresh`, so **Manager should be closed before running the command below**; the tool will open and attempt to close its own instance. The conversion inside the GUI still needs to be performed by the user after `[HOOK]`: application startup/exit automation is **not** automatic NAM importing or mouse clicking.
+
 ## Usage — Stage48 (guarded metadata, no audio)
 
-Open the Sonicake Manager **before** launching the observer. Start one Manager instance.
+**Close** any existing Sonicake Manager first. The Stage48 JSON now starts its own suspended instance and closes it after the run.
 
 ```bash
 set -e
@@ -29,7 +60,7 @@ bash -n tools/FRIDA_WSL.sh
 bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json
 ```
 
-The wrapper uses the existing private Windows Python Frida venv, locates the original `5868USB.dll` in ignored `research/_LOCAL_FILES/vendor/` (fallback to `research/_LOCAL_FILES/`), and checks its SHA. No hand-entered PID: a unique Frida-visible Sonicake process is auto-detected and the Windows process name is printed in color. To override discovery **only if the PID was independently confirmed**, add `--pid <ACTUAL_PID>`.
+The wrapper uses the existing Windows Python Frida venv and checks original `5868USB.dll` SHA. For Stage48 `start=fresh` it verifies Manager is closed, launches the configured EXE under Frida, and closes **only its own** PID gracefully after the run. No PID is needed. In `attach_only` mode it instead discovers one running target.
 
 For `mode=guarded_metadata` the Windows host derives the CLO watch directory from the **Windows** `APPDATA` environment plus config `completion.appdata_subdir`. The Stage48 value is `Sonicake/Sonicake Manager`. Set `FRIDA_WATCH_CLO=/mnt/c/...` only for an override; in this case WSL checks it exists.
 
@@ -51,7 +82,7 @@ If Ctrl+C interrupts the observer or Windows Manager disappears, on-disk events 
 
 Only address/length/vtable/region metadata is recorded. The guard checks a *mapped readable region*, not allocated capacity or buffer lifetime, and never makes `readByteArray`, `readDouble` or `readFloat` calls. The guarded JS is generated from a strictly validated data schema; **raw JavaScript in JSON is forbidden**.
 
-The `completion` object is `type=changed_clo`, optional directory override, `appdata_subdir`, `recursive`, and `stable_seconds`. A completed CLO without valid metadata, or valid metadata without a stable CLO, does **not** constitute successful guarded validation.
+The `completion` object is `type=changed_clo`, exactly one of `path` (absolute Windows directory) or `appdata_subdir` (relative to Windows APPDATA), `recursive`, and `stable_seconds`. The CLI `--completion-dir` still overrides it. A completed CLO without valid metadata, or valid metadata without a stable CLO, does **not** constitute successful guarded validation.
 
 ## Diagnostics, logs and privacy
 
