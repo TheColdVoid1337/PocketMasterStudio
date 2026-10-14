@@ -388,6 +388,7 @@ def execute(args: argparse.Namespace, folder: Path, state: dict) -> str:
         start = time.monotonic()
         last_progress = 0.0
         last_clo_poll = 0.0
+        last_pid_check = 0.0
         last_mode = None
         watch_count = len(baseline)
         report("CLO", "Watching", str(args.completion_dir),
@@ -421,6 +422,16 @@ def execute(args: argparse.Namespace, folder: Path, state: dict) -> str:
                 report("NOTE", "NOW run one conversion in Manager; observing metadata, NOT audio")
 
             now = time.monotonic()
+            # A disconnected Manager is not a successful conversion.
+            # Detect it without another Frida hook, read or DLL execution.
+            if now - last_pid_check >= 3.0:
+                last_pid_check = now
+                if not any(proc.pid == pid for proc in device.enumerate_processes()):
+                    report("ERROR", "Sonicake Manager PID", pid,
+                           "exited or disappeared; preserving captured metadata")
+                    state["target_disappeared"] = True
+                    return ("BLOCKED_MANAGER_EXITED_AFTER_METADATA" if valid
+                            else "BLOCKED_MANAGER_EXITED")
             if attached and valid and last_mode != "metadata":
                 last_mode = "metadata"
                 report("META", "Validated output metadata. Awaiting NEW/CHANGED stable CLO.")
