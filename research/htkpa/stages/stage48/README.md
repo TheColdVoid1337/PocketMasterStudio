@@ -1,6 +1,6 @@
 # Stage48 — native post-fractional metadata and CLO completion gate
 
-**State of research: METADATA_GUARD_PASS_CLO_STABLE (original DLL runtime observation and stable CLO CONFIRMED; binary sample parity still NOT TESTED). Managed GUI shutdown bug fixed in shared tools but awaits Windows rerun.**
+**State of research: METADATA_GUARD_PASS_CLO_STABLE (original DLL runtime observation and stable CLO CONFIRMED; binary sample parity still NOT TESTED). Managed GUI shutdown fix independently verified on Windows by a no-hook lifecycle smoke test.**
 
 Stage47 statically identified the original Sonicake native last-stage return site RVA `0x1190C` and templated fractional vtable RVA `0x245170`. An actual Stage48 Windows observation of the SHA-pinned original `5868USB.dll` produced the following evidence:
 
@@ -21,9 +21,9 @@ The actual user completed a normal NAM→CLO conversion using the canonical univ
 - Newly modified output `C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager\\clo\\clofile.clo` became stable: **8840 bytes**, not its actual content. The matching `manifest.json` from the user-provided private `frida_20261014_112002_862142.tar.gz` states `status=METADATA_GUARD_PASS_CLO_STABLE`, `completion_verified=true`, `hook_count=1`, `runtime_verified=true`.
 - **Independent lifecycle bug:** After the observer succeeded, `process_cleanup_status=GRACEFUL_CLOSE_FAILED`, because `ctypes.WinDLL("user32").EnumWindows` was called with **one** argument despite `argtypes=(callback,LPARAM)`, yielding `this function takes 2 arguments (1 given)`. The universal runner exited **code 3** for failed requested automatic GUI shutdown, **not** for native metadata/CLO failure. The user reported having to close Manager manually.
 
-**Universal fix:** `tools/frida_guarded.py` now calls `user32.EnumWindows(visit, 0)`, passing the required LPARAM, and `tools/test_frida_universal.py` adds a dedicated mocked-Win32 regression ensuring both parameters and PID-scoped `WM_CLOSE` (no unrelated window closed). Generic teardown now emits separate status messages for script unload, Frida session detach and GUI shutdown, so any future UI stall can be located. The fix does **not** add hooks, audio reads or change Stage48 JSON. **These code fixes have NOT YET been re-executed on the user's Windows host**, so successful automatic closure remains pending verification.
+**Universal fix:** `tools/frida_guarded.py` now calls `user32.EnumWindows(visit, 0)`, passing the required LPARAM, and `tools/test_frida_universal.py` adds a dedicated mocked-Win32 regression ensuring both parameters and PID-scoped `WM_CLOSE` (no unrelated window closed). Generic teardown now emits separate status messages for script unload, Frida session detach and GUI shutdown, so any future UI stall can be located. The fix does **not** add hooks, audio reads or change Stage48 JSON. **Win32-owned GUI close has now been verified by a separate user Windows zero-hook lifecycle smoke** (details below). The original capture archive retains its historical cleanup failure; this later test validates the fix without altering that original record.
 
-**Recommended cleanup-only recheck (Manager CLOSED, no NAM):**
+**Completed cleanup-only regression (Manager was CLOSED, no NAM):**
 
 ```bash
 # First pull the universal Win32 bugfix, then run offline regression tests.
@@ -35,7 +35,7 @@ python -m unittest discover -s tools -p 'test_frida_universal.py' -v
 bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --lifecycle-smoke
 ```
 
-The expected console outcome is `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY`. If shutdown stalls, live `[NOTE]` / `[TARGET]` messages expose cleanup progress; the tool will leave a resumed GUI running rather than terminate an unrelated/user-owned process. `--lifecycle-smoke` is part of universal `/tools`, not a stage-specific executable.
+The user ran this exact `--lifecycle-smoke` command on Windows after pulling the fix. **Observed PASS:** `13/13` offline regressions (`0.193s`); private EXE and CLO folder both existed; Frida **spawned its own PID 20844**, resumed GUI, waited 4s, successfully posted Windows `WM_CLOSE` to **5 top-level windows belonging to that PID**, then logged `Tool-launched application closed` and `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY`. **Exit code 0; ZERO hooks, ZERO Frida attach, NO NAM conversion.** Thus the exact shared auto-close helper is runtime-verified. This is a standalone post-Stage48 infrastructure acceptance test and does not retroactively change the earlier native-capture manifest.
 
 Importantly, Stage48 acceptance means only: actual vendor fractional processor executed and produced guarded output metadata during a conversion that created a stable CLO. It does **not** yet measure numerical values of the original 48-kHz post-fractional waveform or the full NAM fitting/serialization algorithm. Stage49 binary capture remains a distinct research decision, not implicit in this success.
 
@@ -83,7 +83,7 @@ bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json
 
 **Close any existing Sonicake Manager first.** The canonical `frida.json` now contains these explicit Windows paths:
 
-- `lifecycle.executable`: `C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe` — the previous default installation path used by the universal tool, **not yet verified against this user's actual Windows installation**. If missing, change this one JSON field to the actual installed EXE path.
+- `lifecycle.executable`: `C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe` — **verified to exist on the user's actual Windows** by Stage48 preflight and lifecycle smoke.
 - `completion.path`: `C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager` — the user-confirmed folder where CLO outputs are expected.
 
 `lifecycle.start=fresh` refuses to close or attach an existing process; with Manager closed it uses **Frida spawn** to start its own suspended process, attaches the one guarded observer, and then resumes the app. The normal callback still checks SHA of the actually loaded DLL before arming the hook. The wrapper does not ask for PID, and no CLO folder needs to be typed.
@@ -101,7 +101,7 @@ The user needs to share **manifest.json and events.jsonl** (or console output) f
 - Valid address-space mapping is **not** proof of heap allocation capacity, long-term pointer lifetime, or numerical contents.
 - Do not repeat the crash-associated two-hook setup `0xC220` + `0xC838`.
 - **No vendor 48-kHz f64 audio bytes have yet been captured or compared** with the historical public r8brain output; Stage44/45 public and hybrid results do not establish final Sonicake parity.
-- Stage48 migrated to the universal toolset in Git; **the new shared guarded implementation has not yet been user-run on Windows**. Treat static/self-test success separately from actual runtime completion.
+- Stage48's **new shared guarded implementation has run successfully on user Windows**: one SHA-verified native metadata hook, 114 f64 output metadata, new stable 8840-byte CLO. The separately fixed shared GUI auto-close has **also been verified** by the 0-hook lifecycle smoke, not by rerunning the full capture. Keep these two independent acceptance gates separate.
 
 ## Historical source provenance
 
