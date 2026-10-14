@@ -40,14 +40,21 @@ bash -n tools/FRIDA_WSL.sh
 
 All these commands are offline; they do not import Sonicake DLL as executable code, attach Frida or run conversion.
 
-## Actual guarded metadata run (Windows Manager must be open)
+## Actual guarded metadata run (Manager starts and closes automatically)
 
 ```bash
 cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
 bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json
 ```
 
-**No PID or CLO folder typing needed.** The wrapper uses your existing Windows Frida Python, auto-detects a unique Sonicake-named process, verifies the private original DLL SHA, and derives the CLO folder from the **Windows** `APPDATA\Sonicake\Sonicake Manager` location encoded in `frida.json`. `FRIDA_WATCH_CLO` or an independently confirmed `--pid` remain optional overrides. The CLI retains colored progress.
+**Close any existing Sonicake Manager first.** The canonical `frida.json` now contains these explicit Windows paths:
+
+- `lifecycle.executable`: `C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe` — the previous default installation path used by the universal tool, **not yet verified against this user's actual Windows installation**. If missing, change this one JSON field to the actual installed EXE path.
+- `completion.path`: `C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager` — the user-confirmed folder where CLO outputs are expected.
+
+`lifecycle.start=fresh` refuses to close or attach an existing process; with Manager closed it uses **Frida spawn** to start its own suspended process, attaches the one guarded observer, and then resumes the app. The normal callback still checks SHA of the actually loaded DLL before arming the hook. The wrapper does not ask for PID, and no CLO folder needs to be typed.
+
+On conclusion, `lifecycle.close=if_launched` **attempts graceful WM_CLOSE only for the PID it spawned**, waits up to 8 seconds and records `state.cleanup_status`. It never force-kills a resumed GUI; if no window responds or closure fails, the app may remain open and the manifest reports this. A suspended process owned by the tool can be cancelled if startup failed before resume. Automatic startup/shutdown does not click buttons or import a NAM: after `[HOOK]`, manually perform ONE conversion.
 
 After the first **`[HOOK]`**, perform ONE normal NAM→CLO operation. The `[META]` event confirms a native fractional output pointer/count **but never reads audio**. Only if a new/changed nonempty CLO is also stable for three seconds does the status become `METADATA_GUARD_PASS_CLO_STABLE`. A Ctrl+C leaves `METADATA_OBSERVED_OPERATOR_INTERRUPTED` if an event was already logged, and preserves the event journal and truthful manifest. A Manager exit or timeout remains diagnostic, not PASS.
 
