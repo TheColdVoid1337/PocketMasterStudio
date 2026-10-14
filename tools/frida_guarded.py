@@ -127,6 +127,7 @@ IO_AGENT = r"""
 const spec = JSON_SPEC, site = spec.sites[0], guard = site.guard;
 let moduleFound = null, attached = false, observed = 0, firstReject = false;
 let inputProbeProcessor = null, inputProbeStep = 0, outputProbeDone = false, coeffProbeDone = false;
+let longForwardDone = false, longReverseDone = false;
 function emit(data) { send(Object.assign({kind:'note',thread:Process.getCurrentThreadId()},data)); }
 function readable(p, n) {
   if (p.isNull() || n < 1) return false;
@@ -151,6 +152,8 @@ rpc.exports = {
         onEnter() {
           this.observation = null;
           this.outputRef = null;
+          this.longRef = null;
+          this.longSide = null;
           if (observed >= guard.max_observations) return;
           const nth = ++observed;
           if (nth === guard.max_observations)
@@ -168,6 +171,7 @@ rpc.exports = {
             COEFF_PROBE_EXTENSION
             INPUT_PROBE_EXTENSION
             OUTPUT_PROBE_ENTER_EXTENSION
+            LONG_PROBE_ENTER_EXTENSION
             this.observation = record;
           } catch(e) { reject('enter exception: '+String(e).slice(0,120),nth); }
         },
@@ -178,6 +182,7 @@ rpc.exports = {
             if (outputCount > guard.max_output_f64)
               return reject('output count outside guard',this.observation.observed);
             OUTPUT_PROBE_LEAVE_EXTENSION
+            LONG_PROBE_LEAVE_EXTENSION
             emit(Object.assign({kind:'fractional_io',valid:true,site:site.name,
                 output_f64:outputCount},this.observation));
           } catch(e) { reject('leave exception: '+String(e).slice(0,120),
@@ -322,11 +327,64 @@ IO_COEFF_EXTENSION = r"""
 """
 
 
+# Stage64 narrowly extends Stage54's 32-f64 output probes to exactly
+# 1067 forward and 114 reverse f64. Both are available for independent
+# same-input public r8brain replay in Stage65. Total 9448 bytes.
+IO_LONG_ENTER_EXTENSION = r"""
+            const long=spec.long_probe;
+            const forward=long.forward, reverse=long.reverse;
+            const matches=(q) => nth === q.observed &&
+                inputCount === q.input_f64 &&
+                record.step_numerator === q.numerator &&
+                record.step_denominator === q.denominator;
+            const side=(!longForwardDone && matches(forward)) ? 'forward' :
+                       (!longReverseDone && matches(reverse)) ? 'reverse' : null;
+            if (side!==null) {
+              const outRef=this.context.r9;
+              if (!readable(outRef,Process.pointerSize))
+                return reject('extended output pointer reference unreadable',nth);
+              this.longRef=outRef;
+              this.longSide=side;
+            }
+"""
+IO_LONG_LEAVE_EXTENSION = r"""
+            if (this.longRef !== null && this.longSide !== null) {
+              const long=spec.long_probe;
+              const side=this.longSide;
+              const item=long[side];
+              if (outputCount!==item.output_f64 ||
+                  outputCount<item.copied_f64)
+                return reject('extended output count mismatch',this.observation.observed);
+              const outputRef=this.longRef;
+              if (!readable(outputRef,Process.pointerSize))
+                return reject('extended output reference expired',this.observation.observed);
+              const buf=outputRef.readPointer();
+              const nbytes=item.copied_f64*8;
+              if (!buf.and(ptr('0x7')).isNull() ||
+                  !readable(buf,nbytes))
+                return reject('extended output buffer unreadable',this.observation.observed);
+              const data=buf.readByteArray(nbytes);
+              if (data===null || data.byteLength!==nbytes)
+                return reject('extended output copy incomplete',this.observation.observed);
+              if (side==='forward') longForwardDone=true;
+              else longReverseDone=true;
+              send({kind:'fractional_extended_output',valid:true,site:site.name,
+                    observed:this.observation.observed,side:side,
+                    processor_pointer:this.observation.processor_pointer,
+                    input_f64:this.observation.input_f64,
+                    output_f64:outputCount,copied_f64:item.copied_f64,
+                    copied_bytes:nbytes,
+                    rate_numerator:item.numerator,rate_denominator:item.denominator,
+                    provenance:'fractional_r9_ref_onleave_extended'},data);
+            }
+"""
+
+
 def validate_fractional_io(cfg: dict, address_fn) -> dict:
     """Reuse strict SHA/Windows path lifecycle validation; separate entry-hook guard."""
     if not isinstance(cfg,dict) or cfg.get("mode")!="guarded_fractional_io":
         raise ValueError("expected guarded_fractional_io descriptor")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe","output_probe","coeff_probe"}:
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe","output_probe","coeff_probe","long_probe"}:
         raise ValueError("unexpected fractional I/O config fields")
     rate_probe=cfg.get("rate_probe")
     if rate_probe is not None:
@@ -366,6 +424,25 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
             raise ValueError("Stage58 coefficient probe must be exactly 673*72 f64 at verified RVA")
         if probe is not None or out_probe is not None:
             raise ValueError("coefficient bank capture may not coexist with audio read probes")
+    long=cfg.get("long_probe")
+    if long is not None:
+        expected={
+            "forward":{"observed":1,"input_f64":6170612,
+                       "output_f64":3358150,"copied_f64":1067,
+                       "numerator":88200,"denominator":48000},
+            "reverse":{"observed":18,"input_f64":256,
+                       "output_f64":114,"copied_f64":114,
+                       "numerator":96000,"denominator":44100},
+            "total_max_bytes":9448}
+        if (rate_probe is None or not isinstance(long,dict) or long!=expected
+                or type(long.get("total_max_bytes")) is not int
+                or any(not isinstance(long.get(side),dict) or
+                       set(long[side])!=set(expected[side]) or
+                       any(type(value) is not int for value in long[side].values())
+                       for side in ("forward","reverse"))):
+            raise ValueError("Stage64 extended probe requires exact 1067+114 f64 geometry")
+        if probe is not None or out_probe is not None or coeff is not None:
+            raise ValueError("extended output cannot coexist with other waveform probes")
     sites=cfg.get("sites")
     if not isinstance(sites,list) or len(sites)!=1:
         raise ValueError("fractional IO accepts exactly one hook")
@@ -395,6 +472,7 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
     proxy.pop("input_probe",None)
     proxy.pop("output_probe",None)
     proxy.pop("coeff_probe",None)
+    proxy.pop("long_probe",None)
     proxy["mode"]="guarded_metadata"
     proxy["sites"]=[dict(site,guard={
         "kind":"processor_output","owner_reg":"rbx","owner_offset":80,
@@ -411,6 +489,9 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
         normalized["output_probe"]=dict(out_probe)
     if coeff is not None:
         normalized["coeff_probe"]=dict(coeff)
+    if long is not None:
+        normalized["long_probe"]={key:dict(value) if isinstance(value,dict) else value
+                                  for key,value in long.items()}
     normalized["sites"]=[dict(normalized["sites"][0],guard={
         "kind":"fractional_entry_io",
         "vtable_rva":normalized["sites"][0]["guard"]["vtable_rva"],
@@ -800,6 +881,10 @@ def agent_source(cfg: dict) -> str:
                           IO_OUTPUT_ENTER_EXTENSION if cfg.get("output_probe") else "")
                  .replace("OUTPUT_PROBE_LEAVE_EXTENSION",
                           IO_OUTPUT_LEAVE_EXTENSION if cfg.get("output_probe") else "")
+                 .replace("LONG_PROBE_ENTER_EXTENSION",
+                          IO_LONG_ENTER_EXTENSION if cfg.get("long_probe") else "")
+                 .replace("LONG_PROBE_LEAVE_EXTENSION",
+                          IO_LONG_LEAVE_EXTENSION if cfg.get("long_probe") else "")
                  .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
     return (AGENT.replace("BINARY_EXTENSION_POINT",
                           BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
