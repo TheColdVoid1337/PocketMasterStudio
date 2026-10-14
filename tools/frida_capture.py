@@ -50,7 +50,7 @@ def address(value, image_base):
     return v
 
 def validate(cfg):
-    if isinstance(cfg,dict) and cfg.get('mode') in ('guarded_metadata','guarded_f64_binary'):
+    if isinstance(cfg,dict) and cfg.get('mode') in ('guarded_metadata','guarded_f64_binary','guarded_fractional_io'):
         return frida_guarded.validate_config(cfg,address)
     if not isinstance(cfg,dict): raise ValueError('config must be an object')
     required = ('module','sha256','sites')
@@ -482,7 +482,7 @@ def main():
     except (ValueError,KeyError,TypeError) as e:ap.error(str(e))
     if args.list_processes:
         return frida_guarded.list_processes(report,cfg)
-    guarded=cfg.get('mode') in ('guarded_metadata','guarded_f64_binary')
+    guarded=cfg.get('mode') in ('guarded_metadata','guarded_f64_binary','guarded_fractional_io')
     if args.preflight:
         try:
             if args.module_file and sha(args.module_file)!=cfg['sha256']:
@@ -551,12 +551,18 @@ def main():
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
+                 else 'SHA/vtable guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads'
+                 if cfg['mode']=='guarded_fractional_io'
                  else 'SHA/vtable/pointer-guarded one-shot native f64 prefix') if guarded
                else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
                    'a new stable CLO are mandatory for Stage48 PASS.')
                    if cfg.get('mode')=='guarded_metadata' else
+                   ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
+                    'EAX output onLeave, SAME instance; no waveform reads; stable CLO mandatory; '
+                    'does not prove native/public numerical parity.')
+                   if cfg.get('mode')=='guarded_fractional_io' else
                    ('Guarded native f64 prefix: ONLY a hash-validated block_0001.bin '
                     'paired with binary_hit and a new stable CLO counts as native '
                     'sample capture; NOT numerical output or fitter parity.')
@@ -589,6 +595,7 @@ def main():
                    'automatic close did not complete:',state.get('cleanup_status'))
             return 3
     return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE',
+                           'FRACTIONAL_IO_TRACE_CLO_STABLE',
                            'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
