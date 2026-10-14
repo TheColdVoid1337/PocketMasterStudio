@@ -376,7 +376,10 @@ def request_graceful_close_windows(pid: int) -> int:
         if owner.value==pid and user32.IsWindow(hwnd):
             windows.append(hwnd)
         return True
-    if not user32.EnumWindows(visit):
+    # Win32 BOOL EnumWindows(WNDENUMPROC lpEnumFunc, LPARAM lParam)
+    # The second LPARAM is mandatory (0 here); omitting it caused the
+    # Stage48 error: "this function takes 2 arguments (1 given)".
+    if not user32.EnumWindows(visit, 0):
         raise OSError("EnumWindows failed")
     sent=0
     for hwnd in windows:
