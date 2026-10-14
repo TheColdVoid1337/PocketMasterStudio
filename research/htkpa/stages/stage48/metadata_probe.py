@@ -176,6 +176,33 @@ def self_test() -> None:
     print("Stage48 offline source self-test PASS: one delayed hook, SHA gate, no audio reads")
 
 
+def list_processes_only() -> int:
+    """Safe Windows/Frida process discovery; NEVER calls device.attach or arms a hook."""
+    if os.name != "nt" or platform.architecture()[0] != "64bit":
+        raise RuntimeError("Use the existing Windows x64 Python, not WSL Python")
+    try:
+        import frida
+    except ImportError as e:
+        raise RuntimeError("Frida missing from the Windows Python") from e
+    processes = frida.get_local_device().enumerate_processes()
+    hints = ("sonic", "manager", "pocket", "tone", "5868", "usb")
+    candidates = sorted(
+        (p for p in processes if any(q in p.name.casefold() for q in hints)),
+        key=lambda p: (p.name.casefold(), p.pid)
+    )
+    print("[DISCOVERY] Frida sees", len(processes), "Windows processes", flush=True)
+    if candidates:
+        print("[DISCOVERY] Candidate executable names and PIDs:", flush=True)
+        for process in candidates:
+            print("  PID", process.pid, "|", process.name, flush=True)
+    else:
+        print("[DISCOVERY] No Sonicake/Manager-related process name found.", flush=True)
+        print("[DISCOVERY] Make sure Manager is OPEN, then use Windows Task Manager")
+        print("[DISCOVERY] Details -> PID, or PowerShell Get-CimInstance Win32_Process.")
+    print("[DISCOVERY] ZERO hooks installed. Supply the real Manager PID as --pid <NUMBER>.")
+    return 0
+
+
 def choose_pid(device, specified: int | None) -> int:
     if specified is not None:
         if specified <= 0:
@@ -184,7 +211,10 @@ def choose_pid(device, specified: int | None) -> int:
     matches = [p for p in device.enumerate_processes()
                if "sonicake" in p.name.casefold() and "manager" in p.name.casefold()]
     if len(matches) != 1:
-        raise ValueError("Open exactly one Sonicake Manager before running, or supply --pid")
+        raise ValueError("Frida found "+str(len(matches))+
+                         " processes with BOTH 'sonicake' and 'manager' in the name. "
+                         "Run STAGE48_WSL.sh --list-processes to see candidate PIDs, "
+                         "or supply the confirmed Manager --pid.")
     print("[TARGET] Existing", matches[0].name, "PID", matches[0].pid, flush=True)
     return matches[0].pid
 
@@ -310,6 +340,8 @@ def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--list-processes", action="store_true",
+                    help="List likely Sonicake/Manager PIDs and exit with ZERO Frida hooks")
     ap.add_argument("--dll", type=Path, help="Pinned private original DLL, only SHA read")
     ap.add_argument("--pid", type=int, help="Existing Manager PID; never spawn Manager")
     ap.add_argument("--completion-dir", type=Path,
@@ -323,6 +355,8 @@ def main() -> int:
             assert digest_file(args.dll) == EXPECTED_SHA, "private DLL SHA mismatch"
             print("Private DLL SHA256 verified")
         return 0
+    if args.list_processes:
+        return list_processes_only()
     if args.dll is None or not args.dll.is_file():
         ap.error("--dll original private 5868USB.dll is required")
     if not 15 <= args.timeout <= 1800:
