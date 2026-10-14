@@ -158,8 +158,10 @@ rpc.exports = {
               return reject('fractional vtable mismatch',nth);
             const inputCount = this.context.r8.and(ptr('0xffffffff')).toUInt32();
             if (inputCount > guard.max_input_f64) return reject('input count outside guard',nth);
-            this.observation = {observed:nth, input_f64:inputCount,
-                                processor_pointer:processor.toString()};
+            const record={observed:nth, input_f64:inputCount,
+                          processor_pointer:processor.toString()};
+            RATE_PROBE_EXTENSION
+            this.observation = record;
           } catch(e) { reject('enter exception: '+String(e).slice(0,120),nth); }
         },
         onLeave(retval) {
@@ -191,12 +193,40 @@ Process.attachModuleObserver({onAdded(m){
 """
 
 
+# Fixed scalar object fields read by the native fractional core:
+# RVA 0x13C59: mulsd [r10+0x1008]; 0x13C62: divsd [r10+0x1010].
+# No waveform reads; installed only in opt-in Stage53 config.
+IO_RATE_EXTENSION = r"""
+            const rp=spec.rate_probe;
+            const nPtr=processor.add(rp.numerator_offset);
+            const dPtr=processor.add(rp.denominator_offset);
+            if (!readable(nPtr,8) || !readable(dPtr,8))
+              return reject('step rate fields unreadable',nth);
+            const n=nPtr.readDouble(), d=dPtr.readDouble();
+            if (!Number.isFinite(n) || !Number.isFinite(d) ||
+                n <= 0 || d <= 0 || n > 7000000 || d > 7000000)
+              return reject('invalid fractional step ratio fields',nth);
+            record.step_numerator=n;
+            record.step_denominator=d;
+            record.step_output_input_ratio=d/n;
+"""
+
+
 def validate_fractional_io(cfg: dict, address_fn) -> dict:
     """Reuse strict SHA/Windows path lifecycle validation; separate entry-hook guard."""
     if not isinstance(cfg,dict) or cfg.get("mode")!="guarded_fractional_io":
         raise ValueError("expected guarded_fractional_io descriptor")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle"}:
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe"}:
         raise ValueError("unexpected fractional I/O config fields")
+    rate_probe=cfg.get("rate_probe")
+    if rate_probe is not None:
+        if (not isinstance(rate_probe,dict)
+                or set(rate_probe)!={"numerator_offset","denominator_offset"}
+                or type(rate_probe["numerator_offset"]) is not int
+                or type(rate_probe["denominator_offset"]) is not int
+                or rate_probe["numerator_offset"]!=0x1008
+                or rate_probe["denominator_offset"]!=0x1010):
+            raise ValueError("rate_probe only accepts verified f64 offsets 0x1008/0x1010")
     sites=cfg.get("sites")
     if not isinstance(sites,list) or len(sites)!=1:
         raise ValueError("fractional IO accepts exactly one hook")
@@ -222,6 +252,7 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
     # This dummy guard exists ONLY to invoke common validation; it is NEVER
     # serialized into the resulting entry-hook descriptor or used as an agent.
     proxy=dict(cfg)
+    proxy.pop("rate_probe",None)
     proxy["mode"]="guarded_metadata"
     proxy["sites"]=[dict(site,guard={
         "kind":"processor_output","owner_reg":"rbx","owner_offset":80,
@@ -230,6 +261,8 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
     })]
     normalized=validate_config(proxy,address_fn)
     normalized["mode"]="guarded_fractional_io"
+    if rate_probe is not None:
+        normalized["rate_probe"]=dict(rate_probe)
     normalized["sites"]=[dict(normalized["sites"][0],guard={
         "kind":"fractional_entry_io",
         "vtable_rva":normalized["sites"][0]["guard"]["vtable_rva"],
@@ -471,7 +504,9 @@ def persist_guarded_binary(cfg: dict, state: dict, folder: Path,
 
 def agent_source(cfg: dict) -> str:
     if cfg["mode"]=="guarded_fractional_io":
-        return IO_AGENT.replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True))
+        return (IO_AGENT.replace("RATE_PROBE_EXTENSION",
+                                 IO_RATE_EXTENSION if cfg.get("rate_probe") else "")
+                 .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
     return (AGENT.replace("BINARY_EXTENSION_POINT",
                           BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
             .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
@@ -1006,8 +1041,13 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                     report("CAPTURE","SHA256:",e.get("sha256"))
                     report("READY","BINARY VERIFIED; awaiting stable new/changed CLO")
             elif kind=="fractional_io":
-                report("IO","Actual fractional input",e.get("input_f64"),
-                       "→ output",e.get("output_f64"),"| call",e.get("observed"))
+                if cfg.get("rate_probe"):
+                    report("IO","input",e.get("input_f64"),"→ output",e.get("output_f64"),
+                           "| step factors",e.get("step_numerator"),"/",
+                           e.get("step_denominator"),"| call",e.get("observed"))
+                else:
+                    report("IO","Actual fractional input",e.get("input_f64"),
+                           "→ output",e.get("output_f64"),"| call",e.get("observed"))
             elif kind=="io_cap_reached":
                 report("IO","Single-hook trace reached fixed 64-observation limit")
             elif kind=="io_first_reject":
