@@ -44,5 +44,13 @@
     "total_max_bytes": 2072,
     "numerator": 96000,
     "denominator": 44100
+  },
+  "output_probe": {
+    "output_samples": 32,
+    "total_max_bytes": 256,
+    "numerator": 88200,
+    "denominator": 48000,
+    "first_input_f64": 6170612,
+    "first_output_f64": 3358150
   }
 }
