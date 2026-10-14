@@ -20,6 +20,7 @@ import frida_guarded as guarded
 STAGE48=HERE.parent/"research"/"htkpa"/"stages"/"stage48"/"frida.json"
 STAGE49=HERE.parent/"research"/"htkpa"/"stages"/"stage49"/"frida.json"
 STAGE50=HERE.parent/"research"/"htkpa"/"stages"/"stage50"/"frida.json"
+STAGE51=HERE.parent/"research"/"htkpa"/"stages"/"stage51"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -280,6 +281,48 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage51_preserved_r8_input_count_same_single_hook(self):
+        cfg=core.validate(json.loads(STAGE51.read_text(encoding="utf-8")))
+        baseline=core.validate(json.loads(STAGE50.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["mode"],"guarded_f64_binary")
+        self.assertEqual(cfg["sites"],baseline["sites"])
+        self.assertEqual(cfg["sha256"],baseline["sha256"])
+        self.assertEqual(cfg["binary_capture"],baseline["binary_capture"])
+        self.assertEqual(cfg["trace"],{"max_events":64,"input_count_reg":"r8"})
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertIn("traceEvent.input_f64",js)
+        self.assertIn("c.r8.and(ptr('0xffffffff'))",js)
+        self.assertIn("kind:'trace_return'",js)
+        self.assertNotIn("readDouble(",js)
+        self.assertNotIn("writeByteArray(",js)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                f=Path(d)/"agent51.js"
+                f.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(f)],
+                                 capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+        self.assertNotIn("input_count_reg",baseline["trace"])
+        self.assertNotIn(".readByteArray(",guarded.agent_source(self.cfg))
+
+    def test_stage51_rejects_non_r8_or_unbounded_trace(self):
+        base=json.loads(STAGE51.read_text(encoding="utf-8"))
+        for edit in [
+            lambda x:x["trace"].update(input_count_reg="r9"),
+            lambda x:x["trace"].update(input_count_reg="rax"),
+            lambda x:x["trace"].update(input_count_reg=None),
+            lambda x:x["trace"].update(max_events=65),
+            lambda x:x["trace"].update(unchecked_js="bad"),
+            lambda x:x["binary_capture"].update(max_samples_per_event=33),
+            lambda x:x["sites"].append(copy.deepcopy(x["sites"][0])),
+        ]:
+            x=copy.deepcopy(base)
+            edit(x)
+            with self.assertRaises((ValueError,KeyError,TypeError)):
+                core.validate(x)
 
     def test_stage50_same_single_hook_64_return_trace_one_audio_prefix(self):
         raw=json.loads(STAGE50.read_text(encoding="utf-8"))
