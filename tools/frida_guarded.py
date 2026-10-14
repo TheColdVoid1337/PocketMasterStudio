@@ -615,6 +615,8 @@ def reconcile(folder: Path, state: dict):
     except OSError:
         return
     state["journal_events"] = len(lines)
+    trace_returns_in_journal=0
+    trace_rejections_in_journal=0
     for line in lines:
         try:
             e = json.loads(line)
@@ -651,11 +653,13 @@ def reconcile(folder: Path, state: dict):
         elif kind == "first_rejected_return":
             state["first_rejection"] = e.get("reason")
         elif kind == "trace_return":
-            state["trace_returns"] = state.get("trace_returns",0)+1
+            trace_returns_in_journal+=1
         elif kind == "trace_reject":
-            state["trace_rejections"] = state.get("trace_rejections",0)+1
+            trace_rejections_in_journal+=1
         elif kind == "trace_cap_reached":
             state["trace_cap_reached"] = True
+    state["trace_returns"]=max(state.get("trace_returns",0),trace_returns_in_journal)
+    state["trace_rejections"]=max(state.get("trace_rejections",0),trace_rejections_in_journal)
 
 
 def interrupted_status(state: dict) -> str:
