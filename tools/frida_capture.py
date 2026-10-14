@@ -44,7 +44,7 @@ def address(value, image_base):
     return v
 
 def validate(cfg):
-    if isinstance(cfg,dict) and cfg.get('mode')=='guarded_metadata':
+    if isinstance(cfg,dict) and cfg.get('mode') in ('guarded_metadata','guarded_f64_binary'):
         return frida_guarded.validate_config(cfg,address)
     if not isinstance(cfg,dict): raise ValueError('config must be an object')
     required = ('module','sha256','sites')
@@ -414,7 +414,7 @@ def main():
     except (ValueError,KeyError,TypeError) as e:ap.error(str(e))
     if args.list_processes:
         return frida_guarded.list_processes(report,cfg)
-    guarded=cfg.get('mode')=='guarded_metadata'
+    guarded=cfg.get('mode') in ('guarded_metadata','guarded_f64_binary')
     if args.preflight:
         try:
             if args.module_file and sha(args.module_file)!=cfg['sha256']:
@@ -473,25 +473,30 @@ def main():
             status='BLOCKED_AFTER_METADATA'
     manifest=dict(status=status,method=method,problem=problem,
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
-        mode=('guarded_metadata' if guarded else 'legacy_scalar'),
+        mode=(cfg['mode'] if guarded else 'legacy_scalar'),
         expected_sha256=cfg['sha256'],
         hook_count=(1 if state.get('hook_attached') else 0) if guarded
                    else (len(cfg['sites']) if state.get('ready') else 0),
-        contains_audio_bytes=bool(not guarded and any(
-            f['type'] in ('f64_binary','f64_block','f64_slice','f64')
-            for site in cfg['sites'] for f in site['fields'])),
+        contains_audio_bytes=(bool(state.get('binary_valid',False)) if guarded
+            else bool(any(f['type'] in ('f64_binary','f64_block','f64_slice','f64')
+                         for site in cfg['sites'] for f in site['fields']))),
         completion_verified=bool(state.get('completion_verified',False)),
         launched_by_tool=bool(state.get('launched_by_tool',False)),
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
-        scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
+        scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
+                 else 'SHA/vtable/pointer-guarded one-shot native f64 prefix') if guarded
+               else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    evidence_note=('Guarded metadata: ONLY events marked metadata_hit are observations; '
-                   'no audio samples were captured. Runtime DLL SHA plus a new stable CLO '
-                   'must be checked before any metadata-completion PASS.'
-                   if guarded else
-                   'Legacy capture: native values require a valid hit event and '
-                   'runtime DLL SHA verification; binary data stays in the local archive.')
+    evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
+                   'a new stable CLO are mandatory for Stage48 PASS.')
+                   if cfg.get('mode')=='guarded_metadata' else
+                   ('Guarded native f64 prefix: ONLY a hash-validated block_0001.bin '
+                    'paired with binary_hit and a new stable CLO counts as native '
+                    'sample capture; NOT numerical output or fitter parity.')
+                   if cfg.get('mode')=='guarded_f64_binary' else
+                   ('Legacy capture: native data and binaries require separate '
+                    'runtime checks; private bytes stay local.'))
     (folder/'HANDOFF.md').write_text('# Universal Frida capture\n\nStatus: '+status+
         '\n\nCompletion: '+method+'\n\nIssue: '+problem+
         '\n\n'+evidence_note+'\n')
@@ -506,6 +511,7 @@ def main():
             report('WARN','Native observation status above is independent of application shutdown;',
                    'automatic close did not complete:',state.get('cleanup_status'))
             return 3
-    return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE') else 2
+    return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE',
+                           'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
