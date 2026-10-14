@@ -159,7 +159,7 @@
   },
   "universal_managed_lifecycle": {
     "date": "2026-10-14",
-    "state": "WINDOWS_SPAWN_AND_METADATA_CLO_PASS;_AUTOCLOSE_BUG_FIXED_IN_GIT_PENDING_USER_RERUN",
+    "state": "LIFECYCLE_SMOKE_CLOSED_GRACEFULLY_REAL_WINDOWS_VERIFIED",
     "requirement": "Stage JSON declares EXE and exact CLO output folder; one universal tools/frida_capture.py and FRIDA_WSL.sh manage startup/shutdown across future stages.",
     "json_lifecycle": {
       "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
@@ -179,7 +179,7 @@
     "provenance_limits": "On 2026-10-14, user Windows confirmed configured EXE exists and Frida spawn works. Metadata+CLO reached PASS; normal auto-close failed due missing LPARAM in EnumWindows. Fix committed but not Windows-tested yet.",
     "shared_implementation": "tools/frida_guarded.py; tools/frida_capture.py; tools/FRIDA_WSL.sh",
     "tests": "tools/test_frida_universal.py gained config path, negative schema, spawn refusal/ownership, graceful/suspended cleanup tests",
-    "runtime_status": "GUI_SPAWN_PASS; FRACTIONAL_METADATA_PASS; STABLE_CLO_PASS; GUI_AUTO_CLOSE_FAILED_KNOWN_BUG",
+    "runtime_status": "GUI_AUTO_LAUNCH_AND_WM_CLOSE_VERIFIED_PID_20844_NO_HOOK; previous Stage48 native metadata and CLO PASS separate",
     "smoke_test": {
       "entrypoint": "bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --lifecycle-smoke",
       "manager_must_be_closed_first": true,
@@ -188,7 +188,7 @@
       "frida_hooks": 0,
       "converter_run": false,
       "cleanup_only": true,
-      "runtime_result": "NOT_YET_RUN_ON_USER_WINDOWS",
+      "runtime_result": "PASS, user Windows PID 20844 owned, 5 top-level windows WM_CLOSE, app exited, zero hooks; 2026-10-14",
       "new_regressions": [
         "test_win32_enumwindows_requires_lparam_and_only_closes_owned_pid",
         "test_no_hook_lifecycle_smoke_uses_owned_spawn_resume_close"
@@ -240,6 +240,39 @@
       "meaning": "Instrument's metadata completion PASSED; independent owned-process automatic shutdown failed."
     },
     "issue_fix": "tools/frida_guarded.py calls user32.EnumWindows(visit, 0); tools/test_frida_universal.py adds mock WinAPI regression asserting LPARAM and PID-scoped WM_CLOSE; progress logging shows unload/detach/shutdown phases. Added generic --lifecycle-smoke (Frida spawn/resume GUI, then WM_CLOSE, NO Frida attach/hook or NAM conversion); cleanup can be tested independently.",
-    "fix_runtime_verified": false
+    "fix_runtime_verified": true,
+    "fix_runtime_verification_scope": "Real Windows --lifecycle-smoke (same shared WM_CLOSE helper, no Frida attachment or conversion) confirmed app closure. Original Stage48 capture itself remains historically cleanup_failed."
+  },
+  "fourth_user_execution": {
+    "date": "2026-10-14",
+    "source": "User terminal output: universal Stage48 JSON --lifecycle-smoke on actual Windows host, after pull to main b4eace1",
+    "status": "LIFECYCLE_SMOKE_CLOSED_GRACEFULLY",
+    "exit_code": 0,
+    "offline_suite": {
+      "python_self_test": "PASS",
+      "guarded_metadata_self_test": "PASS",
+      "unittest": "13/13 passed in 0.193s"
+    },
+    "existing_exe": "C:\\Program Files\\Sonicake\\Sonicake Manager\\Sonicake Manager.exe",
+    "expected_clo_directory": "C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager",
+    "windows_run": {
+      "tool_spawned": true,
+      "owned_pid": 20844,
+      "resumed": true,
+      "wait_for_gui_seconds": 4,
+      "close_method": "WM_CLOSE",
+      "top_level_windows_targeted": 5,
+      "closed_by_tool": true,
+      "messages": [
+        "Requested graceful WM_CLOSE for owned PID 20844 | top-level windows: 5",
+        "Tool-launched application closed",
+        "LIFECYCLE_SMOKE_CLOSED_GRACEFULLY | PID: 20844 | ZERO hooks"
+      ]
+    },
+    "frida_attach": false,
+    "frida_hook_count": 0,
+    "nam_to_clo_conversion_run": false,
+    "new_native_fractional_samples_captured": false,
+    "meaning": "Real Windows verification of exact shared owned-process graceful shutdown helper after Stage48 metadata completion. No re-test of Frida runtime capture or 48 kHz vendor output values."
   }
 }
