@@ -1,6 +1,6 @@
 # Stage49 — V1.5.2 native post-fractional f64 prefix: safety gate and experimental design
 
-**Current status: GATE_A_STATIC_PROVENANCE_PASS; GATE_B_UNIVERSAL_IMPLEMENTATION_PENDING; WINDOWS_BINARY_CAPTURE_NOT_RUN.** This is not a claim of native 48-kHz sample capture, full output parity, NAM fit parity, or Stage49 completion.
+**Current status: GATE_A_STATIC_PROVENANCE_PASS; GATE_B_UNIVERSAL_CODE_PREPARED_OFFLINE_QA_PENDING; WINDOWS_BINARY_CAPTURE_NOT_RUN.** This is not a claim of native 48-kHz sample capture, full output parity, NAM fit parity, or Stage49 completion.
 
 ## Provenance
 
@@ -55,3 +55,35 @@ A safe **first** experiment should:
 ## Alignment and next experiments
 
 The first 32 samples are a **diagnostic prefix**, not a parity-ready 1067-sample public sequence. Stage45's 1067 public/hybrid startup samples and Stage48's 114 native-output block are not demonstrably aligned. Numeric parity remains **NOT_ALIGNED** until original input identity, streaming chunk sequence, resampler state, startup latency and normalization/no-flush window are independently controlled. Stage49 capture must **not** silently update production DSP or NAM fitter behavior.
+
+## Prepared universal execution — DO NOT REPEAT Stage48
+
+Stage49 JSON is now present as `research/htkpa/stages/stage49/frida.json`. It opts in to `guarded_f64_binary`, one validated post-return hook, original V1.5.2 DLL SHA, 32 native f64 (256 bytes) maximum from the FIRST guarded valid output block. No Stage49 shell/Python copy exists.
+
+**Offline QA is pending an actual WSL checkout run**. The source is committed, but the tools have **not** run on the user's Windows. First execute only offline/preflight checks, then if everything passes, launch exactly ONE managed conversion. Do not keep retrying if Frida reports an error or Manager crashes.
+
+```bash
+set -e
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+git pull --ff-only origin main
+git status --short
+python -m py_compile tools/frida_capture.py tools/frida_guarded.py tools/test_frida_universal.py
+python tools/frida_capture.py --self-test
+python -m unittest discover -s tools -p 'test_frida_universal.py' -v
+bash -n tools/FRIDA_WSL.sh
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage49/frida.json --preflight
+```
+
+If and **only if** the preceding offline/preflight gates pass and Sonicake Manager is **CLOSED**, start the single Stage49 native experiment:
+
+```bash
+set -e
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage49/frida.json
+```
+
+After `[HOOK]`, perform exactly ONE normal NAM→CLO conversion inside the launched Manager; do not change any user NAM or CLO while the tool is running. A real positive result must record both **one local `block_0001.bin` with a SHA256**, and **a new/changed stable CLO**. Normal exit should be `NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE`; `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY` was already independently accepted in Stage48 and must **not** be rerun.
+
+If only a partial event was persisted before interruption, `events.jsonl` + SHA-validated local `block_0001.bin` remain forensic evidence, **not** a completed Stage49 success. Report the terminal output and `manifest.json` / `events.jsonl` first; do not upload proprietary `block_0001.bin` into GitHub. Archive is private under `research/_LOCAL_FILES/frida_captures/`. Do not compare the block numerically to any public sequence until aligned streaming provenance is established.
