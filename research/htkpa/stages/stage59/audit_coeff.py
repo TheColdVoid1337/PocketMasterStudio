@@ -91,6 +91,33 @@ def checkout(cache:Path, revision:str, folder:Path):
         t.extractall(folder,filter="data")
 
 
+# Public r8bbase.h auto-defines R8B_SIMD_ISH on x86-64. The filter-bank
+# constructor then shuffle2_3() packs adjacent tap triples for vectorized
+# convolve2(). The native DLL's 673x72 table stores scalar tap triples.
+# For each six-element SIMD pair:
+# public: [tapA.c0, tapB.c0, tapA.c1, tapB.c1, tapA.c2, tapB.c2]
+# native: [tapA.c0, tapA.c1, tapA.c2, tapB.c0, tapB.c1, tapB.c2]
+# This is a byte-preserving bijection; no phase shift or sample alignment.
+SIMD_TO_SCALAR=(0,2,4,1,3,5)
+SCALAR_TO_SIMD=(0,3,1,4,2,5)
+
+
+def convert_public_layout(blob:bytes, layout:str)->bytes:
+    if len(blob)!=BYTES:
+        raise ValueError("unexpected public coefficient bank byte count")
+    if layout=="scalar_triplets":
+        return blob
+    if layout!="simd_pairs_2tap":
+        raise ValueError("unknown public r8brain coefficient layout: "+str(layout))
+    packed=np.frombuffer(blob,dtype="<f8").reshape(673,12,6)
+    scalar=packed[:,:,SIMD_TO_SCALAR].copy()
+    # Guard against a misimplemented mapping silently manufacturing alignment.
+    repacked=scalar[:,:,SCALAR_TO_SIMD].copy()
+    if repacked.tobytes()!=blob:
+        raise AssertionError("public SIMD/scalar coefficient permutation failed roundtrip")
+    return scalar.tobytes()
+
+
 def metrics(native:bytes,public:bytes)->dict:
     if len(native)!=BYTES or len(public)!=BYTES:
         raise ValueError("coefficient count mismatch")
@@ -123,10 +150,10 @@ def main():
     a=p.parse_args()
     native,provenance=read_native(a.stage58)
     report={"stage":59,"schema_version":1,"created_utc":datetime.now(timezone.utc).isoformat(),
-            "status":"NATIVE_PUBLIC_COEFFICIENT_BANK_COMPARED",
+            "status":"NATIVE_PUBLIC_COEFFICIENT_BANK_LAYOUT_NORMALIZED",
             "native":provenance,
             "public_attn_req":180.15,
-            "scope":"direct index-to-index matching of 673x72; no inferred permutation/shift",
+            "scope":"direct 673x72 table comparison after verified public SSE2 coefficient layout normalization; no phase/tap/sample shift",
             "versions":{}}
     with tempfile.TemporaryDirectory(prefix="htkpa_stage59_private_") as path:
         temp=Path(path)
@@ -152,11 +179,24 @@ def main():
             if metadata.get("bytes")!=BYTES:
                 raise ValueError("public generated geometry wrong")
             actual=output.read_bytes()
-            report["versions"][version]={"commit":revision,
-                                         "metrics":metrics(native,actual)}
-            m=report["versions"][version]["metrics"]
-            print(f"[BANK] {version}: exact {m['bit_equal']}/{N} "
-                  f"max_abs={m['max_abs_error']} RMS={m['rms_error']}",flush=True)
+            layout=metadata.get("layout")
+            if layout not in ("simd_pairs_2tap","scalar_triplets"):
+                raise ValueError("public source failed to report known coefficient layout")
+            normalized=convert_public_layout(actual,layout)
+            # Retain historical raw result as a regression witness of the
+            # original invalid Stage59 index-to-index format comparison.
+            raw_metrics=metrics(native,actual)
+            corrected_metrics=metrics(native,normalized)
+            report["versions"][version]={
+                "commit":revision,"public_memory_layout":layout,
+                "raw_unaligned_metrics":raw_metrics,
+                "metrics":corrected_metrics,
+                "normalized_public_sha256":sha(normalized)}
+            m=corrected_metrics
+            print(f"[BANK] {version}: layout={layout} "
+                  f"RAW RMS={raw_metrics['rms_error']}, "
+                  f"ALIGNED exact {m['bit_equal']}/{N}, "
+                  f"max_abs={m['max_abs_error']}, RMS={m['rms_error']}",flush=True)
     directory=os.environ.get("RESEARCH_ARTIFACT_DIR")
     if directory:
         out=Path(directory);out.mkdir(parents=True,exist_ok=True)
