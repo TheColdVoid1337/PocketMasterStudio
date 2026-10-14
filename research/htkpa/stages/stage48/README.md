@@ -23,6 +23,20 @@ The actual user completed a normal NAM→CLO conversion using the canonical univ
 
 **Universal fix:** `tools/frida_guarded.py` now calls `user32.EnumWindows(visit, 0)`, passing the required LPARAM, and `tools/test_frida_universal.py` adds a dedicated mocked-Win32 regression ensuring both parameters and PID-scoped `WM_CLOSE` (no unrelated window closed). Generic teardown now emits separate status messages for script unload, Frida session detach and GUI shutdown, so any future UI stall can be located. The fix does **not** add hooks, audio reads or change Stage48 JSON. **These code fixes have NOT YET been re-executed on the user's Windows host**, so successful automatic closure remains pending verification.
 
+**Recommended cleanup-only recheck (Manager CLOSED, no NAM):**
+
+```bash
+# First pull the universal Win32 bugfix, then run offline regression tests.
+python tools/frida_capture.py --self-test
+python -m unittest discover -s tools -p 'test_frida_universal.py' -v
+
+# Now exercise ONLY configured Frida GUI spawn/resume -> WM_CLOSE, with no
+# Frida attach, no hooks, no audio and no conversion:
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --lifecycle-smoke
+```
+
+The expected console outcome is `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY`. If shutdown stalls, live `[NOTE]` / `[TARGET]` messages expose cleanup progress; the tool will leave a resumed GUI running rather than terminate an unrelated/user-owned process. `--lifecycle-smoke` is part of universal `/tools`, not a stage-specific executable.
+
 Importantly, Stage48 acceptance means only: actual vendor fractional processor executed and produced guarded output metadata during a conversion that created a stable CLO. It does **not** yet measure numerical values of the original 48-kHz post-fractional waveform or the full NAM fitting/serialization algorithm. Stage49 binary capture remains a distinct research decision, not implicit in this success.
 
 ## Stage48 is configuration and evidence ONLY
