@@ -128,6 +128,19 @@
     "behavior": "Completed owned guarded_f64_binary closes own PID through WM_CLOSE before synchronous unload; process exit releases hooks; metadata-only Stage48 preserves order",
     "zero_wm_close": "Future external/manual exit recorded EXITED_WITHOUT_WM_CLOSE, never CLOSED_GRACEFULLY",
     "offline_ci": "GitHub Actions PASS for lifecycle/progress changes; Windows verification PENDING",
-    "stage49_native_retake_required": false
+    "stage49_native_retake_required": false,
+    "user_wsl_verification": {
+      "checkout_main": "c3a3670b08c577d25734e78d08d8be25a0b167ac",
+      "source": "User-supplied WSL terminal output after git pull",
+      "git_pull": "FAST_FORWARD_90c7d8f_TO_c3a3670",
+      "git_status_short": "EMPTY",
+      "universal_self_test": "PASS",
+      "unittest": "19_OF_19_PASS",
+      "unittest_elapsed_seconds": 0.48,
+      "bash_syntax": "PASS",
+      "actual_windows_gui_close_fix_validation": "NOT_RUN",
+      "additional_native_audio_run": "NOT_RUN",
+      "stage49_first_audio_result_reuse": "ACCEPTED_32_F64_ALREADY_CAPTURED"
+    }
   }
 }
