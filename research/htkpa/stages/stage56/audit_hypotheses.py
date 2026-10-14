@@ -54,13 +54,6 @@ def summary(rows:list[dict], keep:int=8)->dict:
             "top":sorted_rows[:keep]}
 
 
-def run_variant(exe:Path,inputs:list[str],output:Path):
-    meta,data=old.execute(exe,inputs+[str(output)] if False else inputs,output)
-    if len(data)%8:
-        raise ValueError("public output not aligned to f64")
-    return meta,data
-
-
 def main()->int:
     p=argparse.ArgumentParser()
     p.add_argument("--stage54",required=True,type=Path)
