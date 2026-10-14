@@ -39,7 +39,7 @@ bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --life
 
 This uses **the same stage JSON, the same universal CLI, and the exact same `request_graceful_close_windows` helper used after real capture**. It launches the owned GUI, allows four seconds to create a window, then attempts graceful PID-scoped close and waits up to the JSON `close_timeout_seconds`. **It does not attach a Frida session or install any hooks; it does not perform or watch a NAM→CLO conversion.** A successful run ends in `[STATUS] LIFECYCLE_SMOKE_CLOSED_GRACEFULLY` with exit code 0. If GUI closure fails, it leaves the running GUI alone and returns exit code 3; inspect the output rather than retrying repeatedly.
 
-This smoke test is the preferred next action after the Stage48 actual data capture already passed the `METADATA_GUARD_PASS_CLO_STABLE` gate but failed auto-close due to the missing Win32 `EnumWindows` LPARAM. Do not repeat the full conversion merely to test shutdown.
+**Real Windows acceptance on 2026-10-14:** the user ran this smoke against the same Stage48 config and received `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY` (exit 0). Shared Frida infrastructure spawned its own PID `20844`, waited 4 seconds, dispatched PID-scoped `WM_CLOSE` to 5 top-level windows and confirmed exit, with **ZERO Frida hooks / NO NAM conversion**. The updated offline suite passed 13/13. The original full Stage48 native-metadata and stable-CLO run independently passed; its historical GUI-close failure should not be rewritten as though that run itself was clean.
 
 **Optional path-only preflight before launching Manager:**
 
