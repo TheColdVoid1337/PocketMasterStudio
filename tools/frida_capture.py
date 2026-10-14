@@ -237,7 +237,8 @@ def archive(directory, destination):
 def new_staged_capture():
     """Private capture writes NEVER go directly under research/_LOCAL_FILES."""
     FRIDA_STAGING.mkdir(parents=True,exist_ok=True)
-    return Path(tempfile.mkdtemp(prefix='frida_',dir=FRIDA_STAGING))
+    stamp=datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')
+    return Path(tempfile.mkdtemp(prefix='frida_'+stamp+'_',dir=FRIDA_STAGING))
 
 def publish_capture(folder, out):
     """Publish a verified tar.gz in one atomic rename; retain staging on failure."""
