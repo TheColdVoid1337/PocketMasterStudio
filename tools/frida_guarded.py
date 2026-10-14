@@ -1422,7 +1422,7 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                         report("PASS","*** NATIVE FRACTIONAL I/O TRACE + STABLE CLO VERIFIED ***",
                                state.get("io_events",0),"input/output pairs; ZERO audio reads")
                 status=("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
-                        else ("FRACTIONAL_INPUT_PREFIXES_CLO_STABLE" if cfg.get("input_probe")
+                        else ("FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE" if cfg.get("input_probe")
                               else "FRACTIONAL_IO_TRACE_CLO_STABLE") if cfg["mode"]=="guarded_fractional_io"
                         else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE")
                 return (status,"stable_clo_after_guard",pid)
