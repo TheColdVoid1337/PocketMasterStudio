@@ -179,7 +179,21 @@
     "provenance_limits": "On 2026-10-14, user Windows confirmed configured EXE exists and Frida spawn works. Metadata+CLO reached PASS; normal auto-close failed due missing LPARAM in EnumWindows. Fix committed but not Windows-tested yet.",
     "shared_implementation": "tools/frida_guarded.py; tools/frida_capture.py; tools/FRIDA_WSL.sh",
     "tests": "tools/test_frida_universal.py gained config path, negative schema, spawn refusal/ownership, graceful/suspended cleanup tests",
-    "runtime_status": "GUI_SPAWN_PASS; FRACTIONAL_METADATA_PASS; STABLE_CLO_PASS; GUI_AUTO_CLOSE_FAILED_KNOWN_BUG"
+    "runtime_status": "GUI_SPAWN_PASS; FRACTIONAL_METADATA_PASS; STABLE_CLO_PASS; GUI_AUTO_CLOSE_FAILED_KNOWN_BUG",
+    "smoke_test": {
+      "entrypoint": "bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --lifecycle-smoke",
+      "manager_must_be_closed_first": true,
+      "expected": "LIFECYCLE_SMOKE_CLOSED_GRACEFULLY",
+      "frida_attach": false,
+      "frida_hooks": 0,
+      "converter_run": false,
+      "cleanup_only": true,
+      "runtime_result": "NOT_YET_RUN_ON_USER_WINDOWS",
+      "new_regressions": [
+        "test_win32_enumwindows_requires_lparam_and_only_closes_owned_pid",
+        "test_no_hook_lifecycle_smoke_uses_owned_spawn_resume_close"
+      ]
+    }
   },
   "third_user_execution": {
     "date_utc": "2026-10-14T11:20:57.253551+00:00",
@@ -225,7 +239,7 @@
       "observed_exit_code": 3,
       "meaning": "Instrument's metadata completion PASSED; independent owned-process automatic shutdown failed."
     },
-    "issue_fix": "tools/frida_guarded.py calls user32.EnumWindows(visit, 0); tools/test_frida_universal.py adds mock WinAPI regression asserting LPARAM and PID-scoped WM_CLOSE; progress logging shows unload/detach/shutdown phases.",
+    "issue_fix": "tools/frida_guarded.py calls user32.EnumWindows(visit, 0); tools/test_frida_universal.py adds mock WinAPI regression asserting LPARAM and PID-scoped WM_CLOSE; progress logging shows unload/detach/shutdown phases. Added generic --lifecycle-smoke (Frida spawn/resume GUI, then WM_CLOSE, NO Frida attach/hook or NAM conversion); cleanup can be tested independently.",
     "fix_runtime_verified": false
   }
 }
