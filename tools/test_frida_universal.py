@@ -25,6 +25,7 @@ STAGE52=HERE.parent/"research"/"htkpa"/"stages"/"stage52"/"frida.json"
 STAGE53=HERE.parent/"research"/"htkpa"/"stages"/"stage53"/"frida.json"
 STAGE54=HERE.parent/"research"/"htkpa"/"stages"/"stage54"/"frida.json"
 STAGE58=HERE.parent/"research"/"htkpa"/"stages"/"stage58"/"frida.json"
+STAGE64=HERE.parent/"research"/"htkpa"/"stages"/"stage64"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -285,6 +286,121 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage64_one_hook_extended_output_byte_limit_and_fixed_rate_geometry(self):
+        raw=json.loads(STAGE64.read_text(encoding="utf-8"))
+        cfg=core.validate(raw)
+        old=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["sites"],old["sites"])
+        self.assertEqual(cfg["sha256"],old["sha256"])
+        self.assertEqual(cfg["rate_probe"],old["rate_probe"])
+        self.assertNotIn("input_probe",cfg)
+        self.assertNotIn("output_probe",cfg)
+        self.assertNotIn("coeff_probe",cfg)
+        self.assertEqual(cfg["long_probe"]["total_max_bytes"],9448)
+        self.assertEqual(cfg["long_probe"]["forward"]["copied_f64"],1067)
+        self.assertEqual(cfg["long_probe"]["reverse"]["copied_f64"],114)
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertEqual(js.count(".readDouble("),2)
+        self.assertIn("fractional_r9_ref_onleave_extended",js)
+        self.assertIn("outputRef.readPointer()",js)
+        self.assertIn("longForwardDone",js)
+        self.assertIn("longReverseDone",js)
+        for token in ("LONG_PROBE_ENTER_EXTENSION","LONG_PROBE_LEAVE_EXTENSION",
+                      "RATE_PROBE_EXTENSION","COEFF_PROBE_EXTENSION","JSON_SPEC"):
+            self.assertNotIn(token,js)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as td:
+                fname=Path(td)/"stage64_agent.js"
+                fname.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(fname)],
+                                 capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage64_sha_guarded_full_1067_and_114_blocks_recover_and_archive(self):
+        import hashlib
+        import tarfile
+        cfg=core.validate(json.loads(STAGE64.read_text(encoding="utf-8")))
+        forward_data=bytes(range(256))+b"\x00"*(1067*8-256)
+        reverse_data=bytes(reversed(range(256)))+b"\x01"*(114*8-256)
+        prefix_sha={
+            "forward":hashlib.sha256(forward_data[:256]).hexdigest(),
+            "reverse":hashlib.sha256(reverse_data[:256]).hexdigest()}
+        def event(side,owner):
+            c=cfg["long_probe"][side]
+            return {"kind":"fractional_extended_output","valid":True,
+                    "side":side,"site":cfg["sites"][0]["name"],
+                    "observed":c["observed"],"processor_pointer":owner,
+                    "input_f64":c["input_f64"],"output_f64":c["output_f64"],
+                    "copied_f64":c["copied_f64"],"copied_bytes":c["copied_f64"]*8,
+                    "rate_numerator":c["numerator"],
+                    "rate_denominator":c["denominator"],
+                    "provenance":"fractional_r9_ref_onleave_extended"}
+        with tempfile.TemporaryDirectory() as td, patch.dict(guarded.LONG_PREFIX_SHA,prefix_sha):
+            folder=Path(td)
+            st={}
+            forward=event("forward","0x4444")
+            reverse=event("reverse","0x8888")
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_long_output(cfg,st,folder,forward,forward_data[:-8])
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_long_output(cfg,st,folder,forward,
+                    b"\xff"*256+forward_data[256:])
+            first=guarded.persist_fractional_long_output(cfg,st,folder,forward,forward_data)
+            self.assertTrue(st["long_forward_valid"])
+            self.assertEqual(st["long_total_bytes"],8536)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_long_output(cfg,st,folder,forward,forward_data)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_long_output(
+                    cfg,st,folder,event("reverse","0x4444"),reverse_data)
+            second=guarded.persist_fractional_long_output(cfg,st,folder,reverse,reverse_data)
+            self.assertTrue(st["long_reverse_valid"])
+            self.assertEqual(st["long_total_bytes"],9448)
+            self.assertEqual(first["first32_sha256"],prefix_sha["forward"])
+            self.assertEqual(second["first32_sha256"],prefix_sha["reverse"])
+            (folder/"events.jsonl").write_text(
+                json.dumps(first)+"\n"+json.dumps(second)+"\n",encoding="utf-8")
+            restored={}
+            guarded.reconcile(folder,restored)
+            guarded.reconcile(folder,restored)
+            self.assertTrue(restored["long_forward_valid"])
+            self.assertTrue(restored["long_reverse_valid"])
+            self.assertEqual(restored["long_total_bytes"],9448)
+            for fname in ("config.json","manifest.json","HANDOFF.md"):
+                (folder/fname).write_text("ok",encoding="utf-8")
+            (folder/"unapproved_native_extra.f64le").write_bytes(b"PRIVATE")
+            destination=folder/"stage64_test.tar.gz"
+            core.archive(folder,destination)
+            with tarfile.open(destination,"r:gz") as t:
+                members=t.getnames()
+                self.assertIn("frida_capture/forward_1067.f64le.bin",members)
+                self.assertIn("frida_capture/reverse_114.f64le.bin",members)
+                self.assertNotIn("frida_capture/unapproved_native_extra.f64le",members)
+                self.assertEqual(
+                    t.extractfile("frida_capture/reverse_114.f64le.bin").read(),
+                    reverse_data)
+
+    def test_stage64_rejects_modified_bounds_and_incompatible_probes(self):
+        raw=json.loads(STAGE64.read_text(encoding="utf-8"))
+        for change in (
+            lambda c:c["long_probe"]["forward"].update(observed=2),
+            lambda c:c["long_probe"]["forward"].update(copied_f64=1068),
+            lambda c:c["long_probe"]["reverse"].update(input_f64=255),
+            lambda c:c["long_probe"]["reverse"].update(output_f64=118),
+            lambda c:c["long_probe"]["reverse"].update(denominator=48000),
+            lambda c:c["long_probe"].update(total_max_bytes=20000),
+            lambda c:c["long_probe"].update(extra="any"),
+            lambda c:c["long_probe"]["forward"].update(observed=True),
+            lambda c:c.update(output_probe={"output_samples":32}),
+            lambda c:c.update(coeff_probe={"table_rva":0x2C7560}),
+        ):
+            modified=copy.deepcopy(raw)
+            change(modified)
+            with self.assertRaises((TypeError,ValueError,KeyError)):
+                core.validate(modified)
 
     def test_stage58_single_hook_coefficient_bank_contract(self):
         cfg=core.validate(json.loads(STAGE58.read_text(encoding="utf-8")))
