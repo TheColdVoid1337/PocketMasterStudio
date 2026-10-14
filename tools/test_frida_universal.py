@@ -23,6 +23,7 @@ STAGE50=HERE.parent/"research"/"htkpa"/"stages"/"stage50"/"frida.json"
 STAGE51=HERE.parent/"research"/"htkpa"/"stages"/"stage51"/"frida.json"
 STAGE52=HERE.parent/"research"/"htkpa"/"stages"/"stage52"/"frida.json"
 STAGE53=HERE.parent/"research"/"htkpa"/"stages"/"stage53"/"frida.json"
+STAGE54=HERE.parent/"research"/"htkpa"/"stages"/"stage54"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -283,6 +284,111 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage54_only_two_private_96k_input_prefixes(self):
+        raw=json.loads(STAGE54.read_text(encoding="utf-8"))
+        cfg=core.validate(raw)
+        prior=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["mode"],"guarded_fractional_io")
+        self.assertEqual(cfg["sites"],prior["sites"])
+        self.assertEqual(cfg["rate_probe"],prior["rate_probe"])
+        self.assertEqual(cfg["sha256"],prior["sha256"])
+        self.assertEqual(cfg["input_probe"],
+            {"first_f64":3,"second_f64":256,"total_max_bytes":2072,
+             "numerator":96000,"denominator":44100})
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertEqual(js.count(".readDouble("),2)
+        self.assertIn("inputProbeProcessor",js)
+        self.assertIn("inputProbeStep",js)
+        self.assertIn("this.context.rdx",js)
+        self.assertIn("kind:'fractional_input_prefix'",js)
+        self.assertIn("fractional_rdx_onenter",js)
+        self.assertNotIn("writeByteArray(",js)
+        self.assertNotIn("RATE_PROBE_EXTENSION",js)
+        self.assertNotIn("INPUT_PROBE_EXTENSION",js)
+        self.assertNotIn("readByteArray(",guarded.agent_source(prior))
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                f=Path(d)/"stage54_agent.js"
+                f.write_text(js,encoding="utf-8")
+                chk=subprocess.run(["node","--check",str(f)],
+                                   capture_output=True,text=True)
+                self.assertEqual(chk.returncode,0,chk.stderr)
+
+    def test_stage54_capture_strict_order_sha_recovery_and_tar_allowlist(self):
+        import hashlib
+        import tarfile
+        cfg=core.validate(json.loads(STAGE54.read_text(encoding="utf-8")))
+        owner="0x1234abcd"
+        def event(step, observed, ptr=owner):
+            n=3 if step==1 else 256
+            return {"kind":"fractional_input_prefix","valid":True,
+                "site":"fractional_entry_io","step":step,"observed":observed,
+                "processor_pointer":ptr,"input_f64":n,
+                "copied_bytes":8*n,"rate_numerator":96000,
+                "rate_denominator":44100,"provenance":"fractional_rdx_onenter"}
+        with tempfile.TemporaryDirectory() as d:
+            folder=Path(d)
+            state={}
+            a=bytes(range(24))
+            b=bytes(range(256))*8
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_input(cfg,state,folder,event(2,18),b)
+            one=guarded.persist_fractional_input(cfg,state,folder,event(1,17),a)
+            self.assertEqual(state["input_prefix_events"],1)
+            self.assertFalse(state["input_prefix_valid"])
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_input(cfg,state,folder,
+                    event(2,18,"0xdeadbeef"),b)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_input(cfg,state,folder,event(2,18),b[:-1])
+            two=guarded.persist_fractional_input(cfg,state,folder,event(2,18),b)
+            self.assertTrue(state["input_prefix_valid"])
+            self.assertEqual(state["input_prefix_total_bytes"],2072)
+            self.assertEqual(one["sha256"],hashlib.sha256(a).hexdigest())
+            self.assertEqual(two["sha256"],hashlib.sha256(b).hexdigest())
+            self.assertEqual((folder/"input_0001.bin").read_bytes(),a)
+            self.assertEqual((folder/"input_0002.bin").read_bytes(),b)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_input(cfg,state,folder,event(2,19),b)
+            (folder/"events.jsonl").write_text(
+                "".join(json.dumps(item)+"\n" for item in [one,two]),encoding="utf-8")
+            restored={}
+            guarded.reconcile(folder,restored)
+            guarded.reconcile(folder,restored)
+            self.assertTrue(restored["input_prefix_valid"])
+            self.assertEqual(restored["input_prefix_total_bytes"],2072)
+            self.assertEqual(restored["input_prefix_events"],2)
+            for name in ["config.json","manifest.json","HANDOFF.md"]:
+                (folder/name).write_text("ok",encoding="utf-8")
+            (folder/"should_not_copy.raw").write_bytes(b"RAW PRIVATE")
+            dest=folder/"test.tar.gz"
+            core.archive(folder,dest)
+            with tarfile.open(dest,"r:gz") as tar:
+                members=tar.getnames()
+                self.assertIn("frida_capture/input_0001.bin",members)
+                self.assertIn("frida_capture/input_0002.bin",members)
+                self.assertNotIn("frida_capture/should_not_copy.raw",members)
+                self.assertEqual(tar.extractfile("frida_capture/input_0002.bin").read(),b)
+
+    def test_stage54_rejects_unsafe_configs_and_wrong_byte_budgets(self):
+        original=json.loads(STAGE54.read_text(encoding="utf-8"))
+        for change in [
+            lambda c:c["input_probe"].update(first_f64=4),
+            lambda c:c["input_probe"].update(second_f64=257),
+            lambda c:c["input_probe"].update(total_max_bytes=65536),
+            lambda c:c["input_probe"].update(numerator=44100),
+            lambda c:c["input_probe"].update(denominator=48000),
+            lambda c:c["input_probe"].update(extra="bad"),
+            lambda c:c.update(rate_probe=None),
+            lambda c:c["sites"].append(copy.deepcopy(c["sites"][0])),
+        ]:
+            candidate=copy.deepcopy(original)
+            change(candidate)
+            with self.assertRaises((ValueError,KeyError,TypeError)):
+                core.validate(candidate)
 
     def test_stage53_fractional_rate_field_contract(self):
         config=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
