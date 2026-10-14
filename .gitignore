@@ -18,3 +18,6 @@ __pycache__/
 
 # Local-only private HTKPA chat rollover bundles (may be downloaded to repo root).
 /POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_*.zip
+
+# Active research output staging: private files are packaged here before atomic .tar.gz publication.
+/research/.research_run_staging/
