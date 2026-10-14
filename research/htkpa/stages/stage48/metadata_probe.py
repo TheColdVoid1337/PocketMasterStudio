@@ -182,6 +182,34 @@ def snapshot_clo(folder: Path | None) -> dict[str, tuple[int, int]]:
     return result
 
 
+def reconcile_events(folder: Path, state: dict) -> None:
+    """Recover real hook/metadata observations after Ctrl+C or host exceptions.
+
+    Never invent a successful CLO completion or module-SHA check from JSONL.
+    In particular, a valid metadata_hit is not vendor 48-kHz sample parity.
+    """
+    stream = folder / "events.jsonl"
+    try:
+        lines = stream.read_text(encoding="utf-8").splitlines()
+    except OSError as e:
+        report("WARN", "Cannot read event journal:", e)
+        return
+    state["events_on_disk"] = len(lines)
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except (TypeError, ValueError):
+            state["malformed_event_lines"] = state.get("malformed_event_lines", 0) + 1
+            continue
+        if event.get("kind") == "hook_attached" and event.get("hooks_installed") == 1:
+            state["hook_attached"] = True
+        elif event.get("kind") == "metadata_hit" and event.get("valid") is True:
+            state["metadata_valid"] = True
+            state["metadata"] = event
+        elif event.get("kind") == "first_rejected_return":
+            state["first_rejection"] = event.get("reason")
+
+
 def self_test() -> None:
     assert AGENT.count("Interceptor.attach(") == 1
     assert "rpc.exports" in AGENT
@@ -191,7 +219,40 @@ def self_test() -> None:
     assert "module_found" in AGENT and "metadata_hit" in AGENT
     assert RVA_SITE == 0x1190C and RVA_VTABLE == 0x245170
     assert MAX_VALID_F64 * 8 <= 32768
-    print("Stage48 offline source self-test PASS: one delayed hook, SHA gate, no audio reads")
+    # Reproduce the actual operator Ctrl+C regression from 2026-10-14:
+    # even if the in-memory state vanished, event journal has valid 114 f64.
+    import tempfile
+    from types import SimpleNamespace
+    with tempfile.TemporaryDirectory(prefix="htkpa48_selftest_") as tmp:
+        d = Path(tmp)
+        events = [
+            {"kind": "module_found", "base": "0x7ff862660000"},
+            {"kind": "hook_attached", "hooks_installed": 1, "rva": 0x1190C},
+            {"kind": "first_rejected_return", "reason": "returned EAX count zero or over defensive bound"},
+            {"kind": "metadata_hit", "valid": True, "output_f64": 114,
+             "output_bytes": 912, "observed": 18},
+        ]
+        (d / "events.jsonl").write_text(
+            "".join(json.dumps(e)+"\\n" for e in events), encoding="utf-8")
+        restored = {}
+        reconcile_events(d, restored)
+        assert restored["hook_attached"] is True
+        assert restored["metadata_valid"] is True
+        assert restored["metadata"]["output_f64"] == 114
+        assert restored["events_on_disk"] == 4
+        assert "module_sha_verified" not in restored
+        nested = d / "subdir"
+        nested.mkdir()
+        (nested / "new.clo").write_bytes(b"mock-not-real-clo")
+        assert len(snapshot_clo(d)) == 1
+    class FakeDevice:
+        def enumerate_processes(self):
+            return [SimpleNamespace(pid=14000, name="Sonicake Manager.exe"),
+                    SimpleNamespace(pid=100, name="explorer.exe")]
+    assert choose_pid(FakeDevice(), None) == 14000
+    assert choose_pid(FakeDevice(), 14000) == 14000
+    print("Stage48 offline tests PASS: one hook; no audio reads; "
+          "automatic PID; Ctrl+C event recovery; nested CLO discovery")
 
 
 def list_processes_only() -> int:
@@ -467,20 +528,8 @@ def main() -> int:
                   else "BLOCKED")
         problem = f"{type(e).__name__}: {e}"[:550]
         report("ERROR", problem)
-    # Reconcile with on-disk events even if an asynchronous KeyboardInterrupt
-    # arrived between a valid event and a state mutation or function return.
-    try:
-        for line in (folder / "events.jsonl").read_text(encoding="utf-8").splitlines():
-            event = json.loads(line)
-            if event.get("kind") == "hook_attached" and event.get("hooks_installed") == 1:
-                result["hook_attached"] = True
-            elif event.get("kind") == "metadata_hit" and event.get("valid") is True:
-                result["metadata_valid"] = True
-                result["metadata"] = event
-            elif event.get("kind") == "first_rejected_return":
-                result["first_rejection"] = event.get("reason")
-    except (OSError, ValueError) as e:
-        report("WARN", "Could not reconcile events file:", e)
+    # Recover observed events even if the host was interrupted while unwinding.
+    reconcile_events(folder, result)
     if status == "OPERATOR_INTERRUPTED_BEFORE_METADATA" and result.get("metadata_valid"):
         status = "METADATA_OBSERVED_OPERATOR_INTERRUPTED"
     if status == "BLOCKED" and result.get("metadata_valid"):
