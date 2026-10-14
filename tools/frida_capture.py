@@ -415,13 +415,17 @@ def main():
         return frida_guarded.list_processes(report,cfg)
     guarded=cfg.get('mode')=='guarded_metadata'
     if args.preflight:
-        if args.module_file and sha(args.module_file)!=cfg['sha256']:
-            ap.error('configured original DLL SHA does not match')
-        if guarded:
-            return frida_guarded.preflight_paths(args,cfg,report)
-        report('NOTE','Legacy config and optional private DLL SHA verified;',
-               'no managed path preflight in legacy mode')
-        return 0
+        try:
+            if args.module_file and sha(args.module_file)!=cfg['sha256']:
+                raise RuntimeError('configured original DLL SHA does not match')
+            if guarded:
+                return frida_guarded.preflight_paths(args,cfg,report)
+            report('NOTE','Legacy config and optional private DLL SHA verified;',
+                   'no managed path preflight in legacy mode')
+            return 0
+        except (RuntimeError,ValueError,OSError) as e:
+            report('ERROR','Preflight failed:',e)
+            return 2
     if guarded and args.fresh:
         ap.error('guarded metadata requires an existing process; --fresh is forbidden')
     if guarded and args.auto_quiet:
