@@ -120,3 +120,7 @@ Expected exception/timeout statuses include `METADATA_OBSERVED_OPERATOR_INTERRUP
 `python tools/frida_capture.py --self-test` and `python -m unittest discover -s tools -p test_frida_universal.py` exercise both legacy fields and Stage48 guarded mode, exact config pins, single-hook/no-audio guarantees, target PID selection, nested CLO metadata listing, and recovery of the real **114 f64 / 912 byte** Stage48 interrupted event pattern. If Node is installed, the suite syntax-checks the generated JavaScript.
 
 No original DLL, audio, NAM or CLO files may enter Git; exact original DLL hashes and evidence/metrics alone are allowed.
+
+## New-chat / development handoff (2026-10-14)
+
+For the complete current reverse-engineering status, measured r8brain comparisons, original DLL RVA/vtable map, exact WSL/Windows paths, accepted Stage48 runtime and guarded Stage49 next-step specification, read the [canonical HTKPA rollover](../docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md). The old standalone Stage48 Frida Python/shell wrappers are retired: **do not copy them for Stage49+**. The local private rollover ZIP described in that document is never committed to Git; the assistant in a new chat can inspect it only when the user attaches it explicitly. Universal tests were **13/13 user-confirmed**; owned GUI WM_CLOSE smoke returned exit 0 with ZERO hooks. Actual vendor 48-kHz sample values are not yet captured.
