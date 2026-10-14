@@ -24,6 +24,7 @@ STAGE51=HERE.parent/"research"/"htkpa"/"stages"/"stage51"/"frida.json"
 STAGE52=HERE.parent/"research"/"htkpa"/"stages"/"stage52"/"frida.json"
 STAGE53=HERE.parent/"research"/"htkpa"/"stages"/"stage53"/"frida.json"
 STAGE54=HERE.parent/"research"/"htkpa"/"stages"/"stage54"/"frida.json"
+STAGE58=HERE.parent/"research"/"htkpa"/"stages"/"stage58"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -284,6 +285,93 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage58_single_hook_coefficient_bank_contract(self):
+        cfg=core.validate(json.loads(STAGE58.read_text(encoding="utf-8")))
+        base=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
+        self.assertEqual(cfg["sites"],base["sites"])
+        self.assertEqual(cfg["rate_probe"],base["rate_probe"])
+        self.assertEqual(cfg["coeff_probe"],
+            {"table_rva":0x2C7560,"phase_count":673,"stride_f64":72,
+             "total_max_bytes":387648,"trigger_input_f64":3})
+        self.assertNotIn("input_probe",cfg)
+        self.assertNotIn("output_probe",cfg)
+        js=guarded.agent_source(cfg)
+        self.assertEqual(js.count("Interceptor.attach("),1)
+        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertEqual(js.count(".readDouble("),2)
+        self.assertIn("native_dll_data_phase_bank",js)
+        self.assertIn("coeffProbeDone",js)
+        self.assertNotIn("COEFF_PROBE_EXTENSION",js)
+        self.assertNotIn("RATE_PROBE_EXTENSION",js)
+        self.assertNotIn("INPUT_PROBE_EXTENSION",js)
+        self.assertNotIn("OUTPUT_PROBE_ENTER_EXTENSION",js)
+        if shutil.which("node"):
+            with tempfile.TemporaryDirectory() as d:
+                path=Path(d)/"stage58.js"
+                path.write_text(js,encoding="utf-8")
+                p=subprocess.run(["node","--check",str(path)],
+                                 capture_output=True,text=True)
+                self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage58_native_table_checksum_and_partial_recovery(self):
+        import hashlib
+        import struct
+        import tarfile
+        cfg=core.validate(json.loads(STAGE58.read_text(encoding="utf-8")))
+        e={"kind":"fractional_coeff_bank","valid":True,"site":"fractional_entry_io",
+           "observed":17,"processor_pointer":"0x1234","input_f64":3,
+           "copied_bytes":387648,"table_rva":0x2C7560,"phase_count":673,
+           "stride_f64":72,"rate_numerator":96000,"rate_denominator":44100,
+           "provenance":"native_dll_data_phase_bank"}
+        bank=struct.pack("<d",1.0)+b"\x00"*(387648-8)
+        with tempfile.TemporaryDirectory() as d:
+            folder=Path(d)
+            st={}
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_coeff_bank(cfg,st,folder,e,b"\x00"*387648)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_coeff_bank(cfg,st,folder,e,bank[:-8])
+            out=guarded.persist_fractional_coeff_bank(cfg,st,folder,e,bank)
+            self.assertTrue(st["coeff_bank_valid"])
+            self.assertEqual(st["coeff_bank_bytes"],387648)
+            self.assertEqual(out["sha256"],hashlib.sha256(bank).hexdigest())
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_coeff_bank(cfg,st,folder,e,bank)
+            (folder/"events.jsonl").write_text(json.dumps(out)+"\n",encoding="utf-8")
+            restored={}
+            guarded.reconcile(folder,restored)
+            self.assertTrue(restored["coeff_bank_valid"])
+            self.assertEqual(restored["coeff_bank_sha256"],out["sha256"])
+            for name in ("config.json","manifest.json","HANDOFF.md"):
+                (folder/name).write_text("ok",encoding="utf-8")
+            (folder/"private_unapproved.bin").write_bytes(b"NO")
+            dest=folder/"test.tar.gz"
+            core.archive(folder,dest)
+            with tarfile.open(dest,"r:gz") as t:
+                members=t.getnames()
+                self.assertIn("frida_capture/frac_coeff_bank_673x72.f64le.bin",members)
+                self.assertNotIn("frida_capture/private_unapproved.bin",members)
+                self.assertEqual(t.extractfile(
+                    "frida_capture/frac_coeff_bank_673x72.f64le.bin").read(),bank)
+
+    def test_stage58_reject_modified_table_rva_and_oversized_read(self):
+        raw=json.loads(STAGE58.read_text(encoding="utf-8"))
+        for change in [
+            lambda x:x["coeff_probe"].update(table_rva=0x2C7568),
+            lambda x:x["coeff_probe"].update(phase_count=674),
+            lambda x:x["coeff_probe"].update(stride_f64=73),
+            lambda x:x["coeff_probe"].update(total_max_bytes=387656),
+            lambda x:x["coeff_probe"].update(trigger_input_f64=0),
+            lambda x:x["coeff_probe"].update(table_rva=True),
+            lambda x:x["coeff_probe"].update(javascript="bad"),
+            lambda x:x.update(input_probe={"first_f64":3}),
+            lambda x:x.update(output_probe={"output_samples":32}),
+        ]:
+            config=copy.deepcopy(raw)
+            change(config)
+            with self.assertRaises((ValueError,TypeError,KeyError)):
+                core.validate(config)
 
     def test_stage54_private_96k_input_and_48k_output_prefixes(self):
         raw=json.loads(STAGE54.read_text(encoding="utf-8"))
