@@ -448,7 +448,16 @@ def main():
             status='BLOCKED_AFTER_METADATA'
     manifest=dict(status=status,method=method,problem=problem,
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
-        expected_sha256=cfg['sha256'],state=state,scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
+        mode=('guarded_metadata' if guarded else 'legacy_scalar'),
+        expected_sha256=cfg['sha256'],
+        hook_count=(1 if state.get('hook_attached') else 0) if guarded
+                   else (len(cfg['sites']) if state.get('ready') else 0),
+        contains_audio_bytes=bool(not guarded and any(
+            f['type'] in ('f64_binary','f64_block','f64_slice','f64')
+            for site in cfg['sites'] for f in site['fields'])),
+        completion_verified=bool(state.get('completion_verified',False)),
+        state=state,
+        scope=('guarded metadata; no audio reads' if guarded else 'bounded read-only scalar observation'))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     evidence_note=('Guarded metadata: ONLY events marked metadata_hit are observations; '
                    'no audio samples were captured. Runtime DLL SHA plus a new stable CLO '
