@@ -285,7 +285,7 @@ class UniversalFridaTests(unittest.TestCase):
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
 
-    def test_stage54_only_two_private_96k_input_prefixes(self):
+    def test_stage54_private_96k_input_and_48k_output_prefixes(self):
         raw=json.loads(STAGE54.read_text(encoding="utf-8"))
         cfg=core.validate(raw)
         prior=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
@@ -296,18 +296,27 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(cfg["input_probe"],
             {"first_f64":3,"second_f64":256,"total_max_bytes":2072,
              "numerator":96000,"denominator":44100})
+        self.assertEqual(cfg["output_probe"],
+            {"output_samples":32,"total_max_bytes":256,
+             "numerator":88200,"denominator":48000,
+             "first_input_f64":6170612,"first_output_f64":3358150})
         js=guarded.agent_source(cfg)
         self.assertEqual(js.count("Interceptor.attach("),1)
-        self.assertEqual(js.count(".readByteArray("),1)
+        self.assertEqual(js.count(".readByteArray("),2)
         self.assertEqual(js.count(".readDouble("),2)
         self.assertIn("inputProbeProcessor",js)
         self.assertIn("inputProbeStep",js)
         self.assertIn("this.context.rdx",js)
         self.assertIn("kind:'fractional_input_prefix'",js)
         self.assertIn("fractional_rdx_onenter",js)
+        self.assertIn("fractional_r9_ref_onleave",js)
+        self.assertIn("this.context.r9",js)
+        self.assertIn("kind:'fractional_output_prefix'",js)
         self.assertNotIn("writeByteArray(",js)
         self.assertNotIn("RATE_PROBE_EXTENSION",js)
         self.assertNotIn("INPUT_PROBE_EXTENSION",js)
+        self.assertNotIn("OUTPUT_PROBE_ENTER_EXTENSION",js)
+        self.assertNotIn("OUTPUT_PROBE_LEAVE_EXTENSION",js)
         self.assertNotIn("readByteArray(",guarded.agent_source(prior))
         if shutil.which("node"):
             with tempfile.TemporaryDirectory() as d:
@@ -334,6 +343,19 @@ class UniversalFridaTests(unittest.TestCase):
             state={}
             a=bytes(range(24))
             b=bytes(range(256))*8
+            c=bytes(range(256))
+            native_out_event={
+                "kind":"fractional_output_prefix","valid":True,
+                "site":"fractional_entry_io","observed":1,
+                "processor_pointer":"0x4567","input_f64":6170612,
+                "output_f64":3358150,"copied_f64":32,"copied_bytes":256,
+                "rate_numerator":88200,"rate_denominator":48000,
+                "provenance":"fractional_r9_ref_onleave"}
+            out=guarded.persist_fractional_output(cfg,state,folder,native_out_event,c)
+            self.assertTrue(state["output_probe_valid"])
+            self.assertEqual(state["output_probe_bytes"],256)
+            with self.assertRaises(ValueError):
+                guarded.persist_fractional_output(cfg,state,folder,native_out_event,c)
             with self.assertRaises(ValueError):
                 guarded.persist_fractional_input(cfg,state,folder,event(2,18),b)
             one=guarded.persist_fractional_input(cfg,state,folder,event(1,17),a)
@@ -354,13 +376,15 @@ class UniversalFridaTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 guarded.persist_fractional_input(cfg,state,folder,event(2,19),b)
             (folder/"events.jsonl").write_text(
-                "".join(json.dumps(item)+"\n" for item in [one,two]),encoding="utf-8")
+                "".join(json.dumps(item)+"\n" for item in [out,one,two]),encoding="utf-8")
             restored={}
             guarded.reconcile(folder,restored)
             guarded.reconcile(folder,restored)
             self.assertTrue(restored["input_prefix_valid"])
             self.assertEqual(restored["input_prefix_total_bytes"],2072)
             self.assertEqual(restored["input_prefix_events"],2)
+            self.assertTrue(restored["output_probe_valid"])
+            self.assertEqual(restored["output_probe_bytes"],256)
             for name in ["config.json","manifest.json","HANDOFF.md"]:
                 (folder/name).write_text("ok",encoding="utf-8")
             (folder/"should_not_copy.raw").write_bytes(b"RAW PRIVATE")
@@ -370,6 +394,8 @@ class UniversalFridaTests(unittest.TestCase):
                 members=tar.getnames()
                 self.assertIn("frida_capture/input_0001.bin",members)
                 self.assertIn("frida_capture/input_0002.bin",members)
+                self.assertIn("frida_capture/output_0001.bin",members)
+                self.assertEqual(tar.extractfile("frida_capture/output_0001.bin").read(),c)
                 self.assertNotIn("frida_capture/should_not_copy.raw",members)
                 self.assertEqual(tar.extractfile("frida_capture/input_0002.bin").read(),b)
 
@@ -382,6 +408,11 @@ class UniversalFridaTests(unittest.TestCase):
             lambda c:c["input_probe"].update(numerator=44100),
             lambda c:c["input_probe"].update(denominator=48000),
             lambda c:c["input_probe"].update(extra="bad"),
+            lambda c:c["output_probe"].update(output_samples=33),
+            lambda c:c["output_probe"].update(total_max_bytes=2048),
+            lambda c:c["output_probe"].update(first_input_f64=6170613),
+            lambda c:c["output_probe"].update(numerator=96000),
+            lambda c:c["output_probe"].update(javascript="bad"),
             lambda c:c.update(rate_probe=None),
             lambda c:c["sites"].append(copy.deepcopy(c["sites"][0])),
         ]:
