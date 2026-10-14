@@ -685,10 +685,23 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
         return ("METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT" if state["metadata_valid"]
                 else "INCOMPLETE_TIMEOUT","timeout",pid)
     finally:
+        # Progress markers distinguish a slow Frida detach from a slow GUI
+        # close. The old Stage48 console printed only the stable CLO message,
+        # leaving the operator unable to tell which cleanup phase was active.
+        report("NOTE","Capture loop ended; removing Frida instrumentation")
         if script is not None:
-            try:script.unload()
-            except Exception:pass
+            try:
+                script.unload()
+                report("NOTE","Frida script unloaded")
+            except Exception as exc:
+                state["script_unload_error"]=str(exc)[:250]
+                report("WARN","Frida script unload:",str(exc)[:250])
         if session is not None:
-            try:session.detach()
-            except Exception:pass
+            try:
+                session.detach()
+                report("NOTE","Frida session detached")
+            except Exception as exc:
+                state["session_detach_error"]=str(exc)[:250]
+                report("WARN","Frida session detach:",str(exc)[:250])
+        report("TARGET","Cleanup phase: closing only owned PID",pid)
         close_owned_target(device,pid,state,cfg,report)
