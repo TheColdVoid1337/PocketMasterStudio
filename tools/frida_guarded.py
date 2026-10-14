@@ -432,6 +432,42 @@ def close_owned_target(device,pid,state,cfg,report):
         report("WARN","Unable to close owned process gracefully:",str(e)[:200])
 
 
+def smoke_lifecycle(args,cfg,report):
+    """Managed Windows EXE launch/close smoke: ZERO attach, hooks or conversion.
+
+    Deliberately refuses an already-open Manager so the smoke cannot close a
+    user-owned process. Windows UI startup is given a short grace interval.
+    """
+    if os.name!="nt" or platform.architecture()[0]!="64bit":
+        raise RuntimeError("Managed lifecycle smoke requires Windows x64 Python")
+    lifecycle=cfg.get("lifecycle") or {}
+    if lifecycle.get("start")!="fresh" or lifecycle.get("close")!="if_launched":
+        raise ValueError("Lifecycle smoke requires JSON start=fresh, close=if_launched")
+    if args.pid is not None:
+        raise ValueError("Lifecycle smoke cannot target an existing --pid")
+    preflight_paths(args,cfg,report)
+    import frida
+    device=frida.get_local_device()
+    state={}
+    pid=None
+    try:
+        pid,spawned=launch_target(device,args,cfg,report,state)
+        if not spawned:
+            raise RuntimeError("Lifecycle smoke refused a process it does not own")
+        device.resume(pid)
+        state["target_resumed"]=True
+        report("TARGET","Lifecycle smoke: started owned GUI PID",pid)
+        report("NOTE","Waiting 4s for GUI window; NO Frida attach/hook and NO conversion")
+        time.sleep(4)
+    finally:
+        if pid is not None:
+            report("TARGET","Lifecycle smoke: requesting graceful close for owned PID",pid)
+            close_owned_target(device,pid,state,cfg,report)
+    result=state.get("cleanup_status","NOT_RUN")
+    report("STATUS","LIFECYCLE_SMOKE_"+result,"| PID:",pid,"| ZERO hooks")
+    return 0 if result=="CLOSED_GRACEFULLY" else 3
+
+
 def list_processes(report, cfg=None):
     if os.name != "nt" or platform.architecture()[0] != "64bit":
         raise RuntimeError("Process discovery requires Windows x64 Python")
