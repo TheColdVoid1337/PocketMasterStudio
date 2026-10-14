@@ -78,3 +78,7 @@ Choose your actual private DLL path for `--dll`. An independent static anchor ve
 **Stage47 did not create/execute this Stage48 Frida runtime configuration.** If any invariant fails, stop rather than speculatively capturing memory. No production paths, fit algorithm or CLO serialization modified.
 
 Stage45 vendor-first-FIR/public-fractional consistency remains a public-hybrid comparison; a live native post-fractional 48-kHz reference is **still missing**. Original r8brain upstream is MIT-licensed (Aleksey Vaneev / Voxengo).
+
+## 2026-10-14 handoff update: Stage48 now uses the one universal /tools runner
+
+After this static Stage47 gate, a real Windows Stage48 run **did observe** a valid post-fractional metadata event for 114 f64 at RVA `0x1190c` (dynamic fractional vtable RVA `0x245170`). That run did **not** prove a stable CLO or capture final vendor f64 samples. The former dedicated Stage48 Frida scripts were subsequently **removed from the current Git tree** by explicit project workflow decision. Canonical tools now live in `tools/frida_capture.py`, `tools/frida_guarded.py`, `tools/FRIDA_WSL.sh` and `tools/FRIDA.md`; the corresponding Stage48 parameter-only file is `research/htkpa/stages/stage48/frida.json`. For all future stages, extend shared /tools behavior and use a separate stage-local JSON, README and evidence rather than cloning a runner.
