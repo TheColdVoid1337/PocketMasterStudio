@@ -1529,6 +1529,12 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                        "| 48k output",state.get("output_probe_valid",False),
                        "| all available data will be archived")
                 return ("INCOMPLETE_REQUIRED_PREFIXES","stable_clo_missing_prefix",pid)
+            if (cfg.get("coeff_probe") and state["completion_verified"] and
+                    stable_since is not None and now-stable_since>stable_seconds+6 and
+                    not state.get("coeff_bank_valid")):
+                report("WARN","Stage58 native coefficient capture absent after stable CLO;",
+                       "preserving incomplete run evidence in private tar.gz")
+                return ("INCOMPLETE_COEFF_BANK","stable_clo_missing_coeff_bank",pid)
             if (state["runtime_verified"] and hooked and metadata and
                     (cfg["mode"]=="guarded_metadata" or
                      cfg["mode"]=="guarded_fractional_io" and
