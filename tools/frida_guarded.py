@@ -751,6 +751,7 @@ def reconcile(folder: Path, state: dict):
     state["journal_events"] = len(lines)
     trace_returns_in_journal=0
     trace_rejections_in_journal=0
+    io_events_in_journal=0
     for line in lines:
         try:
             e = json.loads(line)
@@ -767,7 +768,7 @@ def reconcile(folder: Path, state: dict):
                     and 0<=e["output_f64"]<=7000000):
                 state["metadata_valid"]=True
                 state["hits"]=max(1,state.get("hits",0))
-                state["io_events"]=max(state.get("io_events",0),1)
+                io_events_in_journal+=1
                 state["last_metadata"]=e
         elif kind == "metadata_hit" and e.get("valid") is True:
             state["valid_field_hits"] = max(1,state.get("valid_field_hits",0))
@@ -802,6 +803,8 @@ def reconcile(folder: Path, state: dict):
             state["trace_cap_reached"] = True
     state["trace_returns"]=max(state.get("trace_returns",0),trace_returns_in_journal)
     state["trace_rejections"]=max(state.get("trace_rejections",0),trace_rejections_in_journal)
+    if io_events_in_journal:
+        state["io_events"]=max(state.get("io_events",0),io_events_in_journal)
 
 
 def interrupted_status(state: dict) -> str:
