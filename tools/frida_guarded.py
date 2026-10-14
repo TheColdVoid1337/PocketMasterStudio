@@ -71,10 +71,15 @@ rpc.exports = {
           if (!vtable.equals(expected)) return reject('processor vtable mismatch');
           const count = c[g.count_reg].and(ptr('0xffffffff')).toUInt32();
           if (spec.trace) {
-            emit({kind:'trace_return',site:site.name,observed:observed,
+            const traceEvent={kind:'trace_return',site:site.name,observed:observed,
                   owner_pointer:owner.toString(),processor_pointer:proc.toString(),
                   input_pointer:c.rdi.toString(),output_f64:count,
-                  count_in_range:count <= g.max_samples});
+                  count_in_range:count <= g.max_samples};
+            // Only a stage with a separately verified no-clobber proof opts in.
+            // No extra pointer dereference or audio read.
+            if (spec.trace.input_count_reg === 'r8')
+              traceEvent.input_f64 = c.r8.and(ptr('0xffffffff')).toUInt32();
+            emit(traceEvent);
           }
           if (count < 1 || count > g.max_samples)
             return reject('return count zero or out of bounds');
@@ -120,9 +125,11 @@ def validate_config(cfg: dict, address_fn) -> dict:
     trace=cfg.get("trace")
     if trace is not None:
         if (mode!="guarded_f64_binary" or not isinstance(trace,dict) or
-                set(trace)!={"max_events"} or
+                set(trace) not in ({"max_events"},{"max_events","input_count_reg"}) or
                 type(trace["max_events"]) is not int or trace["max_events"]!=64):
-            raise ValueError("trace requires guarded_f64_binary and exactly max_events=64")
+            raise ValueError("trace requires guarded_f64_binary and max_events=64")
+        if "input_count_reg" in trace and trace["input_count_reg"]!="r8":
+            raise ValueError("input_count_reg must be r8 (requires static preservation proof)")
     if not isinstance(cfg.get("module"),str) or not re.fullmatch(r"[A-Za-z0-9_. -]+\.(dll|exe)",cfg["module"],re.I):
         raise ValueError("simple module basename required")
     if not isinstance(cfg.get("sha256"),str) or not re.fullmatch(r"[A-Fa-f0-9]{64}",cfg["sha256"]):
@@ -253,7 +260,7 @@ def validate_config(cfg: dict, address_fn) -> dict:
         "module":cfg["module"],"sha256":cfg["sha256"].lower(),
         "mode":mode,"image_base":base,
         **({"binary_capture":binary} if binary is not None else {}),
-        **({"trace":{"max_events":64}} if trace is not None else {}),
+        **({"trace":dict(trace)} if trace is not None else {}),
         "target":{"process_name_contains":match},
         "completion":dict(completion),
         **({"lifecycle":lifecycle} if lifecycle is not None else {}),
