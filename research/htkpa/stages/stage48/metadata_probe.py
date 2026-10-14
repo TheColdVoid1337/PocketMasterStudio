@@ -27,6 +27,22 @@ MAX_VALID_F64 = 4096
 MAX_OBSERVATIONS = 256
 SOURCE_SHA_NOTE = "This instrument only records metadata; no signal samples."
 
+COLORS = {
+    "TARGET": "\x1b[36m", "HOOK": "\x1b[35m", "META": "\x1b[32m",
+    "CLO": "\x1b[32m", "WAIT": "\x1b[33m", "NOTE": "\x1b[36m",
+    "WARN": "\x1b[33m", "ERROR": "\x1b[31m", "STATUS": "\x1b[32m",
+}
+# FORCE_COLOR is set by STAGE48_WSL.sh since Windows Python launched from
+# WSL does not always report a TTY even in a real interactive terminal.
+def report(kind: str, *items: object) -> None:
+    enabled = (os.environ.get("NO_COLOR") is None and
+               (sys.stdout.isatty() or os.environ.get("FORCE_COLOR") == "1"))
+    prefix = "[" + kind + "]"
+    if enabled:
+        prefix = COLORS.get(kind, "") + prefix + "\x1b[0m"
+    print(prefix, *items, flush=True)
+
+
 # Exactly ONE Frida Interceptor.attach() occurrence. It is NOT installed until
 # Python verifies the actual loaded DLL file against the pinned private SHA.
 AGENT = r"""
@@ -155,7 +171,9 @@ def snapshot_clo(folder: Path | None) -> dict[str, tuple[int, int]]:
     if folder is None:
         return {}
     result = {}
-    for path in folder.glob("*.clo"):
+    # CLO may be saved in a nested preset/profile folder. This never opens
+    # the file contents: only stat metadata, bounded to this user-given root.
+    for path in folder.rglob("*.clo"):
         try:
             st = path.stat()
             result[str(path.resolve()).casefold()] = (st.st_size, st.st_mtime_ns)
@@ -204,22 +222,33 @@ def list_processes_only() -> int:
 
 
 def choose_pid(device, specified: int | None) -> int:
+    processes = device.enumerate_processes()
     if specified is not None:
         if specified <= 0:
             raise ValueError("PID must be positive")
-        return specified
-    matches = [p for p in device.enumerate_processes()
-               if "sonicake" in p.name.casefold() and "manager" in p.name.casefold()]
+        target = next((p for p in processes if p.pid == specified), None)
+        if target is None:
+            raise ValueError("PID "+str(specified)+" not running; Manager may have restarted")
+        if "sonicake" not in target.name.casefold():
+            raise ValueError("PID "+str(specified)+" is "+repr(target.name)+
+                             ", NOT a Sonicake process; refusing to attach")
+        report("TARGET", "Verified explicit PID", target.pid, "|", target.name)
+        return target.pid
+    # Auto-detect ONE live Sonicake process; do not require the additional
+    # word 'Manager' in its EXE filename (legacy discovery was too strict).
+    matches = [p for p in processes if "sonicake" in p.name.casefold()]
     if len(matches) != 1:
-        raise ValueError("Frida found "+str(len(matches))+
-                         " processes with BOTH 'sonicake' and 'manager' in the name. "
-                         "Run STAGE48_WSL.sh --list-processes to see candidate PIDs, "
-                         "or supply the confirmed Manager --pid.")
-    print("[TARGET] Existing", matches[0].name, "PID", matches[0].pid, flush=True)
+        report("WARN", "Auto-discovery found", len(matches),
+               "Sonicake processes among", len(processes), "Windows processes")
+        for p in matches:
+            report("NOTE", "Candidate", p.pid, "|", p.name)
+        raise ValueError("Open exactly one Sonicake Manager, or use "
+                         "--list-processes and then --pid <confirmed PID>")
+    report("TARGET", "Auto-found", matches[0].name, "| PID", matches[0].pid)
     return matches[0].pid
 
 
-def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
+def execute(args: argparse.Namespace, folder: Path, state: dict) -> str:
     if os.name != "nt" or platform.architecture()[0] != "64bit":
         raise RuntimeError("Use an existing Windows x64 Python+Frida venv, NOT WSL Python")
     try:
@@ -229,9 +258,11 @@ def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
 
     device = frida.get_local_device()
     pid = choose_pid(device, args.pid)
-    state = {"pid": pid, "module_sha_verified": False,
-             "hook_attached": False, "metadata_valid": False,
-             "frida_errors": 0, "first_rejection": None}
+    state.update({"pid": pid, "module_sha_verified": False,
+                  "hook_attached": False, "metadata_valid": False,
+                  "frida_errors": 0, "first_rejection": None,
+                  "metadata_events": 0, "events_logged": 0,
+                  "stable_clo_observed": False})
     lock = threading.Lock()
     pending_modules: list[dict] = []
     capture_events = folder / "events.jsonl"
@@ -258,23 +289,49 @@ def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
             with lock:
                 json_line(capture_events, event)
                 kind = event.get("kind")
+                state["events_logged"] += 1
                 if kind == "module_found":
                     pending_modules.append(event)
                 elif kind == "hook_attached":
                     state["hook_attached"] = event.get("hooks_installed") == 1
                 elif kind == "metadata_hit":
-                    state["metadata_valid"] = event.get("valid") is True
-                    state["metadata"] = event
+                    if event.get("valid") is True:
+                        state["metadata_valid"] = True
+                        state["metadata_events"] += 1
+                        state["metadata"] = event
                 elif kind == "first_rejected_return":
                     state["first_rejection"] = event.get("reason")
                 elif kind in ("arm_error", "script_error", "binary_payload_REJECTED",
                               "invalid_payload"):
                     state["frida_errors"] += 1
+            # Print outside the lock. These are messages from Frida to Python,
+            # NEVER per-sample reads or logging in the target callback.
+            if kind == "metadata_hit":
+                report("META", "Native fractional output:",
+                       event.get("output_f64"), "f64 /",
+                       event.get("output_bytes"), "bytes, event",
+                       event.get("observed"),
+                       "| pointer", event.get("output_pointer"))
+            elif kind == "first_rejected_return":
+                report("NOTE", "First return ignored:", event.get("reason"),
+                       "(later returns are still evaluated)")
+            elif kind == "hook_attached":
+                report("HOOK", "Single hook armed at RVA 0x1190C")
+            elif kind in ("arm_error", "script_error", "binary_payload_REJECTED",
+                          "invalid_payload"):
+                report("ERROR", "Frida", kind, event.get("reason", event.get("error", "")))
 
         script.on("message", on_message)
         script.load()
-        print("[ARMING] Attached read-only observer; checking loaded DLL SHA before hook", flush=True)
+        report("NOTE", "Attached observer; verifying real loaded DLL SHA before hook")
         start = time.monotonic()
+        last_progress = 0.0
+        last_clo_poll = 0.0
+        last_mode = None
+        watch_count = len(baseline)
+        report("CLO", "Watching", str(args.completion_dir),
+               "| baseline files:", watch_count, "(recursive, metadata only)")
+        report("NOTE", "After [HOOK], perform ONE ordinary NAM-to-CLO conversion")
         while time.monotonic() - start < args.timeout:
             time.sleep(0.2)
             with lock:
@@ -283,7 +340,7 @@ def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
                 valid = state["metadata_valid"]
                 attached = state["hook_attached"]
             if errors:
-                return "BLOCKED_AGENT_ERROR", state
+                return "BLOCKED_AGENT_ERROR"
 
             if found is not None and not arm_attempted:
                 arm_attempted = True
@@ -299,31 +356,57 @@ def execute(args: argparse.Namespace, folder: Path) -> tuple[str, dict]:
                     state["module_base"] = found.get("base")
                 if not script.exports_sync.arm():
                     raise RuntimeError("Refused to install the single post-return hook")
-                print("[HOOK] One module-SHA-verified metadata-only site armed: RVA 0x1190C", flush=True)
+                report("HOOK", "Loaded DLL SHA256 verified; one hook at RVA 0x1190C")
+                report("NOTE", "NOW run one conversion in Manager; observing metadata, NOT audio")
 
-            if valid and attached:
-                if args.completion_dir is None:
-                    # No CLO evidence => cannot declare a completed conversion.
-                    return "METADATA_ONLY_COMPLETION_UNVERIFIED", state
+            now = time.monotonic()
+            if attached and valid and last_mode != "metadata":
+                last_mode = "metadata"
+                report("META", "Validated output metadata. Awaiting NEW/CHANGED stable CLO.")
+            elif attached and not valid and last_mode != "hook":
+                last_mode = "hook"
+                report("WAIT", "Hook active; waiting for a valid fractional return.")
+            if now - last_progress >= 15.0:
+                last_progress = now
+                report("WAIT", "elapsed", int(now-start), "s | attached=", attached,
+                       "| metadata=", valid, "| new CLO=", state["stable_clo_observed"])
+            # Watch regardless of when metadata arrives so a quickly written
+            # CLO is not missed; PASS still requires both independent gates.
+            if args.completion_dir is not None and now-last_clo_poll >= 1.0:
+                last_clo_poll = now
                 current = snapshot_clo(args.completion_dir)
                 modified = [(path, meta) for path, meta in current.items()
                             if meta[0] > 0 and baseline.get(path) != meta]
                 if modified:
                     newest = max(modified, key=lambda pair: pair[1][1])
                     if newest == selected:
-                        if selected_since and time.monotonic() - selected_since >= 3.0:
+                        if selected_since is not None and now-selected_since >= 3.0:
+                            if not state["stable_clo_observed"]:
+                                report("CLO", "NEW/CHANGED CLO stable:",
+                                       Path(newest[0]).name,
+                                       "|", newest[1][0], "bytes")
                             with lock:
                                 state["stable_clo_observed"] = True
                                 state["stable_clo_size_bytes"] = newest[1][0]
-                                # No CLO bytes/contents are read.
-                            return "METADATA_GUARD_PASS_CLO_STABLE", state
+                                state["stable_clo_path"] = newest[0]
                     else:
                         selected = newest
-                        selected_since = time.monotonic()
+                        selected_since = now
+                        report("CLO", "Detected new/changed CLO; checking 3s stability:",
+                               Path(newest[0]).name)
                 else:
                     selected = None
                     selected_since = None
-        return "INCOMPLETE_TIMEOUT", state
+            with lock:
+                success = (state["metadata_valid"] and state["hook_attached"] and
+                           state["module_sha_verified"] and
+                           state["stable_clo_observed"] and
+                           not state["frida_errors"])
+            if success:
+                return "METADATA_GUARD_PASS_CLO_STABLE"
+        if state["metadata_valid"]:
+            return "METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT"
+        return "INCOMPLETE_TIMEOUT"
     finally:
         if script is not None:
             try:
@@ -373,10 +456,35 @@ def main() -> int:
     status = "BLOCKED"
     problem = None
     try:
-        status, result = execute(args, folder)
-    except (Exception, KeyboardInterrupt) as e:
+        status = execute(args, folder, result)
+    except KeyboardInterrupt:
+        status = ("METADATA_OBSERVED_OPERATOR_INTERRUPTED" if result.get("metadata_valid")
+                  else "OPERATOR_INTERRUPTED_BEFORE_METADATA")
+        problem = "Operator interrupted (Ctrl+C); original Frida events were preserved"
+        report("WARN", problem)
+    except Exception as e:
+        status = ("BLOCKED_AFTER_METADATA" if result.get("metadata_valid")
+                  else "BLOCKED")
         problem = f"{type(e).__name__}: {e}"[:550]
-        print("[ERROR]", problem, flush=True)
+        report("ERROR", problem)
+    # Reconcile with on-disk events even if an asynchronous KeyboardInterrupt
+    # arrived between a valid event and a state mutation or function return.
+    try:
+        for line in (folder / "events.jsonl").read_text(encoding="utf-8").splitlines():
+            event = json.loads(line)
+            if event.get("kind") == "hook_attached" and event.get("hooks_installed") == 1:
+                result["hook_attached"] = True
+            elif event.get("kind") == "metadata_hit" and event.get("valid") is True:
+                result["metadata_valid"] = True
+                result["metadata"] = event
+            elif event.get("kind") == "first_rejected_return":
+                result["first_rejection"] = event.get("reason")
+    except (OSError, ValueError) as e:
+        report("WARN", "Could not reconcile events file:", e)
+    if status == "OPERATOR_INTERRUPTED_BEFORE_METADATA" and result.get("metadata_valid"):
+        status = "METADATA_OBSERVED_OPERATOR_INTERRUPTED"
+    if status == "BLOCKED" and result.get("metadata_valid"):
+        status = "BLOCKED_AFTER_METADATA"
     manifest = {
         "stage": 48,
         "status": status,
@@ -393,7 +501,11 @@ def main() -> int:
     }
     (folder / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n",
                                           encoding="utf-8")
-    print("[STAGE48]", status, "=>", folder / "manifest.json", flush=True)
+    report("STATUS", status, "| hooked:", bool(result.get("hook_attached")),
+           "| metadata:", bool(result.get("metadata_valid")),
+           "| stable CLO:", bool(result.get("stable_clo_observed")))
+    report("NOTE", "Saved", folder / "manifest.json")
+    report("NOTE", "Saved", folder / "events.jsonl")
     return 0 if status == "METADATA_GUARD_PASS_CLO_STABLE" else 2
 
 
