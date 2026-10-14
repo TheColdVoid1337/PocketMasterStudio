@@ -124,7 +124,7 @@ IO_AGENT = r"""
 'use strict';
 const spec = JSON_SPEC, site = spec.sites[0], guard = site.guard;
 let moduleFound = null, attached = false, observed = 0, firstReject = false;
-let inputProbeProcessor = null, inputProbeStep = 0, outputProbeDone = false;
+let inputProbeProcessor = null, inputProbeStep = 0, outputProbeDone = false, coeffProbeDone = false;
 function emit(data) { send(Object.assign({kind:'note',thread:Process.getCurrentThreadId()},data)); }
 function readable(p, n) {
   if (p.isNull() || n < 1) return false;
@@ -163,6 +163,7 @@ rpc.exports = {
             const record={observed:nth, input_f64:inputCount,
                           processor_pointer:processor.toString()};
             RATE_PROBE_EXTENSION
+            COEFF_PROBE_EXTENSION
             INPUT_PROBE_EXTENSION
             OUTPUT_PROBE_ENTER_EXTENSION
             this.observation = record;
@@ -291,11 +292,39 @@ IO_OUTPUT_LEAVE_EXTENSION = r"""
 """
 
 
+# Static native fractional coefficient base is referenced directly by
+# RVA 0x135F1: lea r9, [rip+0x2b3f68] => DLL RVA 0x2C7560.
+# At RVA 0x1376F..0x137775, phase index * 72 f64 selects 24 triples.
+# Read exactly 673 * 72 * 8 bytes once, after verified native DLL SHA.
+IO_COEFF_EXTENSION = r"""
+            if (!coeffProbeDone && record.step_numerator === 96000 &&
+                record.step_denominator === 44100 &&
+                inputCount === spec.coeff_probe.trigger_input_f64) {
+              const probe = spec.coeff_probe;
+              const addr = mod.base.add(probe.table_rva);
+              const expectedSize = probe.total_max_bytes;
+              if (!readable(addr,expectedSize))
+                return reject('native coefficient table unreadable',nth);
+              const payload = addr.readByteArray(expectedSize);
+              if (payload === null || payload.byteLength !== expectedSize)
+                return reject('native coefficient table copy incomplete',nth);
+              coeffProbeDone = true;
+              send({kind:'fractional_coeff_bank',valid:true,site:site.name,
+                    observed:nth,processor_pointer:processor.toString(),
+                    input_f64:inputCount,copied_bytes:expectedSize,
+                    table_rva:probe.table_rva,phase_count:probe.phase_count,
+                    stride_f64:probe.stride_f64,rate_numerator:96000,
+                    rate_denominator:44100,provenance:'native_dll_data_phase_bank'},
+                   payload);
+            }
+"""
+
+
 def validate_fractional_io(cfg: dict, address_fn) -> dict:
     """Reuse strict SHA/Windows path lifecycle validation; separate entry-hook guard."""
     if not isinstance(cfg,dict) or cfg.get("mode")!="guarded_fractional_io":
         raise ValueError("expected guarded_fractional_io descriptor")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe","output_probe"}:
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle","rate_probe","input_probe","output_probe","coeff_probe"}:
         raise ValueError("unexpected fractional I/O config fields")
     rate_probe=cfg.get("rate_probe")
     if rate_probe is not None:
@@ -324,6 +353,17 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
                                "numerator":88200,"denominator":48000,
                                "first_input_f64":6170612,"first_output_f64":3358150}):
             raise ValueError("Stage54 48k output prefix requires exact guarded full-stream geometry")
+    coeff=cfg.get("coeff_probe")
+    if coeff is not None:
+        if (rate_probe is None or not isinstance(coeff,dict) or
+                set(coeff)!={"table_rva","phase_count","stride_f64",
+                             "total_max_bytes","trigger_input_f64"} or
+                any(type(v) is not int for v in coeff.values()) or
+                coeff!={"table_rva":0x2C7560,"phase_count":673,"stride_f64":72,
+                        "total_max_bytes":387648,"trigger_input_f64":3}):
+            raise ValueError("Stage58 coefficient probe must be exactly 673*72 f64 at verified RVA")
+        if probe is not None or out_probe is not None:
+            raise ValueError("coefficient bank capture may not coexist with audio read probes")
     sites=cfg.get("sites")
     if not isinstance(sites,list) or len(sites)!=1:
         raise ValueError("fractional IO accepts exactly one hook")
@@ -352,6 +392,7 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
     proxy.pop("rate_probe",None)
     proxy.pop("input_probe",None)
     proxy.pop("output_probe",None)
+    proxy.pop("coeff_probe",None)
     proxy["mode"]="guarded_metadata"
     proxy["sites"]=[dict(site,guard={
         "kind":"processor_output","owner_reg":"rbx","owner_offset":80,
@@ -366,6 +407,8 @@ def validate_fractional_io(cfg: dict, address_fn) -> dict:
         normalized["input_probe"]=dict(probe)
     if out_probe is not None:
         normalized["output_probe"]=dict(out_probe)
+    if coeff is not None:
+        normalized["coeff_probe"]=dict(coeff)
     normalized["sites"]=[dict(normalized["sites"][0],guard={
         "kind":"fractional_entry_io",
         "vtable_rva":normalized["sites"][0]["guard"]["vtable_rva"],
@@ -697,6 +740,8 @@ def agent_source(cfg: dict) -> str:
     if cfg["mode"]=="guarded_fractional_io":
         return (IO_AGENT.replace("RATE_PROBE_EXTENSION",
                                  IO_RATE_EXTENSION if cfg.get("rate_probe") else "")
+                 .replace("COEFF_PROBE_EXTENSION",
+                          IO_COEFF_EXTENSION if cfg.get("coeff_probe") else "")
                  .replace("INPUT_PROBE_EXTENSION",
                           IO_INPUT_EXTENSION if cfg.get("input_probe") else "")
                  .replace("OUTPUT_PROBE_ENTER_EXTENSION",
