@@ -277,6 +277,134 @@ def choose_pid(device, args, cfg, report):
     return found[0].pid
 
 
+
+def launch_target(device, args, cfg, report, state):
+    """Pick an existing PID or SPAWN a fresh app under this session's ownership.
+
+    Frida device.spawn() starts the target suspended. capture() must install
+    the module observer and only then device.resume(pid). This also ensures
+    cleanup knows exactly which process this invocation owns.
+    """
+    lifecycle=cfg.get("lifecycle")
+    if lifecycle is None or lifecycle["start"]=="attach_only":
+        pid=choose_pid(device,args,cfg,report)
+        state.update(launched_by_tool=False,target_pid=pid,target_resumed=True)
+        return pid,False
+    if args.pid is not None:
+        raise ValueError("--pid cannot be combined with lifecycle.start="+
+                         lifecycle["start"]+"; choose attach_only for an existing PID")
+    match=cfg["target"]["process_name_contains"].casefold()
+    current=[p for p in device.enumerate_processes() if match in p.name.casefold()]
+    if lifecycle["start"]=="fresh" and current:
+        raise ValueError("lifecycle.start=fresh requires the application CLOSED first; "
+                         "detected "+str(len(current))+" matching process(es). "
+                         "Will NOT terminate a pre-existing user process.")
+    if lifecycle["start"]=="if_missing" and len(current)==1:
+        pid=current[0].pid
+        state.update(launched_by_tool=False,target_pid=pid,target_resumed=True)
+        report("TARGET","Reusing",current[0].name,"| PID",pid,
+               "(user-owned process will NOT be closed)")
+        return pid,False
+    if lifecycle["start"]=="if_missing" and len(current)>1:
+        raise ValueError("Multiple matching running processes; refusing arbitrary choice")
+    exe=Path(lifecycle["executable"])
+    if not exe.is_file():
+        raise FileNotFoundError("Configured Windows application EXE not found: "+str(exe)+
+                                "; edit lifecycle.executable in the stage JSON")
+    report("TARGET","Launching configured EXE via Frida spawn:",exe)
+    pid=device.spawn([str(exe)])
+    state.update(launched_by_tool=True,target_pid=pid,target_resumed=False,
+                 configured_executable=str(exe))
+    report("TARGET","Spawned own Manager PID",pid,
+           "(suspended until Frida observer is ready)")
+    return pid,True
+
+
+def process_exists(device,pid):
+    try:
+        return any(p.pid==pid for p in device.enumerate_processes())
+    except Exception:
+        return None
+
+
+def request_graceful_close_windows(pid: int) -> int:
+    """Send WM_CLOSE to TOP-LEVEL windows belonging to this exact owned PID.
+
+    No process kill, no taskkill and no window close for unrelated processes.
+    """
+    import ctypes
+    from ctypes import wintypes
+    user32=ctypes.WinDLL("user32",use_last_error=True)
+    enum_proc=ctypes.WINFUNCTYPE(wintypes.BOOL,wintypes.HWND,wintypes.LPARAM)
+    user32.EnumWindows.argtypes=(enum_proc,wintypes.LPARAM)
+    user32.EnumWindows.restype=wintypes.BOOL
+    user32.GetWindowThreadProcessId.argtypes=(wintypes.HWND,ctypes.POINTER(wintypes.DWORD))
+    user32.GetWindowThreadProcessId.restype=wintypes.DWORD
+    user32.PostMessageW.argtypes=(wintypes.HWND,wintypes.UINT,wintypes.WPARAM,wintypes.LPARAM)
+    user32.PostMessageW.restype=wintypes.BOOL
+    user32.IsWindow.argtypes=(wintypes.HWND,)
+    user32.IsWindow.restype=wintypes.BOOL
+    windows=[]
+    @enum_proc
+    def visit(hwnd,_):
+        owner=wintypes.DWORD()
+        user32.GetWindowThreadProcessId(hwnd,ctypes.byref(owner))
+        if owner.value==pid and user32.IsWindow(hwnd):
+            windows.append(hwnd)
+        return True
+    if not user32.EnumWindows(visit):
+        raise OSError("EnumWindows failed")
+    sent=0
+    for hwnd in windows:
+        if user32.PostMessageW(hwnd,0x0010,0,0):  # WM_CLOSE
+            sent+=1
+    return sent
+
+
+def close_owned_target(device,pid,state,cfg,report):
+    """Best-effort graceful shutdown, strictly limited to a tool-owned PID."""
+    lifecycle=cfg.get("lifecycle") or {}
+    if not state.get("launched_by_tool") or lifecycle.get("close")!="if_launched":
+        state["cleanup_status"]="NOT_OWNED_OR_DISABLED"
+        return
+    alive=process_exists(device,pid)
+    if alive is False:
+        state["cleanup_status"]="ALREADY_EXITED"
+        report("TARGET","Tool-launched process already exited; nothing to close")
+        return
+    if state.get("target_resumed") is False:
+        # Only a STILL SUSPENDED process that WE created may be force-cleaned
+        # because no GUI window exists for a graceful WM_CLOSE.
+        try:
+            device.kill(pid)
+            state["cleanup_status"]="KILLED_OWN_SUSPENDED_TARGET"
+            report("WARN","Cancelled own unresumed process",pid)
+        except Exception as e:
+            state["cleanup_status"]="SUSPENDED_PROCESS_CLEANUP_FAILED"
+            state["cleanup_error"]=str(e)[:200]
+        return
+    try:
+        sent=request_graceful_close_windows(pid)
+        state["close_messages_sent"]=sent
+        report("TARGET","Requested graceful WM_CLOSE for owned PID",pid,
+               "| top-level windows:",sent)
+        deadline=time.monotonic()+lifecycle["close_timeout_seconds"]
+        while time.monotonic()<deadline:
+            alive=process_exists(device,pid)
+            if alive is False:
+                state["cleanup_status"]="CLOSED_GRACEFULLY"
+                report("TARGET","Tool-launched application closed")
+                return
+            time.sleep(.25)
+        state["cleanup_status"]="STILL_RUNNING_AFTER_WM_CLOSE"
+        report("WARN","Owned process",pid,"did not exit within",
+               lifecycle["close_timeout_seconds"],"s; LEFT RUNNING (never force-kill active GUI)")
+    except Exception as e:
+        state["cleanup_status"]="GRACEFUL_CLOSE_FAILED"
+        state["cleanup_error"]=str(e)[:200]
+        report("WARN","Unable to close owned process gracefully:",str(e)[:200])
+
+
 def list_processes(report, cfg=None):
     if os.name != "nt" or platform.architecture()[0] != "64bit":
         raise RuntimeError("Process discovery requires Windows x64 Python")
@@ -389,8 +517,9 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
         raise RuntimeError("Guarded capture requires Windows x64 Python")
     import frida
     device=frida.get_local_device()
-    pid=choose_pid(device,args,cfg,report)
+    # Watch/config validation happens BEFORE spawning the application.
     watch,recursive,stable_seconds=resolve_completion(args,cfg)
+    pid,spawned=launch_target(device,args,cfg,report,state)
     baseline=snapshot(watch,recursive)
     report("CLO","Watching",watch,"| baseline files:",len(baseline))
     state.update(pid=pid,runtime_verified=False,ready=False,hits=0,
@@ -451,6 +580,12 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
 
         script.on("message",on_message)
         script.load()
+        if spawned:
+            # Module observer has already been registered inside suspended
+            # process; loaded DLL SHA still gates any future hook attachment.
+            device.resume(pid)
+            state["target_resumed"]=True
+            report("TARGET","Resumed tool-launched PID",pid)
         report("FRIDA","Observer attached (NO hook before loaded module SHA verified)")
         start=time.monotonic()
         heartbeat=start
@@ -529,3 +664,4 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
         if session is not None:
             try:session.detach()
             except Exception:pass
+        close_owned_target(device,pid,state,cfg,report)
