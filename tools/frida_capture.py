@@ -402,6 +402,7 @@ def main():
     ap.add_argument('--self-test',action='store_true')
     ap.add_argument('--list-processes',action='store_true',help='list Windows process candidates, ZERO hooks')
     ap.add_argument('--preflight',action='store_true',help='verify configured Windows EXE/CLO paths without Frida attach')
+    ap.add_argument('--lifecycle-smoke',action='store_true',help='start and WM_CLOSE owned GUI using JSON; NO hook or conversion')
     args=ap.parse_args()
     if args.self_test:
         self_test()
@@ -426,8 +427,19 @@ def main():
         except (RuntimeError,ValueError,OSError) as e:
             report('ERROR','Preflight failed:',e)
             return 2
+    if args.lifecycle_smoke:
+        if not guarded:
+            ap.error('--lifecycle-smoke requires a guarded_metadata JSON with lifecycle')
+        if args.module_file and sha(args.module_file)!=cfg['sha256']:
+            report('ERROR','Original DLL SHA mismatch; refusing managed GUI smoke')
+            return 2
+        try:
+            return frida_guarded.smoke_lifecycle(args,cfg,report)
+        except (RuntimeError,ValueError,OSError) as exc:
+            report('ERROR','Managed lifecycle smoke:',exc)
+            return 2
     if guarded and args.fresh:
-        ap.error('guarded metadata requires an existing process; --fresh is forbidden')
+        ap.error('guarded metadata uses JSON lifecycle.start, not --fresh')
     if guarded and args.auto_quiet:
         ap.error('guarded metadata needs a verified CLO, not --auto-quiet')
     args.out.mkdir(parents=True,exist_ok=True)
