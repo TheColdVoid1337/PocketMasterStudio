@@ -1,6 +1,6 @@
 {
   "stage": 48,
-  "status": "PREPARED_NOT_RUNTIME_EXECUTED",
+  "status": "NATIVE_FRACTIONAL_METADATA_OBSERVED_CLO_UNVERIFIED",
   "prepared_date": "2026-10-14",
   "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "proposed_site_rva": "0x1190c",
@@ -61,5 +61,58 @@
     "action": "Start exactly one Manager; run STAGE48_WSL.sh --list-processes; identify actual Manager PID from Windows process details; run STAGE48_WSL.sh --pid <CONFIRMED_PID> only when identity is established.",
     "runtime_status": "STILL_UNVERIFIED_NO_HOOK",
     "prohibited_inference": "Do not call BLOCKED an application crash or a signal/resampler mismatch."
+  },
+  "second_user_execution": {
+    "date_utc": "2026-10-14T10:10:52.856478+00:00",
+    "reported_manifest_status": "BLOCKED",
+    "actual_host_reason": "KeyboardInterrupt",
+    "actual_single_frida_hook_attached": true,
+    "actual_original_module_seen": {
+      "module": "5868USB.dll",
+      "loaded_base": "0x7ff862660000",
+      "path_kind": "Original Sonicake Manager installed DLL",
+      "verified_by_python_prior_to_arm": true,
+      "actual_hook_site": "0x7ff86267190c",
+      "relative_hook_rva": "0x1190c"
+    },
+    "first_rejection": {
+      "observation": 1,
+      "reason": "returned EAX count zero or over defensive bound"
+    },
+    "valid_fractional_metadata": {
+      "kind": "metadata_hit",
+      "observation": 18,
+      "thread": 17632,
+      "expected_vtable": "0x7ff8628a5170",
+      "actual_vtable": "0x7ff8628a5170",
+      "vtable_rva": "0x245170",
+      "output_pointer": "0x1fe13716b80",
+      "output_f64": 114,
+      "output_bytes": 912,
+      "output_range_readable": true
+    },
+    "raw_audio_captured": false,
+    "native_48000Hz_audio_bytes_captured": false,
+    "clo_completion_verified": false,
+    "manifest_incorrect": {
+      "hook_count_reported": 0,
+      "events_prove_hook_count": 1,
+      "state_reported": {},
+      "events_prove_valid_metadata": true,
+      "cause": "KeyboardInterrupt unwound execute() before it returned state; main() discarded partial mutable state and did not reconcile events.jsonl."
+    },
+    "corrected_interpretation": "RUNTIME_FRACTIONAL_METADATA_OBSERVED_CLO_UNVERIFIED",
+    "limits": "One hook and valid dynamic fractional buffer metadata observed, not a successful/failed full NAM->CLO conversion; no values for 114 f64 read, no downstream output parity."
+  },
+  "code_remediation": {
+    "auto_process_discovery": "Auto-select exactly one Sonicake-named Windows process, explicit PID optional; refuse ambiguous or unrelated explicit PID.",
+    "color_ui": "Colored console labels, immediate hook/metadata alerts and 15s progress.",
+    "clo_watch": "Recursively watches new/changed .clo metadata under selected Windows APPDATA folder, stabilizes 3s; no CLO content read.",
+    "state_integrity": "Pass mutable state through execute; on Ctrl+C recover hook and metadata from events.jsonl and use METADATA_OBSERVED_OPERATOR_INTERRUPTED rather than wrong BLOCKED and hook_count 0.",
+    "regression_tests": "self-test recreates exact 4-event scenario, checks recovery of 114 f64 metadata, mock PID auto-detection and nested CLO stats.",
+    "wsl_wrapper": "Auto-derive APPDATA through existing Windows Python, colored one-command operation; no PID flag required.",
+    "online_runtime_verification": "PENDING_USER_RERUN",
+    "no_audio_reads": true,
+    "one_hook_unchanged": true
   }
 }
