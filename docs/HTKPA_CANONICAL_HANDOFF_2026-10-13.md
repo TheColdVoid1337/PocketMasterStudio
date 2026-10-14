@@ -1,3 +1,7 @@
+> **SUPERSEDED AS NEW-CHAT ENTRY POINT — 2026-10-14.** Use [docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md](dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md) first, then latest `research/htkpa/RE_LOG.md`. This earlier Stage24B handoff is retained for historical research evidence; its "read this first" claim and next steps are no longer current. Stage48 has now confirmed original native fractional metadata plus a stable CLO, and universal Frida GUI lifecycle is validated separately; actual vendor 48-kHz f64 contents remain unobserved.
+
+---
+
 # POCKET_MASTER / HTKPA — CANONICAL CONTINUATION HANDOFF
 
 **State:** 2026-10-13, immediately after publication of the tracked Stage24B Windows one-click capture bundle.  
