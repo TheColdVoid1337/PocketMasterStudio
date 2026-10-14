@@ -149,11 +149,13 @@ def main():
     p.add_argument("--cxx",default="c++")
     a=p.parse_args()
     native,provenance=read_native(a.stage58)
-    report={"stage":59,"schema_version":1,"created_utc":datetime.now(timezone.utc).isoformat(),
+    report={"stage":59,"schema_version":2,"created_utc":datetime.now(timezone.utc).isoformat(),
             "status":"NATIVE_PUBLIC_COEFFICIENT_BANK_LAYOUT_NORMALIZED",
             "native":provenance,
             "public_attn_req":180.15,
-            "scope":"direct 673x72 table comparison after verified public SSE2 coefficient layout normalization; no phase/tap/sample shift",
+            "scope":"673x72 indexwise table comparison after exact upstream SIMD shuffle2_3 inverse; no phase/tap/sample shift",
+            "comparison_layout":"native scalar tap triples; public SIMD pair packing converted to scalar when explicitly reported by compiled library",
+            "layout_inverse_mapping_per_two_taps":list(SIMD_TO_SCALAR),
             "versions":{}}
     with tempfile.TemporaryDirectory(prefix="htkpa_stage59_private_") as path:
         temp=Path(path)
