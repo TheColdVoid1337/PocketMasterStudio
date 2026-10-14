@@ -1,6 +1,6 @@
 # Stage48 — native post-fractional metadata and CLO completion gate
 
-**State of research: NATIVE_FRACTIONAL_METADATA_OBSERVED_CLO_UNVERIFIED.**
+**State of research: METADATA_GUARD_PASS_CLO_STABLE (original DLL runtime observation and stable CLO CONFIRMED; binary sample parity still NOT TESTED). Managed GUI shutdown bug fixed in shared tools but awaits Windows rerun.**
 
 Stage47 statically identified the original Sonicake native last-stage return site RVA `0x1190C` and templated fractional vtable RVA `0x245170`. An actual Stage48 Windows observation of the SHA-pinned original `5868USB.dll` produced the following evidence:
 
@@ -9,6 +9,21 @@ Stage47 statically identified the original Sonicake native last-stage return sit
 - Observation **#18**, thread `17632`, confirmed `metadata_hit valid=true`; actual vtable `0x7ff8628a5170`, which equals module base + `0x245170`; **114 f64 / 912 bytes** output span at `0x1fe13716b80`, mapped/readable.
 - The previous Windows runner's **manifest falsely recorded `BLOCKED`, `hook_count=0`, `state={}`** after Ctrl+C, despite the independently retained `events.jsonl`. This is corrected research status, NOT native final-audio parity.
 - No sound sample bytes were read and no new/changed stable CLO completion was demonstrated by that run.
+
+
+## 2026-10-14 — full original native metadata and CLO completion PASS (user supplied archive)
+
+The actual user completed a normal NAM→CLO conversion using the canonical universal `tools/FRIDA_WSL.sh` and stage-only `frida.json`:
+
+- `--preflight`: real Windows EXE **exists** at `C:\\Program Files\\Sonicake\\Sonicake Manager\\Sonicake Manager.exe`, CLO folder **exists** at `C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager`, and universal WSL/Python self-tests all passed (**11/11** offline tests).
+- Universal Frida spawned its OWN Sonicake Manager PID **4524** in suspended mode and then resumed it after attaching the observer. The real `5868USB.dll` SHA was verified before arming **one** guarded metadata hook.
+- `metadata_hit` at observation **18**: dynamically recognized vtable `0x7ff85e6d5170` (module base `0x7ff85e490000` + RVA `0x245170`); one output block **114 f64 / 912 bytes**; result-pointer mapped/readable. No f64 audio samples read.
+- Newly modified output `C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager\\clo\\clofile.clo` became stable: **8840 bytes**, not its actual content. The matching `manifest.json` from the user-provided private `frida_20261014_112002_862142.tar.gz` states `status=METADATA_GUARD_PASS_CLO_STABLE`, `completion_verified=true`, `hook_count=1`, `runtime_verified=true`.
+- **Independent lifecycle bug:** After the observer succeeded, `process_cleanup_status=GRACEFUL_CLOSE_FAILED`, because `ctypes.WinDLL("user32").EnumWindows` was called with **one** argument despite `argtypes=(callback,LPARAM)`, yielding `this function takes 2 arguments (1 given)`. The universal runner exited **code 3** for failed requested automatic GUI shutdown, **not** for native metadata/CLO failure. The user reported having to close Manager manually.
+
+**Universal fix:** `tools/frida_guarded.py` now calls `user32.EnumWindows(visit, 0)`, passing the required LPARAM, and `tools/test_frida_universal.py` adds a dedicated mocked-Win32 regression ensuring both parameters and PID-scoped `WM_CLOSE` (no unrelated window closed). Generic teardown now emits separate status messages for script unload, Frida session detach and GUI shutdown, so any future UI stall can be located. The fix does **not** add hooks, audio reads or change Stage48 JSON. **These code fixes have NOT YET been re-executed on the user's Windows host**, so successful automatic closure remains pending verification.
+
+Importantly, Stage48 acceptance means only: actual vendor fractional processor executed and produced guarded output metadata during a conversion that created a stable CLO. It does **not** yet measure numerical values of the original 48-kHz post-fractional waveform or the full NAM fitting/serialization algorithm. Stage49 binary capture remains a distinct research decision, not implicit in this success.
 
 ## Stage48 is configuration and evidence ONLY
 
