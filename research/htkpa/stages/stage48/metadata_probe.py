@@ -278,7 +278,7 @@ def list_processes_only() -> int:
         print("[DISCOVERY] No Sonicake/Manager-related process name found.", flush=True)
         print("[DISCOVERY] Make sure Manager is OPEN, then use Windows Task Manager")
         print("[DISCOVERY] Details -> PID, or PowerShell Get-CimInstance Win32_Process.")
-    print("[DISCOVERY] ZERO hooks installed. Supply the real Manager PID as --pid <NUMBER>.")
+    report("DISCOVERY", "ZERO hooks installed. Normal Stage48 run auto-finds ONE Sonicake process; --pid is optional.")
     return 0
 
 
