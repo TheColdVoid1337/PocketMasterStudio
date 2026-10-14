@@ -70,7 +70,7 @@ bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json
 
 The wrapper uses the existing Windows Python Frida venv and checks original `5868USB.dll` SHA. For Stage48 `start=fresh` it verifies Manager is closed, launches the configured EXE under Frida, and closes **only its own** PID gracefully after the run. No PID is needed. In `attach_only` mode it instead discovers one running target.
 
-For `mode=guarded_metadata` the Windows host derives the CLO watch directory from the **Windows** `APPDATA` environment plus config `completion.appdata_subdir`. The Stage48 value is `Sonicake/Sonicake Manager`. Set `FRIDA_WATCH_CLO=/mnt/c/...` only for an override; in this case WSL checks it exists.
+For `mode=guarded_metadata`, the Windows host uses `completion.path` when it is specified, or otherwise derives the directory from Windows `APPDATA` and `completion.appdata_subdir`. Stage48 specifies the user's actual `C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager` location in JSON. Set `FRIDA_WATCH_CLO=/mnt/c/...` only to override this path; the wrapper checks overrides exist.
 
 Wait for a confirmed **`[HOOK]`** and then perform ONE normal NAM→CLO conversion. Colored events `[TARGET]`, `[HOOK]`, `[META]`, `[CLO]`, `[WAIT]`, `[STATUS]` report what happened. A normal guarded success is **`METADATA_GUARD_PASS_CLO_STABLE`**, which requires (a) original DLL file and actual runtime module SHA matching the pinned SHA; (b) exactly one Frida hook at the declared RVA; (c) live last-stage vtable matching the declared vtable RVA; (d) a positive mapped/bounded output pointer/count without reading sample values; (e) a NEW/CHANGED CLO stable for three seconds. This is **not a native audio parity claim**.
 
