@@ -3,7 +3,7 @@
   "date": "2026-10-14",
   "target_manager": "Sonicake Manager V1.5.2 for Windows",
   "target_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
-  "status": "OFFLINE_CI_PASS_WINDOWS_NOT_RUN",
+  "status": "NATIVE_F64_PREFIX_CAPTURED_CLO_STABLE_CLEANUP_MANUAL",
   "gate_a": {
     "status": "STATIC_POINTER_PROVENANCE_PASS_WITH_LIFETIME_AND_CAPACITY_LIMITATIONS",
     "machine_code_verified_with": "LLVM 17.0.0 objdump, original private DLL",
@@ -30,7 +30,7 @@
     "gui_lifecycle_smoke_passed_separately": true
   },
   "gate_b": {
-    "status": "GITHUB_ACTIONS_OFFLINE_PASS_WINDOWS_PENDING",
+    "status": "WINDOWS_BINARY_CAPTURE_ACCEPTED_LIFECYCLE_EXCEPTION",
     "mode": "guarded_f64_binary",
     "config": "research/htkpa/stages/stage49/frida.json",
     "universal_cli": "tools/frida_capture.py",
@@ -46,8 +46,8 @@
     "dynamic_vtable_guard_required": true,
     "clo_completion_required": true,
     "binary_output_private_only": "research/_LOCAL_FILES/frida_captures/frida_*/block_0001.bin",
-    "offline_suite_result": "GitHub Actions 38568363327: 16/16 PASS, Python compile and self-test PASS, generated JS syntax PASS, Bash syntax PASS; USER WSL still pending",
-    "native_windows_result": "NOT_RUN"
+    "offline_suite_result": "Actual user WSL: Python compile/self-test PASS, 16/16 unittest PASS in 0.739 s, bash syntax and Windows path preflight PASS",
+    "native_windows_result": "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE (single SHA-verified binary_hit + stable CLO); cleanup only after user closed GUI"
   },
   "user_required_windows_gate": [
     "WSL pull",
@@ -57,11 +57,77 @@
     "one controlled Manager conversion after confirmed hook"
   ],
   "limitations": [
-    "No native 48k f64 values captured by this Stage49 change yet",
+    "First 32 native post-fractional f64 samples verified, but NOT aligned to previously public 1067-sample sequence",
     "No public/native numerical parity claim",
-    "Initial 32 sample prefix is not aligned to 1067 public startup samples",
     "PE mapping alone is not buffer allocation capacity proof",
     "Production DSP and NAM->CLO fitter unchanged",
-    "No private DLL/WAV/NAM/CLO/sample data in Git"
-  ]
+    "No private DLL/WAV/NAM/CLO/sample data in Git",
+    "Manual Manager close was necessary during first Stage49 teardown; follow-up fix is CI-tested but not yet Windows-accepted"
+  ],
+  "first_native_windows_execution": {
+    "date_local": "2026-10-14 (Asia/Bangkok)",
+    "source": "User WSL terminal transcript and PRIVATE uploaded frida_20261014_131026_259514.tar.gz",
+    "private_archive_sha256": "7c375c3ee25abf6f57632c966a11c21514fe38605384bab2aab264831a6ba837",
+    "status": "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE",
+    "user_wsl_tests": "16/16 PASS; Python compile/self-test + bash -n + preflight PASS",
+    "target_manager": "Sonicake Manager V1.5.2, tool-owned PID 12440",
+    "dll_source": "C:\\Program Files\\Sonicake\\Sonicake Manager\\assets\\5868USB.dll",
+    "verified_runtime_module_base": "0x7ff85dae0000",
+    "single_hook_rva": "0x1190c",
+    "runtime_hook_va": "0x7ff85daf190c",
+    "expected_and_observed_frac_vtable": "0x7ff85dd25170",
+    "successful_observation": 18,
+    "original_native_output_metadata": {
+      "f64": 114,
+      "bytes": 912,
+      "ptr": "0x24a237ea4a0"
+    },
+    "binary_payload": {
+      "private_file": "block_0001.bin",
+      "f64": 32,
+      "bytes": 256,
+      "sha256": "65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae",
+      "little_endian_f64": true,
+      "all_finite": true,
+      "zeros": 0,
+      "min": -1.5897965351580117,
+      "max": 2.1873822524247095,
+      "mean": 0.009503496171527891,
+      "rms": 0.5700806961985158
+    },
+    "clo": {
+      "changed_and_stable": true,
+      "size_bytes": 8840,
+      "filename": "clofile.clo"
+    },
+    "archive_members": [
+      "config.json",
+      "manifest.json",
+      "events.jsonl",
+      "HANDOFF.md",
+      "block_0001.bin"
+    ],
+    "journal_events": 4,
+    "actual_cleanup": {
+      "user_report": "Stopped at 'Capture loop ended; removing Frida instrumentation' until manually closing Sonicake Manager",
+      "historical_manifest_cleanup_status": "CLOSED_GRACEFULLY",
+      "wm_close_messages_sent": 0,
+      "detached_reason": "process-terminated",
+      "interpretation": "Not evidence of automatic app closure; user manually closed. Synchronous script.unload blocking is consistent with output ordering but not independently profiled."
+    },
+    "verdict": "FIRST_REAL_NATIVE_POST_FRACTIONAL_F64_PREFIX_ACCEPTED_NOT_NUMERICAL_PARITY"
+  },
+  "post_run_tool_followup": {
+    "purpose": "Make successful audio observation salient and avoid blocking Frida teardown",
+    "new_console_markers": [
+      "[CAPTURE] native f64 saved + SHA256",
+      "[READY] binary verified, waiting for CLO",
+      "[PASS] native samples + stable CLO verified before cleanup",
+      "[CLOSE] owned GUI request before unload on completed binary run"
+    ],
+    "behavior": "Completed owned guarded_f64_binary closes own PID through WM_CLOSE before synchronous unload; process exit releases hooks; metadata-only Stage48 preserves order",
+    "zero_wm_close": "Future external/manual exit recorded EXITED_WITHOUT_WM_CLOSE, never CLOSED_GRACEFULLY",
+    "offline_ci": "GitHub Actions PASS for lifecycle/progress changes; Windows verification PENDING",
+    "stage49_native_retake_required": false
+  }
 }
