@@ -221,7 +221,7 @@ def build_config(args):
 def archive(directory, destination):
     members=(['config.json','manifest.json','events.jsonl','HANDOFF.md']
              + sorted(p.name for p in directory.glob('block_*.bin'))
-             + [name for name in ('input_0001.bin','input_0002.bin')
+             + [name for name in ('input_0001.bin','input_0002.bin','output_0001.bin')
                 if (directory/name).is_file()])
     digest={}
     with tarfile.open(destination,'w:gz') as t:
@@ -547,7 +547,8 @@ def main():
         hook_count=(1 if state.get('hook_attached') else 0) if guarded
                    else (len(cfg['sites']) if state.get('ready') else 0),
         contains_audio_bytes=(bool(state.get('binary_valid',False)
-                                     or state.get('input_prefix_events',0)) if guarded
+                                     or state.get('input_prefix_events',0)
+                                     or state.get('output_probe_valid',False)) if guarded
             else bool(any(f['type'] in ('f64_binary','f64_block','f64_slice','f64')
                          for site in cfg['sites'] for f in site['fields']))),
         completion_verified=bool(state.get('completion_verified',False)),
@@ -555,7 +556,7 @@ def main():
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
-                 else ('SHA/vtable-guarded fractional I/O with exactly 3+256 native 96k input f64'
+                 else ('SHA/vtable-guarded fractional I/O with 3+256 native 96k input f64 and 32 native 48k output f64'
                        if cfg.get('input_probe') else
                        'SHA/vtable-guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads')
                  if cfg['mode']=='guarded_fractional_io'
@@ -567,9 +568,9 @@ def main():
                    if cfg.get('mode')=='guarded_metadata' else
                    ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
                     'EAX output onLeave; exactly 3+256 private 96000-Hz f64 captured '
-                    'from native RDX for a single 96000->44100 processor; no native '
-                    'output audio copied. Compare to previously SHA-pinned 32-f64 native '
-                    'output; stable CLO mandatory; parity NOT claimed.')
+                    'from native RDX for a single 96000->44100 processor; PLUS '
+                    'first 32 f64 of independent 88200->48000 native output from '
+                    'the R9 output pointer reference; SHA-gated private blocks.')
                    if cfg.get('input_probe') else
                    ('Guarded SINGLE FRACTIONAL FUNCTION ENTRY hook; real R8D input onEnter, '
                     'EAX output onLeave, SAME instance; no waveform reads; stable CLO mandatory; '
@@ -608,7 +609,7 @@ def main():
             return 3
     return 0 if status in ('CAPTURED','CAPTURED_HOOKS_ONLY','METADATA_GUARD_PASS_CLO_STABLE',
                            'FRACTIONAL_IO_TRACE_CLO_STABLE',
-                           'FRACTIONAL_INPUT_PREFIXES_CLO_STABLE',
+                           'FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE',
                            'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
