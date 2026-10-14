@@ -311,6 +311,27 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertNotIn(".readByteArray(",guarded.agent_source(self.cfg))
         self.assertNotIn("trace",original)
 
+    def test_stage50_trace_journal_reconcile_idempotent(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            events=[
+                {"kind":"hook_attached","hooks_installed":1},
+                {"kind":"trace_return","site":"post_fractional_output",
+                 "observed":1,"output_f64":0},
+                {"kind":"trace_reject","observed":1,"reason":"return count zero or out of bounds"},
+                {"kind":"trace_return","site":"post_fractional_output",
+                 "observed":18,"output_f64":114},
+                {"kind":"trace_cap_reached","observations":64},
+            ]
+            (root/"events.jsonl").write_text(
+                "".join(json.dumps(x)+"\\n" for x in events),encoding="utf-8")
+            state={"trace_returns":2,"trace_rejections":1}
+            guarded.reconcile(root,state)
+            guarded.reconcile(root,state)
+            self.assertEqual(state["trace_returns"],2)
+            self.assertEqual(state["trace_rejections"],1)
+            self.assertTrue(state["trace_cap_reached"])
+
     def test_stage50_trace_override_is_strictly_bounded(self):
         raw=json.loads(STAGE50.read_text(encoding="utf-8"))
         for edit in [
