@@ -109,3 +109,40 @@ bash research/htkpa/stages/stage48/STAGE48_WSL.sh --pid <ACTUAL_MANAGER_PID>
 Replace the placeholder with the number actually observed and check that the application has the expected Windows executable path in Task Manager -> Details (or Windows PowerShell `Get-CimInstance Win32_Process`) before attaching. The `--pid` option was already supported; the new discovery command does not arm a hook or create a conversion manifest. If Frida lists no matching name, inspect actual Windows process names, ensure Manager is open, and **STOP** instead of targeting another process. Only after `[HOOK]` should one normal NAM→CLO operation start.
 
 This initial attempt leaves Stage48 **PREPARED / RUNTIME NOT OBSERVED**, with process-name diagnosis open. Previous acceptance/security requirements remain unchanged.
+
+## 2026-10-14 — Actual first ATTACHED run: confirmed fractional output metadata, but old manifest lied
+
+The user supplied the **actual events.jsonl** and manifest from a native Windows run on the original DLL:
+
+- Module loaded: `5868USB.dll` base `0x7ff862660000`; `hook_attached` at `0x7ff86267190c` (RVA **`0x1190c`**, precisely as source predicted).
+- First return was rejected as `returned EAX count zero or over defensive bound` (observed index 1). This is just a guard rejection, **not proof of native error**.
+- **Observed index 18 succeeded:** event `metadata_hit valid=true`, thread `17632`, last-stage vtable `0x7ff8628a5170` (module base plus RVA **`0x245170`**); pointer `0x1fe13716b80`, **`114 f64` = `912 bytes`** and buffer-mapped-range check `true`.
+- **No actual audio samples were read. No stable CLO was verified.** The user interrupted waiting with Ctrl+C.
+
+The former Stage48 host had an instrumentation/reporting bug: `execute()` held state locally, and a `KeyboardInterrupt` unwound it before returning; `main()` wrote `state={}`, `hook_count=0`, `status=BLOCKED`, although persisted events prove **1 hook and a genuine valid native fractional metadata observation**. **Do not use that stale manifest to invalidate the event journal.** The correct research status is `NATIVE_FRACTIONAL_METADATA_OBSERVED_CLO_UNVERIFIED`, not an established full NAM→CLO PASS and not a failed resampler.
+
+### UX restoration / regression fix (code changed, native rerun not yet performed)
+
+- **Automatic Manager PID discovery restored:** start one Manager first; Stage48 now selects the unique Frida process whose executable name contains `Sonicake`, without requiring a manually typed PID. Explicit `--pid` remains as a fallback; ambiguous/non-Sonicake targets are rejected.
+- **Colorful console restored:** colored `[TARGET]`, `[HOOK]`, `[META]`, `[CLO]`, `[WAIT]` and `[STATUS]`; immediate success notification shows 114-f64-like result instead of waiting silently; an update appears every ~15 seconds.
+- **CLO watcher improved:** scans nested `*.clo` folders by stat metadata, detects new/changed nonempty files, and requires 3-second stability. It never reads CLO contents.
+- **Windows APPDATA autodiscovery:** WSL shell wrapper calculates the current actual Windows user's `%APPDATA%\Sonicake\Sonicake Manager` through the Windows Python interpreter; manual `FRIDA_WATCH_CLO` overrides it when desired. No hardcoded user names in shell source.
+- **Operator Ctrl+C is now lossless:** shared state is preserved and `events.jsonl` is re-read before writing the manifest. If hook and metadata happened but CLO was not verified, manifest says `METADATA_OBSERVED_OPERATOR_INTERRUPTED`, `hook_count=1` and contains the last valid metadata. No false full PASS.
+- **Regressions:** local `--self-test` now includes synthetic replay of the user's exact sequence (module_found, hook_attached, first rejection, valid 114-f64 metadata) and a nested fake CLO directory test. Running this self-test does NOT load Frida or the vendor DLL.
+
+**New preferred command — Manager already open, no PID required:**
+
+```bash
+set -e
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+git pull --ff-only origin main
+
+# Optional: omit this line; WSL wrapper now automatically detects
+# the actual Windows user's APPDATA\Sonicake\Sonicake Manager directory.
+export FRIDA_WATCH_CLO="/mnt/c/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager"
+
+bash research/htkpa/stages/stage48/STAGE48_WSL.sh
+```
+
+Wait for `[HOOK]`, then one normal conversion. The console should print a `[META]` event upon observing actual returned f64 count. A new/changed stable CLO plus valid metadata is still mandatory for `METADATA_GUARD_PASS_CLO_STABLE`. Otherwise the runner preserves a truthful partial result on timeout or Ctrl+C. The **fix is in GitHub but has not been verified on the user's Windows session**; run the WSL offline `--self-test` before hooking. Never escalate to dual input/output Frida hooks after a crash.
