@@ -8,7 +8,7 @@
   },
   "completion": {
     "type": "changed_clo",
-    "appdata_subdir": "Sonicake/Sonicake Manager",
+    "path": "C:/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
     "recursive": true,
     "stable_seconds": 3
   },
@@ -30,5 +30,11 @@
         "max_observations": 256
       }
     }
-  ]
+  ],
+  "lifecycle": {
+    "executable": "C:/Program Files/Sonicake/Sonicake Manager/Sonicake Manager.exe",
+    "start": "fresh",
+    "close": "if_launched",
+    "close_timeout_seconds": 8
+  }
 }
