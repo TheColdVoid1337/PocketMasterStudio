@@ -15,3 +15,6 @@ __pycache__/
 # Private, user-owned HTKPA reverse-engineering inputs for local Codex work.
 # Keep the entire tree out of GitHub (vendor DLL, NAM, WAV, CLO, capture ZIPs).
 /research/_LOCAL_FILES/
+
+# Local-only private HTKPA chat rollover bundles (may be downloaded to repo root).
+/POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_*.zip
