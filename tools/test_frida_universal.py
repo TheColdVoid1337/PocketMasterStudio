@@ -22,6 +22,7 @@ STAGE49=HERE.parent/"research"/"htkpa"/"stages"/"stage49"/"frida.json"
 STAGE50=HERE.parent/"research"/"htkpa"/"stages"/"stage50"/"frida.json"
 STAGE51=HERE.parent/"research"/"htkpa"/"stages"/"stage51"/"frida.json"
 STAGE52=HERE.parent/"research"/"htkpa"/"stages"/"stage52"/"frida.json"
+STAGE53=HERE.parent/"research"/"htkpa"/"stages"/"stage53"/"frida.json"
 
 class UniversalFridaTests(unittest.TestCase):
     @classmethod
@@ -282,6 +283,29 @@ class UniversalFridaTests(unittest.TestCase):
                 f.write_text(js,encoding="utf-8")
                 p=subprocess.run(["node","--check",str(f)],capture_output=True,text=True)
                 self.assertEqual(p.returncode,0,p.stderr)
+
+    def test_stage53_fractional_rate_field_contract(self):
+        config=core.validate(json.loads(STAGE53.read_text(encoding="utf-8")))
+        previous=core.validate(json.loads(STAGE52.read_text(encoding="utf-8")))
+        self.assertEqual(config["sites"],previous["sites"])
+        self.assertEqual(config["rate_probe"],
+                         {"numerator_offset":4104,"denominator_offset":4112})
+        generated=guarded.agent_source(config)
+        self.assertEqual(generated.count("Interceptor.attach("),1)
+        self.assertEqual(generated.count(".readDouble("),2)
+        self.assertEqual(guarded.agent_source(previous).count(".readDouble("),0)
+        self.assertIn("record.step_output_input_ratio",generated)
+        self.assertNotIn("readByteArray(",generated)
+
+    def test_stage53_bad_rate_offsets_refused(self):
+        raw=json.loads(STAGE53.read_text(encoding="utf-8"))
+        for field,bad in [("numerator_offset",4105),("denominator_offset",4120),
+                          ("numerator_offset",True)]:
+            with self.subTest(field=field,bad=bad):
+                cfg=copy.deepcopy(raw)
+                cfg["rate_probe"][field]=bad
+                with self.assertRaises((ValueError,TypeError,KeyError)):
+                    core.validate(cfg)
 
     def test_stage52_exact_fractional_entry_one_hook_on_enter_and_on_leave(self):
         cfg=core.validate(json.loads(STAGE52.read_text(encoding="utf-8")))
