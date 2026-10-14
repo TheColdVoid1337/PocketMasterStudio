@@ -107,6 +107,66 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(running["cleanup_status"],"CLOSED_GRACEFULLY")
         self.assertEqual(d.killed,[14001])
 
+    def test_owned_gui_close_comes_before_binary_unload_after_stable_clo(self):
+        cfg=core.validate(json.loads(STAGE49.read_text(encoding="utf-8")))
+        events=[]
+        report=lambda *args:events.append(("log",args[0],args[1:]))
+        class Script:
+            def unload(self):events.append(("script_unload",))
+        class Session:
+            def detach(self):events.append(("session_detach",))
+        state={"launched_by_tool":True,"target_resumed":True,
+               "runtime_verified":True,"hook_attached":True,
+               "binary_valid":True,"completion_verified":True}
+        def owned_close(device,pid,out_state,config,callback):
+            events.append(("close_owned",pid))
+            out_state["cleanup_status"]="CLOSED_GRACEFULLY"
+            out_state["close_messages_sent"]=3
+        with patch("frida_guarded.close_owned_target",side_effect=owned_close), \
+             patch("frida_guarded.process_exists",return_value=False):
+            guarded.finalize_guarded_capture(object(),12440,state,cfg,report,
+                                            Script(),Session())
+        self.assertEqual(state["cleanup_order"],"OWNED_GUI_BEFORE_FRIDA")
+        self.assertEqual(state["frida_cleanup_status"],"TARGET_EXIT_RELEASED_HOOK")
+        self.assertEqual(state["close_messages_sent"],3)
+        self.assertEqual([e for e in events if e[0] in
+                          ("close_owned","script_unload","session_detach")],
+                         [("close_owned",12440)])
+        self.assertTrue(any(e[0]=="log" and e[1]=="CLOSE" for e in events))
+
+    def test_stage48_unload_first_path_remains_unchanged(self):
+        cfg=self.cfg
+        events=[]
+        class Script:
+            def unload(self):events.append("unload")
+        class Session:
+            def detach(self):events.append("detach")
+        def closed(device,pid,state,config,report):
+            events.append("close")
+            state["cleanup_status"]="CLOSED_GRACEFULLY"
+        state={"launched_by_tool":True,"target_resumed":True,
+               "runtime_verified":True,"hook_attached":True,
+               "metadata_valid":True,"completion_verified":True}
+        with patch("frida_guarded.close_owned_target",side_effect=closed):
+            guarded.finalize_guarded_capture(object(),4524,state,cfg,
+                                             lambda *a:None,Script(),Session())
+        self.assertEqual(events,["unload","detach","close"])
+        self.assertEqual(state["cleanup_order"],"FRIDA_BEFORE_OWNED_GUI")
+
+    def test_exited_without_wm_close_is_not_claimed_graceful(self):
+        cfg=self.cfg
+        class Device:
+            pass
+        state={"launched_by_tool":True,"target_resumed":True}
+        logs=[]
+        with patch("frida_guarded.process_exists",side_effect=[True,False]), \
+             patch("frida_guarded.request_graceful_close_windows",return_value=0):
+            guarded.close_owned_target(Device(),12440,state,cfg,
+                                       lambda *a:logs.append(a))
+        self.assertEqual(state["cleanup_status"],"EXITED_WITHOUT_WM_CLOSE")
+        self.assertEqual(state["close_messages_sent"],0)
+        self.assertTrue(any("NOT confirmed" in str(e) for e in logs))
+
     def test_win32_enumwindows_requires_lparam_and_only_closes_owned_pid(self):
         """Stage48 regression: EnumWindows(callback) raised because Win32 needs LPARAM."""
         import ctypes
