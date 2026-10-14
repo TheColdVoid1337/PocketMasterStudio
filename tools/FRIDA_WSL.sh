@@ -76,7 +76,14 @@ import json,sys
 print(bool(json.load(open(sys.argv[1],encoding="utf-8")).get("coeff_probe")))
 PY
 )"
-    if [[ "$COEFF_PROBE" == "True" ]]; then
+    LONG_PROBE="$(python - "$CFG" <<'PY'
+import json,sys
+print(bool(json.load(open(sys.argv[1],encoding="utf-8")).get("long_probe")))
+PY
+)"
+    if [[ "$LONG_PROBE" == "True" ]]; then
+      msg "$YELLOW" HOOK "Stage64: ONE fractional hook; capture 1067+114 output f64 = 9448 private bytes, original native first32 SHA required"
+    elif [[ "$COEFF_PROBE" == "True" ]]; then
       msg "$YELLOW" HOOK "Stage58: ONE fractional hook; read only generated coefficient table 673x72 f64 (387648 private bytes), ZERO audio"
     elif [[ "$INPUT_PROBE" == "True" ]]; then
       msg "$YELLOW" HOOK "Stage54: ONE fractional hook; 3+256 input f64 at 96k + 32 output f64 at 48k (2328 private bytes)"
