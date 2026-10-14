@@ -91,7 +91,7 @@ def main():
             "status":"PUBLIC_BANK_PARAMETER_GRID_MEASURED",
             "native":provenance,
             "public_version":PIN,"public_commit":base.PINS[PIN],
-            "scope":"84 fixed independent public attenuation/IsThird hypotheses, exact 673x24x3 geometry and SIMD normalization",
+            "scope":"86 fixed public attenuation/IsThird hypotheses, exact 673x24x3 geometry and SIMD normalization",
             "baseline_rms":BASELINE_RMS,
             "no_arbitrary_shifts":True,"distinct_valid_banks":[],
             "invalid_geometry_hypotheses":[],
