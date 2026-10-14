@@ -195,7 +195,8 @@ def run(args):
         except (ValueError, OSError, tarfile.TarError) as exc:
             print(f"[ERROR] Sealing failed: {exc}; recoverable data at {folder}",
                   file=sys.stderr)
-            return 2 if rc == 0 else rc
+            if rc == 0:
+                rc = 2
     return rc
 
 
