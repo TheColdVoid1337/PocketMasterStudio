@@ -3,10 +3,11 @@
 This module has NO Sonicake, stage, DLL-address or vendor-version constants.
 Only a strictly validated JSON descriptor may specify its original
 post-call processor object, dynamic vtable and result pointer/count registers.
-No waveform bytes are read or saved by this mode.
+Metadata mode reads no waveform; bounded binary mode is separate opt-in.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path, PureWindowsPath
@@ -72,7 +73,7 @@ rpc.exports = {
           if (!output.and(ptr('0x7')).isNull()) return reject('result not f64 aligned');
           const bytes = count * 8;
           if (!readable(output, bytes)) return reject('result span not readable');
-          // Critically, no readByteArray/readDouble/readFloat anywhere in this agent.
+          BINARY_EXTENSION_POINT
           metadataSent = true;
           emit({kind:'metadata_hit',valid:true,site:site.name,observed:observed,
                 processor_vtable:vtable.toString(),expected_vtable:expected.toString(),
@@ -101,8 +102,9 @@ def validate_config(cfg: dict, address_fn) -> dict:
     """Strict declarative guard schema; arbitrary script payloads are forbidden."""
     if not isinstance(cfg,dict):
         raise ValueError("config must be an object")
-    if cfg.get("mode") != "guarded_metadata":
-        raise ValueError("expected guarded_metadata mode")
+    mode=cfg.get("mode")
+    if mode not in ("guarded_metadata","guarded_f64_binary"):
+        raise ValueError("guarded mode must be guarded_metadata or guarded_f64_binary")
     if not isinstance(cfg.get("module"),str) or not re.fullmatch(r"[A-Za-z0-9_. -]+\.(dll|exe)",cfg["module"],re.I):
         raise ValueError("simple module basename required")
     if not isinstance(cfg.get("sha256"),str) or not re.fullmatch(r"[A-Fa-f0-9]{64}",cfg["sha256"]):
@@ -206,11 +208,31 @@ def validate_config(cfg: dict, address_fn) -> dict:
     stable=completion["stable_seconds"]
     if type(stable) not in (int,float) or not 2<=stable<=30:
         raise ValueError("stable_seconds must be 2..30")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle"}:
+    binary=None
+    if mode=="guarded_f64_binary":
+        binary=cfg.get("binary_capture")
+        expected={"max_samples_per_event","max_events","max_total_bytes",
+                  "scratch_output_offset","fallback_input_reg"}
+        if not isinstance(binary,dict) or set(binary)!=expected:
+            raise ValueError("binary_capture needs all five declared fields")
+        ns=integer(binary["max_samples_per_event"],"max_samples_per_event",1,32)
+        cap=integer(binary["max_total_bytes"],"max_total_bytes",8,256)
+        if binary["max_events"] != 1 or type(binary["max_events"]) is not int:
+            raise ValueError("only one binary callback allowed")
+        if cap%8 or ns*8>cap:
+            raise ValueError("binary count exceeds byte budget")
+        scratch=integer(binary["scratch_output_offset"],"scratch_output_offset",0,4096)
+        if scratch%8 or binary["fallback_input_reg"] not in regs:
+            raise ValueError("invalid binary pointer provenance")
+    elif "binary_capture" in cfg:
+        raise ValueError("metadata mode must never receive binary_capture")
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites",
+                "lifecycle","binary_capture"}:
         raise ValueError("unknown top-level guarded config key")
     return {
         "module":cfg["module"],"sha256":cfg["sha256"].lower(),
-        "mode":"guarded_metadata","image_base":base,
+        "mode":mode,"image_base":base,
+        **({"binary_capture":binary} if binary is not None else {}),
         "target":{"process_name_contains":match},
         "completion":dict(completion),
         **({"lifecycle":lifecycle} if lifecycle is not None else {}),
@@ -221,8 +243,39 @@ def validate_config(cfg: dict, address_fn) -> dict:
     }
 
 
+BINARY_EXTENSION = r"""
+          const bcfg = spec.binary_capture;
+          const slot = owner.add(bcfg.scratch_output_offset);
+          if (!readable(slot,Process.pointerSize))
+            return reject('scratch slot unreadable');
+          const scratch = slot.readPointer();
+          const selected = scratch.isNull() ? c[bcfg.fallback_input_reg] : scratch;
+          if (!output.equals(selected))
+            return reject('output pointer provenance mismatch');
+          const copied = Math.min(count,bcfg.max_samples_per_event);
+          const copiedBytes = copied*8;
+          if (copied < 1 || copiedBytes > bcfg.max_total_bytes)
+            return reject('binary budget exceeded');
+          if (!readable(output,copiedBytes))
+            return reject('binary prefix unreadable');
+          const payload = output.readByteArray(copiedBytes);
+          if (payload === null || payload.byteLength !== copiedBytes)
+            return reject('prefix copy incomplete');
+          metadataSent = true;
+          send({kind:'binary_hit',valid:true,site:site.name,observed:observed,
+                processor_vtable:vtable.toString(),expected_vtable:expected.toString(),
+                output_pointer:output.toString(),output_f64:count,output_bytes:bytes,
+                copied_f64:copied,copied_bytes:copiedBytes,
+                readable_range:true,provenance:'selected_scratch_or_input',
+                pc:loc.toString()},payload);
+          return;
+"""
+
+
 def agent_source(cfg: dict) -> str:
-    return AGENT.replace("JSON_SPEC", json.dumps(cfg, ensure_ascii=True))
+    return (AGENT.replace("BINARY_EXTENSION_POINT",
+                          BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
+            .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
 
 
 def snapshot(folder: Path | None, recursive: bool) -> dict:
