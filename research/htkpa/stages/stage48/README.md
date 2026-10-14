@@ -1,6 +1,6 @@
 # Stage48 — one-hook METADATA-ONLY native post-fractional validation
 
-**Status: PREPARED, NOT EXECUTED ON USER WINDOWS.** Stage47 `STATIC_LAST_STAGE_RETURN_SITE_VERIFIED` identifies the original `r8b::CDSPResampler24::process()` last-stage return at RVA **`0x1190C`** (VA `0x18001190C` for preferred image base), with returned count in EAX and caller's output pointer in `*[R15]`. Previous RTTI validates the templated `CDSPFracInterpolator` vtable at RVA **`0x245170`**. Live reachability, memory lifetime, stability and final native 48-kHz samples are **NOT YET PROVEN**.
+**Status: NATIVE FRACTIONAL RUNTIME METADATA OBSERVED (114 f64); STABLE CLO COMPLETION UNVERIFIED. Color/PID/state-loss fixes are committed but NOT YET re-tested on Windows.** Stage47 `STATIC_LAST_STAGE_RETURN_SITE_VERIFIED` identifies the original `r8b::CDSPResampler24::process()` last-stage return at RVA **`0x1190C`** (VA `0x18001190C` for preferred image base), with returned count in EAX and caller's output pointer in `*[R15]`. Previous RTTI validates the templated `CDSPFracInterpolator` vtable at RVA **`0x245170`**. Live reachability, memory lifetime, stability and final native 48-kHz samples are **NOT YET PROVEN**.
 
 ## Safety contract — do not reinterpret as a finished converter
 
