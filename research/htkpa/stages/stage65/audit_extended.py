@@ -233,10 +233,11 @@ def main()->int:
             return {"reverse":detailed_metrics(long["reverse"],rb,114),
                     "forward":detailed_metrics(long["forward"],fb,1067)},{
                     "reverse_full_sha256":stage55.sha(rb),
-                    "forward_full_sha256":stage55.sha(fb)}
+                    "forward_full_sha256":stage55.sha(fb),
+                    "reverse_first32_sha256":stage55.sha(rb[:256]),
+                    "forward_first32_sha256":stage55.sha(fb[:256])}
         baseline,base_digests=run("original")
-        if (stage55.sha(bytes.fromhex("")) is None or
-                baseline["reverse"]["public_sha256"]!=
+        if (baseline["reverse"]["public_sha256"]!=
                     "601a107e28c552085cef213e911de3373189128c5f91e5c430825805066915e7" or
                 baseline["forward"]["public_sha256"]!=
                     "d1e7fde902ba117da0536ecbe1d4a4fde0a4a8918e3d02883187a8a63f27e6e1"):
@@ -245,13 +246,12 @@ def main()->int:
         header.write_text(patched,encoding="utf-8")
         matched,digests=run("native_673")
         for side in ("forward","reverse"):
-            if stage55.sha(bytes.fromhex("")) is None:
-                raise RuntimeError("unreachable hash safety assertion")
-            # Confirm Stage63 first32 public sample identity before scoring
-            # the additional 82/1035 samples.
+            # Confirm Stage63 first32 *bytes* and their scalar RMS before
+            # extending the comparison to the remaining 82/1035 samples.
             spec=matched[side]["segments"][0]
             if (spec["rms_error"]!=earlier[side+"_rms_first32"] or
-                    matched[side]["public_sha256"]!=digests[side+"_full_sha256"]):
+                    matched[side]["public_sha256"]!=digests[side+"_full_sha256"] or
+                    digests[side+"_first32_sha256"]!=PATCH_FIRST32[side]):
                 raise ValueError("Stage63 first32 public output differs from Stage65 replay")
             if side=="forward":
                 if matched[side]["segments"][0]["f64"]!=32:
