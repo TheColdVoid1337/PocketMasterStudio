@@ -149,6 +149,39 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(sent,1)
         self.assertEqual(calls,[("EnumWindows",0),("WM_CLOSE",111,0x0010,0,0)])
 
+    def test_no_hook_lifecycle_smoke_uses_owned_spawn_resume_close(self):
+        """Isolate WM_CLOSE without a DLL attach, callback, NAM or CLO creation."""
+        class FakeDevice:
+            def __init__(self):
+                self.spawned=[]
+                self.resumed=[]
+            def enumerate_processes(self):return []
+            def spawn(self,command):
+                self.spawned.append(command)
+                return 4524
+            def resume(self,pid):
+                self.resumed.append(pid)
+        d=FakeDevice()
+        fake_frida=SimpleNamespace(get_local_device=lambda:d)
+        logs=[]
+        def fake_close(device,pid,state,cfg,report):
+            self.assertEqual(pid,4524)
+            self.assertTrue(state["launched_by_tool"])
+            state["cleanup_status"]="CLOSED_GRACEFULLY"
+        with patch.object(guarded,"os",SimpleNamespace(name="nt")), \
+             patch.object(guarded.platform,"architecture",return_value=("64bit","Windows")), \
+             patch.dict(sys.modules,{"frida":fake_frida}), \
+             patch("frida_guarded.preflight_paths"), \
+             patch("frida_guarded.Path.is_file",return_value=True), \
+             patch("frida_guarded.time.sleep"), \
+             patch("frida_guarded.close_owned_target",side_effect=fake_close):
+            code=guarded.smoke_lifecycle(SimpleNamespace(pid=None),self.cfg,
+                                        lambda *x:logs.append(x))
+        self.assertEqual(code,0)
+        self.assertEqual(d.resumed,[4524])
+        self.assertEqual(len(d.spawned),1)
+        self.assertTrue(any("ZERO hooks" in str(entry) for entry in logs))
+
     def test_one_delayed_hook_no_audio_reads(self):
         js=guarded.agent_source(self.cfg)
         self.assertEqual(js.count("Interceptor.attach("),1)
