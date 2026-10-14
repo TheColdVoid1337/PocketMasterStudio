@@ -272,6 +272,50 @@ BINARY_EXTENSION = r"""
 """
 
 
+def persist_guarded_binary(cfg: dict, state: dict, folder: Path,
+                           event: dict, binary: bytes) -> dict:
+    """Validate and persist one private binary event; no other files allowed.
+
+    This pure host-side boundary is callable by offline unit tests without Frida.
+    It never interprets sample values, and fails closed on any mismatch.
+    """
+    if cfg.get("mode")!="guarded_f64_binary" or not isinstance(event,dict):
+        raise ValueError("binary hit in unapproved capture mode")
+    lim=cfg["binary_capture"]
+    g=cfg["sites"][0]["guard"]
+    n=event.get("copied_bytes")
+    nf=event.get("copied_f64")
+    total=event.get("output_f64")
+    observed=event.get("observed")
+    if (event.get("kind")!="binary_hit" or event.get("valid") is not True
+            or event.get("site")!=cfg["sites"][0]["name"]
+            or event.get("provenance")!="selected_scratch_or_input"
+            or event.get("readable_range") is not True
+            or type(n) is not int or type(nf) is not int
+            or type(total) is not int or type(observed) is not int
+            or not 1<=observed<=g["max_observations"]
+            or not 1<=nf<=total<=g["max_samples"]
+            or event.get("output_bytes")!=total*8
+            or n!=nf*8 or not 8<=n<=lim["max_total_bytes"]
+            or nf>lim["max_samples_per_event"] or
+            state.get("binary_valid",False)):
+        raise ValueError("untrusted or out-of-budget binary event")
+    buf=bytes(binary)
+    if len(buf)!=n:
+        raise ValueError("binary payload length mismatch")
+    name="block_0001.bin"
+    file=folder/name
+    with file.open("xb") as f:
+        f.write(buf)
+        f.flush()
+        os.fsync(f.fileno())
+    digest=hashlib.sha256(buf).hexdigest()
+    state["binary_valid"]=True
+    state["binary_file"]=name
+    state["binary_bytes"]=n
+    return dict(event,file=name,sha256=digest)
+
+
 def agent_source(cfg: dict) -> str:
     return (AGENT.replace("BINARY_EXTENSION_POINT",
                           BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
@@ -676,37 +720,12 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
 
         def on_message(msg,binary):
             if binary is not None:
-                if cfg["mode"]!="guarded_f64_binary" or msg.get("type")!="send":
-                    e={"kind":"unexpected_binary_payload","error":"binary in metadata mode"}
-                else:
-                    e=msg.get("payload",{})
-                    lim=cfg["binary_capture"]
-                    n=e.get("copied_bytes") if isinstance(e,dict) else None
-                    nf=e.get("copied_f64") if isinstance(e,dict) else None
-                    total=e.get("output_f64") if isinstance(e,dict) else None
-                    if (not isinstance(e,dict) or e.get("kind")!="binary_hit" or
-                            e.get("valid") is not True or type(n) is not int or
-                            type(nf) is not int or type(total) is not int or
-                            not 1<=nf<=total<=cfg["sites"][0]["guard"]["max_samples"] or
-                            n!=nf*8 or not 8<=n<=lim["max_total_bytes"] or
-                            nf>lim["max_samples_per_event"] or state.get("binary_valid")):
-                        e={"kind":"unexpected_binary_payload","error":"binary event validation failed"}
-                    else:
-                        try:
-                            buf=bytes(binary)
-                            if len(buf)!=n:raise ValueError("binary length mismatch")
-                            name="block_0001.bin"
-                            with (folder/name).open("xb") as f:
-                                f.write(buf)
-                                f.flush()
-                                os.fsync(f.fileno())
-                            e=dict(e,file=name,sha256=hashlib.sha256(buf).hexdigest())
-                            state["binary_valid"]=True
-                            state["binary_file"]=name
-                            state["binary_bytes"]=n
-                        except (OSError,ValueError,TypeError) as exc:
-                            e={"kind":"unexpected_binary_payload",
-                               "error":"binary persistence failed: "+str(exc)[:100]}
+                try:
+                    e=persist_guarded_binary(cfg,state,folder,
+                                             msg.get("payload"),binary)
+                except (OSError,ValueError,TypeError) as exc:
+                    e={"kind":"unexpected_binary_payload",
+                       "error":"binary rejected: "+str(exc)[:120]}
             elif msg.get("type")=="send":
                 e=msg.get("payload",{})
                 if not isinstance(e,dict):e={"kind":"invalid_event"}
