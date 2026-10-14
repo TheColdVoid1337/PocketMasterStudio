@@ -324,7 +324,7 @@ class UniversalFridaTests(unittest.TestCase):
                 {"kind":"trace_cap_reached","observations":64},
             ]
             (root/"events.jsonl").write_text(
-                "".join(json.dumps(x)+"\\n" for x in events),encoding="utf-8")
+                "".join(json.dumps(x)+"\n" for x in events),encoding="utf-8")
             state={"trace_returns":2,"trace_rejections":1}
             guarded.reconcile(root,state)
             guarded.reconcile(root,state)
