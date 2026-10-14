@@ -67,6 +67,20 @@ class Stage62Tests(unittest.TestCase):
                 " const double* const Params = getWinParams( ReqAtten, IsThird,"
                 "FilterLen );","native_both")
 
+    def test_analytic_kernel_unit_dc_at_integer_phase(self):
+        import numpy as np
+        b=audit.analytic_c0(audit.NATIVE_BETA,audit.NATIVE_POWER)
+        self.assertEqual(b.shape,(673,24))
+        self.assertLess(float(np.max(np.abs(b.sum(axis=1)-1.0))),1e-12)
+        self.assertAlmostEqual(float(b[0,11]),1.0,places=13)
+        self.assertLess(float(np.max(np.abs(b[0,np.arange(24)!=11]))),1e-12)
+        self.assertAlmostEqual(float(b[336,11]),0.6275702,places=6)
+
+    def test_analytic_kernel_rejects_bad_parameters(self):
+        for beta,power in ((0,1),(-1,1),(3,-2),(float("nan"),1)):
+            with self.assertRaises(ValueError):
+                audit.analytic_c0(beta,power)
+
     def test_numeric_score_identity_contract(self):
         import struct
         sample=struct.pack("<d",1.0)+b"\0"*(48456*8-8)
