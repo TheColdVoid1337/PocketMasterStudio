@@ -15,6 +15,7 @@
 #include "CDSPFracInterpolator.h"
 #include "CDSPResampler.h"
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <memory>
 #include <new>
