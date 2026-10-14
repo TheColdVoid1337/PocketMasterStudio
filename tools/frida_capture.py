@@ -23,7 +23,9 @@ DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'research' / '_LOCAL_FILES' 
 COLORS = {'TARGET':'\x1b[36m','NOTE':'\x1b[36m','FRIDA':'\x1b[35m',
           'HOOK':'\x1b[35m','META':'\x1b[32m','CLO':'\x1b[32m',
           'WAIT':'\x1b[33m','WARN':'\x1b[33m','STARTED':'\x1b[32m',
-          'STATUS':'\x1b[32m','ARCHIVE':'\x1b[32m','ERROR':'\x1b[31m'}
+          'STATUS':'\x1b[32m','ARCHIVE':'\x1b[32m','ERROR':'\x1b[31m',
+          'CAPTURE':'\x1b[1;36m','READY':'\x1b[1;33m',
+          'PASS':'\x1b[1;32m','CLOSE':'\x1b[36m'}
 def report(kind,*parts):
     enabled = os.environ.get('NO_COLOR') is None and (sys.stdout.isatty() or os.environ.get('FORCE_COLOR')=='1')
     prefix='['+kind+']'
@@ -506,6 +508,13 @@ def main():
            '| metadata:',state.get('metadata_valid',False),
            '| stable CLO:',state.get('completion_verified',False))
     report('ARCHIVE',dest,'[RESULT]',status)
+    if guarded:
+        report('TARGET','Cleanup status:',state.get('cleanup_status','NOT_APPLICABLE'),
+               '| WM_CLOSE messages:',state.get('close_messages_sent',0),
+               '| sequence:',state.get('cleanup_order','UNRECORDED'))
+        if cfg.get('mode')=='guarded_f64_binary' and state.get('binary_valid'):
+            report('CAPTURE','*** VERIFIED PRIVATE NATIVE F64 BLOCK ***',
+                   state.get('binary_bytes'),"bytes |",state.get('binary_file'))
     if guarded and state.get('launched_by_tool') and cfg.get('lifecycle',{}).get('close')=='if_launched':
         if state.get('cleanup_status') not in ('CLOSED_GRACEFULLY','ALREADY_EXITED'):
             report('WARN','Native observation status above is independent of application shutdown;',
