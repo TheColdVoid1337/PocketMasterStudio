@@ -1,6 +1,6 @@
 # Stage49 — V1.5.2 native post-fractional f64 prefix: safety gate and experimental design
 
-**Current status: GATE_A_STATIC_PROVENANCE_PASS; GATE_B_UNIVERSAL_CODE_GITHUB_CI_PASS_USER_WSL_PENDING; WINDOWS_BINARY_CAPTURE_NOT_RUN.** This is not a claim of native 48-kHz sample capture, full output parity, NAM fit parity, or Stage49 completion.
+**Current status: NATIVE_48K_F64_PREFIX_ACCEPTED (32 real f64 samples / 256 bytes + stable 8840-byte CLO). One-hook Windows run succeeded scientifically; GUI teardown required MANUAL close. A generic close-before-unload fix is offline-CI-verified but NOT yet Windows-tested. Full 48-kHz numerical output parity and NAM fitter parity remain OPEN.**
 
 ## Provenance
 
@@ -93,3 +93,40 @@ If only a partial event was persisted before interruption, `events.jsonl` + SHA-
 - GitHub Actions workflow `Universal Frida offline contract` run [38568363327](https://github.com/TheColdVoid1337/PocketMasterStudio/actions/runs/38568363327), head `d08702902f66d4d7376743eb562b3b0ff7006e87`: **PASS**, including **16/16** Python unit tests in 0.235 seconds, Python compilation, shared self-test, Stage48 regression, generated Stage49 JavaScript `node --check`, and Bash syntax.
 - Prior intermediate test commit `3203e9c2` found a duplicate `const slot` declaration in the generated binary-agent JS and correctly failed. Fixed by distinct `scratchSlot` in `d0870290`; no code on Windows was ever executed as part of this correction.
 - **NEXT GATE:** local user WSL tests/preflight. Only after their PASS perform one Manager V1.5.2 conversion with the new one-shot guarded binary config. No vendor f64 values have been captured yet; no parity conclusions.
+
+
+## 2026-10-14 — FIRST REAL V1.5.2 NATIVE POST-FRACTIONAL SAMPLE VALUES: ACCEPTED
+
+**Actual user WSL + Windows run** after pulling to `90c7d8f8`: Python compilation, universal self-test, **16/16 unittests in 0.739s**, Bash syntax and configured Windows EXE/CLO path preflight all PASSED. Managed Sonicake Manager V1.5.2 instance, PID `12440`, loaded original `5868USB.dll` from `C:\\Program Files\\Sonicake\\Sonicake Manager\\assets\\5868USB.dll`; original SHA verified before ONE hook at RVA `0x1190C`. Runtime module base `0x7ff85dae0000`, hook PC `0x7ff85daf190c`, actual/expected fractional vtable `0x7ff85dd25170` (base + `0x245170`).
+
+**Journal observation #18:** native postfractional original block **114 f64 / 912 bytes** at pointer `0x24a237ea4a0`. Separate binary event `binary_hit` saved **first 32 f64 / 256 bytes**, `block_0001.bin`, SHA256 `65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae`. The uploaded PRIVATE archive `frida_20261014_131026_259514.tar.gz` (SHA256 `7c375c3ee25abf6f57632c966a11c21514fe38605384bab2aab264831a6ba837`) contains 5 members: `config.json`, `manifest.json`, `events.jsonl`, `HANDOFF.md`, `block_0001.bin`; every member's size/SHA verified. `events.jsonl` has 4 events. A changed `clofile.clo` stabilized at **8840 bytes**; original CLO content itself is NOT in the Frida archive.
+
+**Independent sample checks (derived metrics only, no waveform copied into Git):**
+
+| Metric | Native captured 32 f64 |
+|---|---:|
+| Values | 32/32 finite IEEE 754 little-endian f64 |
+| Exact zero values | 0 |
+| Minimum | `-1.5897965351580117` |
+| Maximum | `2.1873822524247095` |
+| Arithmetic mean | `0.009503496171527891` |
+| RMS | `0.5700806961985158` |
+
+Amplitudes above ±1 are **not automatically invalid** for an intermediate floating-point DSP buffer. We have NOT proven the normalization semantics and should not treat these as clipped 16-bit output. These **actual vendor native f64 values** are the first such evidence after Stages44–48, which only had public/hybrid 1067-sample data and native output *metadata*. Native/public aligned numerical parity is NOT TESTED; do not compare the first 32 here to the arbitrary first 32 public samples.
+
+### Separate GUI teardown incident and universal mitigation
+
+After reporting stable CLO, the original universal runner printed `[NOTE] Capture loop ended; removing Frida instrumentation` and, per the user's direct observation, did not progress **until the user manually closed Manager**. Then script unload, detach and run finalization succeeded. Archive records `detached_reason=process-terminated`, `close_messages_sent=0`, but also `process_cleanup_status=CLOSED_GRACEFULLY`. The latter is a **false implication of automatic shutdown**; ZERO owned `WM_CLOSE` messages were sent by the tool. The successful binary+CLO proof is unaffected. The evidence does not time-profile the exact Frida blocking primitive, though the code's first synchronous operation after that log was `script.unload()`.
+
+**Shared `tools/` remediation (not another stage runner):** completed owned `guarded_f64_binary` captures now print bold `[CAPTURE]` at binary receipt, `[READY]` while awaiting CLO, and `[PASS]` after stable CLO, *before cleanup*. For that proven-success case, teardown attempts PID-scoped owned `WM_CLOSE` **before** the potentially blocking Frida `script.unload()`; if target exits, the hook is released with process exit, so redundant unload/detach are skipped. Stage48 metadata and failed/attach-only captures preserve prior order. A process exiting after **zero** actual `WM_CLOSE` messages is henceforth classified as `EXITED_WITHOUT_WM_CLOSE`, not `CLOSED_GRACEFULLY`. No automatic forced kill of a resumed GUI. **Offline GitHub Actions run [38570943745](https://github.com/TheColdVoid1337/PocketMasterStudio/actions/runs/38570943745) passed 19/19 tests** including close order/zero-message/Stage48 regression. Windows verification of this cleanup change is still pending; do **not** rerun the audio experiment merely to retest shutdown.
+
+### Research gate verdict
+
+- **Stage49 small-prefix native acquisition: PASS.**
+- **Same-run native samples + changed stable CLO: PASS.**
+- **Automatic tool-driven GUI shutdown in this run: NOT PASS — MANUAL close required.**
+- **Proposed universal cleanup ordering patch: offline PASS, Windows PENDING.**
+- **Native vs public aligned resampler numerical parity: OPEN.**
+- **NAM fitting, four gains and CLO serialization parity: OPEN.**
+
+Next research can use the already captured original native 32-f64 block and provenance/streaming analysis. Do not increase hook count or bulk binary copy until equivalent streaming windows/capacity have been established; preserve private bytes outside Git.
