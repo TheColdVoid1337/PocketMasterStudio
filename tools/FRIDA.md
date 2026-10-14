@@ -121,6 +121,16 @@ Expected exception/timeout statuses include `METADATA_OBSERVED_OPERATOR_INTERRUP
 
 No original DLL, audio, NAM or CLO files may enter Git; exact original DLL hashes and evidence/metrics alone are allowed.
 
+## 2026-10-14 Stage49 actual binary PASS and graceful close correction
+
+**Windows capture accepted:** user WSL offline 16/16 tests PASS; real one-hook V1.5.2 Manager PID `12440` produced a **114-f64** postfractional metadata block, a SHA-verified **32-f64 / 256-byte** local `block_0001.bin`, and a **new/changed stable 8840-byte CLO**. Private binary SHA256 `65b48ee4d3a6b0f86f8ab539761f45d52fc5799a7ce8a4e88b86c215eb0b6dae`. Actual payload bytes independently decoded and verified in the attached private archive; **no numerical parity/alignment claim**. See [Stage49 evidence](../research/htkpa/stages/stage49/evidence.json) and [current log](../research/htkpa/RE_LOG.md).
+
+**First Stage49 teardown incident:** despite capturing samples and CLO, original code waited at `Capture loop ended; removing Frida instrumentation` until the user manually closed Manager. Frida then unloaded and detached. Manifest says `CLOSED_GRACEFULLY` but `close_messages_sent=0`; this **does not prove tool-driven GUI shutdown**. The original teardown called blocking `script.unload()` BEFORE owned `WM_CLOSE`, a plausible deadlock sequence.
+
+**Updated UNIVERSAL cleanup policy:** Only for a completed, SHA/vtable-verified, *tool-owned*, guarded binary capture where the file and stable CLO have already persisted, the engine requests `WM_CLOSE` for its own PID **before** `script.unload()`. After observed process exit, OS process termination releases hooks; the runner skips unnecessary synchronous unload/detach. Other cases (Stage48 metadata, interrupted/failed binary capture, and attach-only) preserve the previous ordering. If no `WM_CLOSE` was actually delivered, subsequent process exit reports `EXITED_WITHOUT_WM_CLOSE`, not `CLOSED_GRACEFULLY`. Never force-kill a running GUI. A successful binary event now visibly prints **[CAPTURE]** with number of f64, byte count and SHA256, **[READY]** while CLO pending, and **[PASS]** once native block + stable CLO are confirmed **before teardown**, so the research success is not hidden behind a possible cleanup stall. Cleanup outcome appears separately in terminal/manifest.
+
+**Offline QA of fix:** GitHub Actions [run 38570943745](https://github.com/TheColdVoid1337/PocketMasterStudio/actions/runs/38570943745) passed **19/19 tests**, including tests for before-unload owned GUI closing, zero-`WM_CLOSE` status correctness and unchanged Stage48 order. This fix has **NOT** yet been tested on the user's Windows; avoid another NAM conversion merely to re-test old evidence. Stage49 first native 32-sample prefix is accepted; numeric alignment and downstream fitter remain open.
+
 ## Stage49: strictly opt-in guarded native post-fractional f64 prefix
 
 The Stage48 `guarded_metadata` contract above is **unchanged** and STILL never copies audio. Stage49 adds the distinct validated `guarded_f64_binary` config mode in the SAME `tools/frida_capture.py` + `tools/frida_guarded.py` shared implementation and SAME `tools/FRIDA_WSL.sh` launcher. The only stage-specific executable configuration is `research/htkpa/stages/stage49/frida.json`; there is **no Stage49 Python/Bash runner**.
