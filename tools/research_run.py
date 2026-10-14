@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
-"""Minimal local-only research run capsules and one HTKPA status checkpoint.
-
-Explicit opt-in: never records ordinary commands on its own. Raw logs/manifests
-live under ignored research/_LOCAL_FILES/research_runs. 'close' is the only
-command that writes tracked research/htkpa/STATUS.yaml.
-
-Python stdlib only; intentionally does not touch README, RE_LOG, evidence, or Git.
-"""
+"""Opt-in HTKPA research: sealed private tar.gz runs, one Git finding log, curated rollover."""
 from __future__ import annotations
-
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -16,231 +8,341 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN_ROOT = ROOT / "research" / "_LOCAL_FILES" / "research_runs"
-STATUS = ROOT / "research" / "htkpa" / "STATUS.yaml"
-ID = re.compile(r"[a-zA-Z][a-zA-Z0-9_-]{0,59}\Z")
+PRIVATE = ROOT / "research" / "_LOCAL_FILES"
+ARCHIVES = PRIVATE / "research_runs"
+STAGING = ROOT / "research" / ".research_run_staging"
+JOURNAL = ROOT / "research" / "htkpa" / "RE_LOG.md"
+NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,59}\Z")
 MAX_LOG = 8 * 1024 * 1024
-MAX_ARTIFACTS = 20
+MAX_FILES = 2048
 
 
-def utc() -> str:
+def now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def digest(file: Path) -> str:
+def sha(path):
     h = hashlib.sha256()
-    with file.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            h.update(chunk)
+    with Path(path).open("rb") as f:
+        for block in iter(lambda: f.read(1048576), b""):
+            h.update(block)
     return h.hexdigest()
 
 
-def git_meta() -> dict:
-    def read(*parts: str) -> str | None:
-        try:
-            return subprocess.run(["git", "-C", str(ROOT), *parts],
-                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                timeout=3, check=True, text=True).stdout.strip()
-        except (OSError, subprocess.SubprocessError):
-            return None
-    status = read("status", "--porcelain", "--untracked-files=no")
-    changed = [line[3:] for line in status.splitlines()[:80]] if status else []
-    return {"head": read("rev-parse", "HEAD"),
-            "changed_tracked_files": changed,
-            "dirty_tracked_files": bool(status) if status is not None else None}
+def git_sha():
+    try:
+        return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                              text=True, capture_output=True, check=True,
+                              timeout=3).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
 
 
-def artifact_meta(files: list[str]) -> list[dict]:
-    if len(files) > MAX_ARTIFACTS:
-        raise ValueError(f"at most {MAX_ARTIFACTS} explicit artifact paths")
+def valid_name(name):
+    if not NAME.fullmatch(name):
+        raise ValueError("name must start with letter and contain <=60 ASCII letters/digits/_/-")
+    return name
+
+
+def refs(paths):
+    if len(paths) > 40:
+        raise ValueError("too many selected reference files")
     result = []
-    for raw in files:
+    for raw in paths:
         p = Path(raw).expanduser().resolve()
         if not p.is_file():
-            raise ValueError(f"missing artifact file: {raw}")
-        # Do not read arbitrary directories, copy files, or persist file contents.
+            raise ValueError("missing reference: " + raw)
         try:
-            display = str(p.relative_to(ROOT))
+            label = str(p.relative_to(ROOT))
         except ValueError:
-            display = str(p)
-        result.append({"path": display, "size_bytes": p.stat().st_size,
-                       "sha256": digest(p)})
+            label = str(p)
+        result.append({"path": label, "bytes": p.stat().st_size, "sha256": sha(p)})
     return result
 
 
-def new_capsule(name: str) -> Path:
-    if not ID.fullmatch(name):
-        raise ValueError("run name must be 1..60 characters: letters, numbers, _ or -")
-    RUN_ROOT.mkdir(parents=True, exist_ok=True)
-    # Unique directory, rather than replacing existing evidence.
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
-    for i in range(20):
-        p = RUN_ROOT / f"{stamp}_{name}{('-'+str(i)) if i else ''}"
+def save_json(p, data):
+    tmp = p.with_name(p.name + ".temp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(tmp, p)
+
+
+def new_stage(name):
+    valid_name(name)
+    STAGING.mkdir(parents=True, exist_ok=True)
+    for _ in range(30):
+        p = STAGING / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ") + "_" + name)
         try:
             p.mkdir(mode=0o700)
+            (p / "output").mkdir()
             return p
         except FileExistsError:
-            continue
-    raise RuntimeError("cannot allocate unique research capsule")
+            pass
+    raise RuntimeError("unable to create unique run directory")
 
 
-def save_manifest(folder: Path, data: dict) -> None:
-    target = folder / "run.json"
-    contents = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=folder,
-                                     prefix=".run_", delete=False) as t:
-        t.write(contents)
-        temp = Path(t.name)
-    os.replace(temp, target)
+def output_files(folder):
+    results = []
+    for p in (folder / "output").rglob("*"):
+        if p.is_symlink():
+            raise ValueError("symlink in output: refusing packaging")
+        if p.is_file():
+            if len(results) >= MAX_FILES:
+                raise ValueError("too many research output files; staging preserved")
+            results.append({"path": p.relative_to(folder).as_posix(),
+                            "bytes": p.stat().st_size, "sha256": sha(p)})
+    return sorted(results, key=lambda x: x["path"])
 
 
-def cmd_run(args) -> int:
-    command = args.command
-    if command and command[0] == "--":
-        command = command[1:]
+def seal(folder):
+    """Only publish a VERIFIED tar.gz to LOCAL_FILES. Recoverable staging is elsewhere."""
+    data = json.loads((folder / "run.json").read_text(encoding="utf-8"))
+    data["output_files"] = output_files(folder)
+    save_json(folder / "run.json", data)
+    ARCHIVES.mkdir(parents=True, exist_ok=True)
+    STAGING.mkdir(parents=True, exist_ok=True)
+    dest = ARCHIVES / (folder.name + ".tar.gz")
+    if dest.exists():
+        raise ValueError("archive already exists: " + str(dest))
+    temp = STAGING / (folder.name + ".packing.tar.gz")
+    try:
+        files = [folder / "run.json"]
+        if (folder / "console.log").exists():
+            files.append(folder / "console.log")
+        files.extend(folder / item["path"] for item in data["output_files"])
+        with tarfile.open(temp, "w:gz") as tar:
+            for file in files:
+                tar.add(file, arcname=file.relative_to(folder).as_posix(), recursive=False)
+        with tarfile.open(temp, "r:gz") as tar:
+            for entry in tar:
+                if not entry.isfile() or entry.name.startswith("/") or ".." in Path(entry.name).parts:
+                    raise ValueError("invalid archive member")
+                h = hashlib.sha256()
+                with tar.extractfile(entry) as reader:
+                    for block in iter(lambda: reader.read(1048576), b""):
+                        h.update(block)
+                if h.hexdigest() != sha(folder / entry.name):
+                    raise ValueError("packed file digest mismatch")
+        # Temp and output are on the same filesystem; rename publishes atomically.
+        os.replace(temp, dest)
+        shutil.rmtree(folder)
+    finally:
+        temp.unlink(missing_ok=True)
+    return dest
+
+
+def run(args):
+    command = args.command[1:] if args.command and args.command[0] == "--" else args.command
     if not command:
-        raise ValueError("run needs a command after --")
-    # This is an explicit capture wrapper. Avoid passing command-line secrets.
-    folder = new_capsule(args.name)
-    data = dict(schema_version=1, kind="command", name=args.name, started_utc=utc(),
-                outcome="running", command=command, git_before=git_meta(),
-                artifacts=[], stdout_log="console.log")
-    save_manifest(folder, data)
-    print(f"[RUN] Private research capsule: {folder}", flush=True)
-    total, truncated, rc = 0, False, 1
+        raise ValueError("run: command is required after --")
+    references = refs(args.artifact)
+    folder = new_stage(args.name)
+    data = {"schema_version": 2, "kind": "command", "name": args.name,
+            "started_utc": now(), "status": "RUNNING", "command": command,
+            "git_head": git_sha(), "references": references,
+            "log_cap_bytes": MAX_LOG}
+    save_json(folder / "run.json", data)
+    env = os.environ.copy()
+    env["RESEARCH_ARTIFACT_DIR"] = str(folder / "output")
     proc = None
+    rc, written, trunc = 1, 0, False
+    print("[RUN] Private staging; outputs will be sealed to .tar.gz", flush=True)
     try:
         with (folder / "console.log").open("wb") as log:
-            proc = subprocess.Popen(command, cwd=ROOT, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT, bufsize=0)
-            while True:
-                block = proc.stdout.read(4096)
-                if not block:
-                    break
-                # Preserve live output even after the private log reaches 8 MiB.
-                sys.stdout.buffer.write(block)
-                sys.stdout.buffer.flush()
-                if total < MAX_LOG:
-                    part = block[:MAX_LOG-total]
+            proc = subprocess.Popen(command, cwd=ROOT, env=env,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    bufsize=0)
+            for chunk in iter(lambda: proc.stdout.read(4096), b""):
+                try:
+                    sys.stdout.buffer.write(chunk)
+                    sys.stdout.buffer.flush()
+                except BrokenPipeError:
+                    pass
+                if written < MAX_LOG:
+                    part = chunk[:MAX_LOG-written]
                     log.write(part)
-                    total += len(part)
-                    if len(part) != len(block):
-                        truncated = True
+                    written += len(part)
+                    trunc |= len(part) != len(chunk)
                 else:
-                    truncated = True
+                    trunc = True
             rc = proc.wait()
-        data["outcome"] = "exit_zero" if rc == 0 else "nonzero_exit"
+        data["status"] = "SUCCEEDED" if rc == 0 else "FAILED"
     except KeyboardInterrupt:
-        # Ctrl+C was also delivered to the child in the same foreground process
-        # group by a real WSL terminal. Do not force-kill any active native GUI.
         rc = 130
-        data["outcome"] = "interrupted"
+        data["status"] = "INTERRUPTED"
         data["child_still_running"] = proc is not None and proc.poll() is None
-        print("\n[RUN] Interrupted; private evidence retained. Never killing an active target.", flush=True)
-    except (OSError, ValueError) as exc:
-        data["error"] = f"{type(exc).__name__}: {exc}"
-        data["outcome"] = "failed_to_start"
-        print(f"[RUN] {data['error']}", file=sys.stderr)
+        print("\n[RUN] Interrupted; sealing available evidence without killing target", flush=True)
+    except OSError as exc:
         rc = 127
+        data["status"] = "FAILED_TO_START"
+        data["error"] = str(exc)[:240]
     finally:
         if proc is not None and proc.stdout is not None:
             proc.stdout.close()
-        data.update(finished_utc=utc(), exit_code=rc, log_bytes=total,
-                    log_truncated=truncated, git_after=git_meta())
+        data.update(finished_utc=now(), exit_code=rc, log_bytes=written,
+                    log_truncated=trunc)
+        save_json(folder / "run.json", data)
         try:
-            data["artifacts"] = artifact_meta(args.artifact)
-        except ValueError as exc:
-            data["artifact_error"] = str(exc)
-            if rc == 0:
-                data["outcome"] = "missing_required_artifact"
-                rc = 2
-                data["exit_code"] = rc
-        save_manifest(folder, data)
-        print(f"\n[RUN] {data['outcome']} (exit {rc}); capsule: {folder/'run.json'}", flush=True)
+            dest = seal(folder)
+            print(f"\n[ARCHIVE] {dest} | {data['status']} | exit={rc}", flush=True)
+        except (ValueError, OSError, tarfile.TarError) as exc:
+            print(f"[ERROR] Sealing failed: {exc}; recoverable data at {folder}",
+                  file=sys.stderr)
+            return 2 if rc == 0 else rc
     return rc
 
 
-def cmd_record(args) -> int:
-    artifacts = artifact_meta(args.artifact)
-    if not artifacts and not args.finding:
+def record(args):
+    references = refs(args.artifact)
+    if not references and not args.finding:
         raise ValueError("record requires --artifact and/or --finding")
-    folder = new_capsule(args.name)
-    save_manifest(folder, dict(schema_version=1, kind="record", name=args.name,
-         started_utc=utc(), finished_utc=utc(), outcome=args.outcome,
-         finding=args.finding, artifacts=artifacts, git_at_record=git_meta()))
-    print(f"[RUN] Recorded {len(artifacts)} selected artifact(s): {folder/'run.json'}")
+    folder = new_stage(args.name)
+    save_json(folder / "run.json", {"schema_version": 2, "kind": "record",
+              "name": args.name, "started_utc": now(), "finished_utc": now(),
+              "status": args.status, "finding": args.finding,
+              "git_head": git_sha(), "references": references})
+    print(f"[ARCHIVE] {seal(folder)} | references only, private files not recopied")
     return 0
 
 
-def cmd_close(args) -> int:
-    """Only write one lightweight canonical state, once after a meaningful gate."""
-    capsule = (RUN_ROOT / args.run / "run.json").resolve()
-    if not capsule.is_relative_to(RUN_ROOT.resolve()) or not capsule.is_file():
-        raise ValueError("--run must be an existing local research capsule directory name")
-    record = json.loads(capsule.read_text(encoding="utf-8"))
-    if record.get("schema_version") != 1 or record.get("outcome") in (None, "running"):
-        raise ValueError("cannot close an incomplete or unknown run capsule")
-    if args.decision == "accepted":
-        if record.get("artifact_error"):
-            raise ValueError("missing required artifact: cannot mark accepted")
-        if record.get("kind") == "command" and record.get("exit_code") != 0:
-            raise ValueError("command returned nonzero: cannot mark accepted; use blocked")
-        if record.get("kind") == "record" and record.get("outcome") != "accepted":
-            raise ValueError("record must explicitly be accepted before promotion")
-    def scalar(value):
-        return json.dumps(value, ensure_ascii=False)
-    # YAML 1.2 accepts JSON-quoted strings; no PyYAML dependency or custom parser.
-    fields = dict(schema_version="1", project="HTKPA", stage=args.stage,
-         updated_utc=utc(), decision=args.decision, run_id=args.run,
-         verified=args.finding, blocker=args.blocker or "none", next_action=args.next,
-         reference=args.reference or
-            f"research/_LOCAL_FILES/research_runs/{args.run}/run.json")
-    content = "# Canonical HTKPA progress checkpoint; updated only by an explicit research close.\n"
-    content += "# Private run data stays under ignored research/_LOCAL_FILES/research_runs/.\n"
-    content += "\n".join(f"{key}: {val if key=='schema_version' else scalar(val)}" for key, val in fields.items())+"\n"
-    STATUS.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=STATUS.parent,
-                                     prefix=".status_", delete=False) as t:
-        t.write(content)
-        temp = Path(t.name)
-    os.replace(temp, STATUS)
-    print(f"[STATUS] Updated ONE checkpoint: {STATUS}")
-    print("[STATUS] General README/RE_LOG/handoff were NOT touched. #syncdocs remains separate.")
+def recover(args):
+    if not STAGING.is_dir():
+        print("[RECOVER] Nothing to recover")
+        return 0
+    success = 0
+    for folder in sorted(STAGING.iterdir()):
+        if not folder.is_dir() or not (folder / "run.json").exists():
+            continue
+        data = json.loads((folder / "run.json").read_text(encoding="utf-8"))
+        if data.get("status") == "RUNNING":
+            data["status"] = "WRAPPER_INTERRUPTED_UNVERIFIED"
+            data["recovery_utc"] = now()
+            save_json(folder / "run.json", data)
+        try:
+            print("[RECOVER]", seal(folder))
+            success += 1
+        except (OSError, ValueError, tarfile.TarError) as exc:
+            print(f"[RECOVER] Failed {folder.name}: {exc}", file=sys.stderr)
+    print(f"[RECOVER] Sealed {success}; any failed staging is retained outside _LOCAL_FILES")
     return 0
 
 
-def cli(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="Explicit, low-noise HTKPA experiment artifacts")
-    sub = parser.add_subparsers(dest="action", required=True)
-    a = sub.add_parser("run", help="opt-in command run: live console + private 8 MiB capped log")
+def short(text, limit=500):
+    text = text.strip()
+    if not text or len(text) > limit or "\n" in text or "\r" in text:
+        raise ValueError("finding fields must be nonempty, single-line and bounded")
+    return text
+
+
+def finding(args):
+    """Write exactly ONE explicit factual research delta, never a broad docs sync."""
+    stage = valid_name(args.stage)
+    where = short(args.where)
+    what = short(args.what)
+    evidence = short(args.evidence)
+    boundary = short(args.boundary, 300)
+    if not JOURNAL.is_file():
+        raise ValueError("missing canonical research journal: " + str(JOURNAL))
+    entry = (f"\n## {now()} — {stage}: {args.kind.upper()} finding\n\n"
+             f"- **Where:** {where}\n- **Found:** {what}\n"
+             f"- **Evidence:** {evidence}\n- **Limit / next gate:** {boundary}\n")
+    with JOURNAL.open("a", encoding="utf-8") as f:
+        f.write(entry)
+    print("[FINDING] One tracked RE_LOG entry written; review git diff and commit")
+    return 0
+
+
+def rollover(args):
+    """No bulk private-folder copying: explicitly chosen critical files only."""
+    if not args.include or len(args.include) > 40:
+        raise ValueError("rollover needs 1..40 explicit --include paths")
+    chosen, seen = [], set()
+    for raw in args.include:
+        src = Path(raw).expanduser().resolve()
+        if not src.is_file() or not src.is_relative_to(PRIVATE.resolve()):
+            raise ValueError("each rollover source must be an existing private file")
+        rel = src.relative_to(ROOT).as_posix()
+        if rel in seen:
+            raise ValueError("duplicate rollover source")
+        seen.add(rel)
+        chosen.append((src, rel))
+    dest = Path(args.output).expanduser().resolve()
+    if (not dest.name.startswith("POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_")
+            or dest.suffix.lower() != ".zip"):
+        raise ValueError("expected POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_*.zip")
+    if not dest.is_relative_to(ROOT.resolve()) or dest.is_relative_to(PRIVATE.resolve()):
+        raise ValueError("rollover ZIP must be outside _LOCAL_FILES, inside project")
+    if dest.exists():
+        raise ValueError("rollover ZIP already exists; refusing overwrite")
+    STAGING.mkdir(parents=True, exist_ok=True)
+    fd, rawtmp = tempfile.mkstemp(prefix="rollover_", suffix=".zip", dir=STAGING)
+    os.close(fd)
+    tmp = Path(rawtmp)
+    manifest = {"schema_version": 1, "created_utc": now(), "selection": "explicit_only",
+                "git_head": git_sha(),
+                "files": [{"path": rel, "bytes": p.stat().st_size, "sha256": sha(p)}
+                          for p, rel in chosen]}
+    try:
+        with zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True) as z:
+            z.writestr("ROLLOVER_MANIFEST.json", json.dumps(manifest, indent=2) + "\n")
+            for p, rel in chosen:
+                z.write(p, arcname=rel)
+        with zipfile.ZipFile(tmp) as z:
+            if z.namelist() != ["ROLLOVER_MANIFEST.json"] + [rel for _, rel in chosen]:
+                raise ValueError("rollover inventory mismatch")
+            for row in manifest["files"]:
+                h = hashlib.sha256()
+                with z.open(row["path"]) as f:
+                    for chunk in iter(lambda: f.read(1048576), b""):
+                        h.update(chunk)
+                if h.hexdigest() != row["sha256"]:
+                    raise ValueError("rollover checksum mismatch")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(tmp, dest)
+    finally:
+        tmp.unlink(missing_ok=True)
+    print(f"[ROLLOVER] {dest} | {len(chosen)} SHA-verified files; never uploaded")
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="HTKPA: sealed private runs, one Git research findings journal, selective rollover")
+    sub = ap.add_subparsers(dest="action", required=True)
+    a = sub.add_parser("run", help="archive console and RESEARCH_ARTIFACT_DIR even on command failure")
     a.add_argument("--name", required=True)
-    a.add_argument("--artifact", action="append", default=[], help="explicit file to hash/reference, repeatable")
+    a.add_argument("--artifact", action="append", default=[], help="hash reference only; no copy")
     a.add_argument("command", nargs=argparse.REMAINDER)
-    b = sub.add_parser("record", help="register an existing private archive or significant finding")
+    b = sub.add_parser("record", help="reference existing artifacts in a sealed local manifest")
     b.add_argument("--name", required=True)
     b.add_argument("--artifact", action="append", default=[])
-    b.add_argument("--outcome", choices=("accepted", "blocked", "observation"), default="observation")
+    b.add_argument("--status", choices=("accepted", "blocked", "observation"), default="observation")
     b.add_argument("--finding", default="")
-    c = sub.add_parser("close", help="explicit significant-gate promotion to ONE status YAML")
-    c.add_argument("--run", required=True, help="capsule directory name (not a path)")
-    c.add_argument("--stage", required=True)
-    c.add_argument("--decision", choices=("accepted", "blocked", "open"), required=True)
-    c.add_argument("--finding", required=True)
-    c.add_argument("--blocker", default="")
-    c.add_argument("--next", required=True)
-    c.add_argument("--reference", help="optional source/evidence path; default private run.json")
-    args = parser.parse_args(argv)
+    sub.add_parser("recover", help="seal retained staging after wrapper crash")
+    d = sub.add_parser("finding", help="one deliberate research fact in tracked RE_LOG.md")
+    d.add_argument("--stage", required=True)
+    d.add_argument("--kind", choices=("confirmed", "hypothesis"), default="confirmed")
+    d.add_argument("--where", required=True)
+    d.add_argument("--what", required=True)
+    d.add_argument("--evidence", required=True)
+    d.add_argument("--boundary", required=True)
+    e = sub.add_parser("rollover", help="explicitly select critical private files for ZIP handoff")
+    e.add_argument("--output", required=True)
+    e.add_argument("--include", action="append", default=[])
+    args = ap.parse_args(argv)
     try:
-        return {"run": cmd_run, "record": cmd_record, "close": cmd_close}[args.action](args)
-    except (ValueError, OSError, json.JSONDecodeError) as err:
-        parser.error(str(err))
+        return {"run":run,"record":record,"recover":recover,
+                "finding":finding,"rollover":rollover}[args.action](args)
+    except (OSError, ValueError, json.JSONDecodeError, tarfile.TarError, zipfile.BadZipFile) as exc:
+        ap.error(str(exc))
     return 2
 
 
 if __name__ == "__main__":
-    raise SystemExit(cli())
+    raise SystemExit(main())
