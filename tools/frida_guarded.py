@@ -1063,7 +1063,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                     raise RuntimeError("Frida arm() refused to install guarded hook")
                 report("FRIDA","Loaded DLL SHA verified. ONE",
                        ("bounded-f64" if cfg["mode"]=="guarded_f64_binary"
-                        else "single-site native fractional I/O metadata"),
+                        else "fractional-entry I/O metadata" if cfg["mode"]=="guarded_fractional_io"
+                        else "metadata-only"),
                        "hook armed.")
                 report("NOTE","Perform exactly ONE normal conversion in target app.")
             if now>=next_pid_check:
