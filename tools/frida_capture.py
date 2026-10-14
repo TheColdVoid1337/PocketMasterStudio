@@ -222,7 +222,8 @@ def archive(directory, destination):
     members=(['config.json','manifest.json','events.jsonl','HANDOFF.md']
              + sorted(p.name for p in directory.glob('block_*.bin'))
              + [name for name in ('input_0001.bin','input_0002.bin','output_0001.bin',
-                                'frac_coeff_bank_673x72.f64le.bin')
+                                'frac_coeff_bank_673x72.f64le.bin',
+                                'forward_1067.f64le.bin','reverse_114.f64le.bin')
                 if (directory/name).is_file()])
     digest={}
     with tarfile.open(destination,'w:gz') as t:
@@ -549,7 +550,9 @@ def main():
                    else (len(cfg['sites']) if state.get('ready') else 0),
         contains_audio_bytes=(bool(state.get('binary_valid',False)
                                      or state.get('input_prefix_events',0)
-                                     or state.get('output_probe_valid',False)) if guarded
+                                     or state.get('output_probe_valid',False)
+                                     or state.get('long_forward_valid',False)
+                                     or state.get('long_reverse_valid',False)) if guarded
             else bool(any(f['type'] in ('f64_binary','f64_block','f64_slice','f64')
                          for site in cfg['sites'] for f in site['fields']))),
         completion_verified=bool(state.get('completion_verified',False)),
@@ -557,7 +560,9 @@ def main():
         process_cleanup_status=state.get('cleanup_status','NOT_APPLICABLE'),
         state=state,
         scope=(('guarded metadata; no audio reads' if cfg['mode']=='guarded_metadata'
-                 else ('SHA/vtable-guarded one-shot generated 673x72 native fractional coefficient bank (no audio)'
+                 else ('SHA/vtable guarded native extended 1067-forward+114-reverse f64 output; exactly 9448 private bytes'
+                       if cfg.get('long_probe') else
+                       'SHA/vtable-guarded one-shot generated 673x72 native fractional coefficient bank (no audio)'
                        if cfg.get('coeff_probe') else
                        'SHA/vtable-guarded fractional I/O with 3+256 native 96k input f64 and 32 native 48k output f64'
                        if cfg.get('input_probe') else
@@ -569,6 +574,11 @@ def main():
     evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
                    'a new stable CLO are mandatory for Stage48 PASS.')
                    if cfg.get('mode')=='guarded_metadata' else
+                   ('Guarded one native fractional entry hook: 1067 f64 from original '
+                    '88200->48000 output and 114 f64 from 96000->44100 output; '
+                    'both must SHA-match independent first32 native prefixes. '
+                    'Exactly 9448 bytes in private tar, stable CLO mandatory.')
+                   if cfg.get('long_probe') else
                    ('Guarded SINGLE fractional entry hook; exactly 673*72 f64 generated '
                     'coefficient table from original DLL .data RVA 0x2C7560, plus rate/count '
                     'metadata; no waveform read, 387648-byte limit, private SHA and CLO gate.')
@@ -618,6 +628,7 @@ def main():
                            'FRACTIONAL_IO_TRACE_CLO_STABLE',
                            'FRACTIONAL_PAIRED_PREFIXES_CLO_STABLE',
                            'FRACTIONAL_COEFF_BANK_CLO_STABLE',
+                           'FRACTIONAL_EXTENDED_OUTPUTS_CLO_STABLE',
                            'NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE') else 2
 
 if __name__=='__main__':raise SystemExit(main())
