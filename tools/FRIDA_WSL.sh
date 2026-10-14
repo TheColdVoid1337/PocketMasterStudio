@@ -72,7 +72,7 @@ print(bool(json.load(open(sys.argv[1],encoding="utf-8")).get("input_probe")))
 PY
 )"
     if [[ "$INPUT_PROBE" == "True" ]]; then
-      msg "$YELLOW" HOOK "Stage54: ONE fractional hook, capture precisely 3+256 private 96k f64 (2072 bytes)"
+      msg "$YELLOW" HOOK "Stage54: ONE fractional hook; 3+256 input f64 at 96k + 32 output f64 at 48k (2328 private bytes)"
     else
       msg "$MAGENTA" HOOK "Fractional I/O metadata: ONE hook, at most 64 pairs, ZERO audio reads"
     fi
