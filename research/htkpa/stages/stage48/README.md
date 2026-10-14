@@ -80,3 +80,32 @@ It does **not** validate:
 Only after independently verifying the report and that Manager remained stable should a **separate future Stage49** propose a *single-hook bounded binary capture* at exactly this site, without collecting audio in this run.
 
 **No Stage48 Windows or Frida capture has been performed by the assistant.** Read-only offline test and GitHub files do not constitute user execution evidence.
+
+## 2026-10-14 first Windows attempt: BLOCKED before hooking — process not found
+
+Actual user WSL run called `STAGE48_WSL.sh`; the offline self-test and original DLL SHA checks passed, and the user's CLO directory exists at `/mnt/c/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager`. The initial Windows process-discovery guard then raised `ValueError: Open exactly one Sonicake Manager before running, or supply --pid`. Original manifest timestamp **2026-10-14T10:03:09.550523+00:00**, `status=BLOCKED`, `hook_count=0`, `state={}`; no Frida session attached to Manager, no interceptor installed, no waveform captured. This is NOT a failed converter / crash or a native-output observation.
+
+The script's original automatic discovery required **both** 'sonicake' and 'manager' in the executable name. This may not describe the installed application binary, or the Manager may simply have been closed. Do not invent a PID or relax the guard by attaching to an arbitrary process.
+
+A no-hook process-discovery mode has now been added to `metadata_probe.py`:
+
+```bash
+# Start exactly one Manager instance FIRST, no conversion yet.
+cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+source .venv/bin/activate
+git pull --ff-only origin main
+export FRIDA_WATCH_CLO="/mnt/c/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager"
+
+# No Frida attach()/Interceptor.attach; just enumerate relevant Windows names/PIDs.
+bash research/htkpa/stages/stage48/STAGE48_WSL.sh --list-processes
+```
+
+If this lists the true Sonicake Manager process, use its exact **PID** instead of relying on strict automatic matching:
+
+```bash
+bash research/htkpa/stages/stage48/STAGE48_WSL.sh --pid <ACTUAL_MANAGER_PID>
+```
+
+Replace the placeholder with the number actually observed and check that the application has the expected Windows executable path in Task Manager -> Details (or Windows PowerShell `Get-CimInstance Win32_Process`) before attaching. The `--pid` option was already supported; the new discovery command does not arm a hook or create a conversion manifest. If Frida lists no matching name, inspect actual Windows process names, ensure Manager is open, and **STOP** instead of targeting another process. Only after `[HOOK]` should one normal NAM→CLO operation start.
+
+This initial attempt leaves Stage48 **PREPARED / RUNTIME NOT OBSERVED**, with process-name diagnosis open. Previous acceptance/security requirements remain unchanged.
