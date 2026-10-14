@@ -164,11 +164,11 @@ def validate_config(cfg: dict, address_fn) -> dict:
             raise ValueError("lifecycle must specify executable/start/close/close_timeout_seconds")
         exe=lifecycle["executable"]
         if not isinstance(exe,str) or not re.fullmatch(
-            r"[A-Za-z]:/[^\x00-\x1f<>\"|?*]+",exe):
+            r"[A-Za-z]:/[^\x00-\x1f<>:\"|?*]+",exe):
             raise ValueError("lifecycle.executable must be an absolute C:/... Windows EXE path")
         if (not exe.lower().endswith(".exe") or
                 any(part in ("",".","..") for part in exe[3:].split("/")) or
-                "\\\\" in exe or PureWindowsPath(exe).drive==""):
+                "\\" in exe or PureWindowsPath(exe).drive==""):
             raise ValueError("unsafe executable path")
         if lifecycle["start"] not in ("fresh","if_missing","attach_only"):
             raise ValueError("lifecycle.start must be fresh, if_missing or attach_only")
@@ -190,8 +190,8 @@ def validate_config(cfg: dict, address_fn) -> dict:
     if "path" in completion:
         watch=completion["path"]
         if (not isinstance(watch,str) or
-                not re.fullmatch(r"[A-Za-z]:/[^\x00-\x1f<>\"|?*]+",watch) or
-                "\\\\" in watch or
+                not re.fullmatch(r"[A-Za-z]:/[^\x00-\x1f<>:\"|?*]+",watch) or
+                "\\" in watch or
                 any(part in ("",".","..") for part in watch[3:].split("/"))):
             raise ValueError("completion.path must be a safe absolute C:/... directory")
     else:
