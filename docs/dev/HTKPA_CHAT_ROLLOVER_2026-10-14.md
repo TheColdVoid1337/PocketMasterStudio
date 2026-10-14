@@ -72,6 +72,10 @@ Exact known paths:
 | Canonical research timeline | `research/htkpa/RE_LOG.md` |
 | **This handoff** | `docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md` |
 
+**Original Manager version — user-confirmed 2026-10-14:** **Sonicake Manager V1.5.2 for Windows**. Official download: https://sonicake.oss-accelerate.aliyuncs.com/res/9516K6KrD2/Ampcube_Sonicake_Manager_Setup_V1.5.2_for_Windows.zip, linked as V1.5.2 at https://www.sonicake.com/pages/pocket-master-software-firmware-download-qme-10. Attribution to V1.5.2 comes from the user's identification of the original installed Manager and confirmation of this official installer link; **the installer-embedded DLL has not been independently hashed against the local SHA-pinned `5868USB.dll`**. Preserve the SHA as authoritative for Frida RVA gates, and do not mistake the PE timestamp (2026-07-29) for release date.
+
+Historical comparison of Manager **1.0.1 → 1.1.1 → 1.3.0 → 1.5.2**: [`research/htkpa/SONICAKE_MANAGER_VERSION_HISTORY_2026-10-14.md`](../../research/htkpa/SONICAKE_MANAGER_VERSION_HISTORY_2026-10-14.md). Historical comparison files 1.0.1/1.1.1/1.3.0 were supplied privately; 1.5.2 is the original Stage48 DLL, not part of that additional history archive.
+
 **Original DLL identity:**
 - Windows x64 PE+ `5868USB.dll`, size **2,902,016 bytes**.
 - **SHA256 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`**. Do not proceed with a different DLL without revalidating addresses.
