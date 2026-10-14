@@ -15,14 +15,15 @@
     "pointer_lifetime": "Not yet observed in native runtime; output may be scratch or caller input"
   },
   "implementation": {
-    "script": "research/htkpa/stages/stage48/metadata_probe.py",
-    "wsl_wrapper": "research/htkpa/stages/stage48/STAGE48_WSL.sh",
+    "canonical_script": "tools/frida_capture.py",
+    "canonical_wsl_wrapper": "tools/FRIDA_WSL.sh",
+    "shared_guard_library": "tools/frida_guarded.py",
+    "stage_config": "research/htkpa/stages/stage48/frida.json",
     "frida_hook_count": 1,
     "metadata_only": true,
     "max_valid_f64": 4096,
     "max_callback_observations": 256,
     "never_capture_audio": true,
-    "only_run_with_existing_manager": true,
     "requires_prearm_module_backing_file_sha": true,
     "requires_source_dll_sha": true,
     "checks_fractional_runtime_vtable": true,
@@ -111,8 +112,35 @@
     "state_integrity": "Pass mutable state through execute; on Ctrl+C recover hook and metadata from events.jsonl and use METADATA_OBSERVED_OPERATOR_INTERRUPTED rather than wrong BLOCKED and hook_count 0.",
     "regression_tests": "self-test recreates exact 4-event scenario, checks recovery of 114 f64 metadata, mock PID auto-detection and nested CLO stats.",
     "wsl_wrapper": "Auto-derive APPDATA through existing Windows Python, colored one-command operation; no PID flag required.",
-    "online_runtime_verification": "PENDING_USER_RERUN",
+    "online_runtime_verification": "PENDING_USER_WSL_RERUN",
     "no_audio_reads": true,
-    "one_hook_unchanged": true
+    "one_hook_unchanged": true,
+    "shared_code_consolidated": "All CLI/UI/Frida operations now in generic /tools, no stage copy",
+    "stage48_config_only": true
+  },
+  "canonical_tool_migration": {
+    "date": "2026-10-14",
+    "status": "IMPLEMENTED_IN_GIT_PENDING_WSL_OFFLINE_AND_WINDOWS_RUNTIME_VERIFICATION",
+    "entrypoint": "tools/frida_capture.py",
+    "wsl_launcher": "tools/FRIDA_WSL.sh",
+    "guarded_library": "tools/frida_guarded.py",
+    "stage_config": "research/htkpa/stages/stage48/frida.json",
+    "regression": "tools/test_frida_universal.py",
+    "stage_specific_scripts": "SUPERSEDED_BY_UNIVERSAL_TOOLS",
+    "old_stage48_script_source": "Available in git history, NOT maintained or used",
+    "configuration_parameters": {
+      "module": "5868USB.dll",
+      "hash_verified": true,
+      "mode": "guarded_metadata",
+      "target_process_contains": "sonicake",
+      "one_site_rva": "0x1190c",
+      "guard_vtable_rva": "0x245170",
+      "clo_location": "Windows APPDATA/Sonicake/Sonicake Manager (recursive)",
+      "stable_seconds": 3,
+      "runtime_reads_audio": false
+    },
+    "completion": "Only valid metadata AND new/changed CLO stable 3 s is metadata runtime PASS",
+    "legacy_f64_behavior": "Preserved via mode=scalar default and generic archive",
+    "online_result": "Not yet user-run on Windows after migration; previous Stage48 114-f64 event still original evidence"
   }
 }
