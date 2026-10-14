@@ -1396,6 +1396,14 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 heartbeat=now
                 report("WAIT","elapsed",round(now-start),"s | hook",hooked,
                        "| metadata",metadata,"| CLO",state["completion_verified"])
+            if (cfg.get("input_probe") and state["completion_verified"] and
+                    stable_since is not None and now-stable_since>stable_seconds+6 and
+                    not (state.get("input_prefix_valid") and state.get("output_probe_valid"))):
+                report("WARN","Stage54 missing bounded native prefix after stable CLO:",
+                       "| 96k input",state.get("input_prefix_events",0),"/ 2",
+                       "| 48k output",state.get("output_probe_valid",False),
+                       "| all available data will be archived")
+                return ("INCOMPLETE_REQUIRED_PREFIXES","stable_clo_missing_prefix",pid)
             if (state["runtime_verified"] and hooked and metadata and
                     (cfg["mode"]=="guarded_metadata" or
                      cfg["mode"]=="guarded_fractional_io" and
