@@ -1,6 +1,6 @@
 # Stage49 — V1.5.2 native post-fractional f64 prefix: safety gate and experimental design
 
-**Current status: GATE_A_STATIC_PROVENANCE_PASS; GATE_B_UNIVERSAL_CODE_PREPARED_OFFLINE_QA_PENDING; WINDOWS_BINARY_CAPTURE_NOT_RUN.** This is not a claim of native 48-kHz sample capture, full output parity, NAM fit parity, or Stage49 completion.
+**Current status: GATE_A_STATIC_PROVENANCE_PASS; GATE_B_UNIVERSAL_CODE_GITHUB_CI_PASS_USER_WSL_PENDING; WINDOWS_BINARY_CAPTURE_NOT_RUN.** This is not a claim of native 48-kHz sample capture, full output parity, NAM fit parity, or Stage49 completion.
 
 ## Provenance
 
@@ -60,7 +60,7 @@ The first 32 samples are a **diagnostic prefix**, not a parity-ready 1067-sample
 
 Stage49 JSON is now present as `research/htkpa/stages/stage49/frida.json`. It opts in to `guarded_f64_binary`, one validated post-return hook, original V1.5.2 DLL SHA, 32 native f64 (256 bytes) maximum from the FIRST guarded valid output block. No Stage49 shell/Python copy exists.
 
-**Offline QA is pending an actual WSL checkout run**. The source is committed, but the tools have **not** run on the user's Windows. First execute only offline/preflight checks, then if everything passes, launch exactly ONE managed conversion. Do not keep retrying if Frida reports an error or Manager crashes.
+**GitHub Actions offline CI PASS (16/16 tests, Python compile/self-test, Node JS syntax and Bash syntax), while an actual user WSL checkout run is still pending.** The source is committed, but the tools have **not** run on the user's Windows. First execute only offline/preflight checks, then if everything passes, launch exactly ONE managed conversion. Do not keep retrying if Frida reports an error or Manager crashes.
 
 ```bash
 set -e
@@ -87,3 +87,9 @@ bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage49/frida.json
 After `[HOOK]`, perform exactly ONE normal NAM→CLO conversion inside the launched Manager; do not change any user NAM or CLO while the tool is running. A real positive result must record both **one local `block_0001.bin` with a SHA256**, and **a new/changed stable CLO**. Normal exit should be `NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE`; `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY` was already independently accepted in Stage48 and must **not** be rerun.
 
 If only a partial event was persisted before interruption, `events.jsonl` + SHA-validated local `block_0001.bin` remain forensic evidence, **not** a completed Stage49 success. Report the terminal output and `manifest.json` / `events.jsonl` first; do not upload proprietary `block_0001.bin` into GitHub. Archive is private under `research/_LOCAL_FILES/frida_captures/`. Do not compare the block numerically to any public sequence until aligned streaming provenance is established.
+
+### 2026-10-14 CI acceptance of preparation (NOT the native runtime)
+
+- GitHub Actions workflow `Universal Frida offline contract` run [38568363327](https://github.com/TheColdVoid1337/PocketMasterStudio/actions/runs/38568363327), head `d08702902f66d4d7376743eb562b3b0ff7006e87`: **PASS**, including **16/16** Python unit tests in 0.235 seconds, Python compilation, shared self-test, Stage48 regression, generated Stage49 JavaScript `node --check`, and Bash syntax.
+- Prior intermediate test commit `3203e9c2` found a duplicate `const slot` declaration in the generated binary-agent JS and correctly failed. Fixed by distinct `scratchSlot` in `d0870290`; no code on Windows was ever executed as part of this correction.
+- **NEXT GATE:** local user WSL tests/preflight. Only after their PASS perform one Manager V1.5.2 conversion with the new one-shot guarded binary config. No vendor f64 values have been captured yet; no parity conclusions.
