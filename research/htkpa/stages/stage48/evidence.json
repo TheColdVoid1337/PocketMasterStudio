@@ -40,5 +40,26 @@
   },
   "acceptance": "METADATA_GUARD_PASS_CLO_STABLE from actual user Windows run AND Manager visibly completes conversion without crash",
   "limitations": "Readability/mapping does not prove allocated buffer capacity; output f64 content NOT read; metadata evidence cannot establish output parity, hook stability across other runs, or exact embedded r8brain release.",
-  "safety": "Never use paired original input C220 and copy C838 hooks; no production source changes, no raw vendor data in GitHub."
+  "safety": "Never use paired original input C220 and copy C838 hooks; no production source changes, no raw vendor data in GitHub.",
+  "first_user_execution": {
+    "date_utc": "2026-10-14T10:03:09.550523+00:00",
+    "status": "BLOCKED",
+    "problem": "ValueError: Open exactly one Sonicake Manager before running, or supply --pid",
+    "source_manifest": "User-uploaded stage48 first attempt manifest.json; no binary or audio",
+    "local_python_self_test": "PASS",
+    "original_dll_sha": "VERIFIED",
+    "user_clo_watch_folder": "/mnt/c/Users/TheColdVoid/AppData/Roaming/Sonicake/Sonicake Manager",
+    "hook_count": 0,
+    "frida_session_attached": false,
+    "contains_audio": false,
+    "runtime_vtable_verified": false,
+    "native_fractional_output_captured": false,
+    "finding": "Strict process name auto-discovery found != 1 processes containing both Sonicake and Manager; could be Manager closed, different executable name, or multiple candidates; no actual process inventory yet."
+  },
+  "next_gate": {
+    "stage48_new_revision": "metadata_probe.py --list-processes enumerates Windows Frida candidates with NO attach or hook",
+    "action": "Start exactly one Manager; run STAGE48_WSL.sh --list-processes; identify actual Manager PID from Windows process details; run STAGE48_WSL.sh --pid <CONFIRMED_PID> only when identity is established.",
+    "runtime_status": "STILL_UNVERIFIED_NO_HOOK",
+    "prohibited_inference": "Do not call BLOCKED an application crash or a signal/resampler mismatch."
+  }
 }
