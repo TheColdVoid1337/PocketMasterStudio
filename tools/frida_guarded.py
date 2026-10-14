@@ -116,11 +116,135 @@ Process.attachModuleObserver({onAdded(m) {
 
 
 
+
+# Stage52: one hook at the FRACTIONAL FUNCTION ENTRY, not the old wrapper
+# return site. Paired onEnter/onLeave records per-call input and output counts.
+# No waveform access, no arbitrary code from the JSON config, no second hook.
+IO_AGENT = r"""
+'use strict';
+const spec = JSON_SPEC, site = spec.sites[0], guard = site.guard;
+let moduleFound = null, attached = false, observed = 0, firstReject = false;
+function emit(data) { send(Object.assign({kind:'note',thread:Process.getCurrentThreadId()},data)); }
+function readable(p, n) {
+  if (p.isNull() || n < 1) return false;
+  const region = Process.findRangeByAddress(p);
+  return region !== null && region.protection.indexOf('r') >= 0 &&
+    p.compare(region.base) >= 0 &&
+    p.add(n-1).compare(region.base.add(region.size)) < 0;
+}
+function reject(why,n) {
+  if (!firstReject) { firstReject = true; emit({kind:'io_first_reject',reason:why,observed:n}); }
+}
+rpc.exports = {
+  arm() {
+    if (attached || moduleFound === null) return false;
+    const mod = Process.findModuleByName(spec.module);
+    if (mod === null || !mod.base.equals(moduleFound.base) || site.rva >= mod.size) return false;
+    const loc = mod.base.add(site.rva);
+    const span = Process.findRangeByAddress(loc);
+    if (span === null || span.protection.indexOf('x') < 0) return false;
+    try {
+      Interceptor.attach(loc,{
+        onEnter() {
+          this.observation = null;
+          if (observed >= guard.max_observations) return;
+          const nth = ++observed;
+          if (nth === guard.max_observations)
+            emit({kind:'io_cap_reached',observed:nth});
+          try {
+            const processor = this.context.rcx;
+            if (!readable(processor,Process.pointerSize)) return reject('processor unreadable',nth);
+            if (!processor.readPointer().equals(mod.base.add(guard.vtable_rva)))
+              return reject('fractional vtable mismatch',nth);
+            const inputCount = this.context.r8.and(ptr('0xffffffff')).toUInt32();
+            if (inputCount > guard.max_input_f64) return reject('input count outside guard',nth);
+            this.observation = {observed:nth, input_f64:inputCount,
+                                processor_pointer:processor.toString()};
+          } catch(e) { reject('enter exception: '+String(e).slice(0,120),nth); }
+        },
+        onLeave(retval) {
+          if (this.observation === null) return;
+          try {
+            const outputCount = retval.and(ptr('0xffffffff')).toUInt32();
+            if (outputCount > guard.max_output_f64)
+              return reject('output count outside guard',this.observation.observed);
+            emit(Object.assign({kind:'fractional_io',valid:true,site:site.name,
+                output_f64:outputCount},this.observation));
+          } catch(e) { reject('leave exception: '+String(e).slice(0,120),
+                              this.observation.observed); }
+        }
+      });
+      attached = true;
+      emit({kind:'hook_attached',site:site.name,rva:site.rva,hooks_installed:1});
+      return true;
+    } catch(e) {
+      emit({kind:'arm_error',error:String(e).slice(0,180)});
+      return false;
+    }
+  }
+};
+Process.attachModuleObserver({onAdded(m){
+  if (m.name.toLowerCase() !== spec.module.toLowerCase()) return;
+  moduleFound = m;
+  emit({kind:'module_found',name:m.name,path:m.path,base:m.base.toString(),size:m.size});
+}});
+"""
+
+
+def validate_fractional_io(cfg: dict, address_fn) -> dict:
+    """Reuse strict SHA/Windows path lifecycle validation; separate entry-hook guard."""
+    if not isinstance(cfg,dict) or cfg.get("mode")!="guarded_fractional_io":
+        raise ValueError("expected guarded_fractional_io descriptor")
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle"}:
+        raise ValueError("unexpected fractional I/O config fields")
+    sites=cfg.get("sites")
+    if not isinstance(sites,list) or len(sites)!=1:
+        raise ValueError("fractional IO accepts exactly one hook")
+    site=sites[0]
+    if not isinstance(site,dict) or set(site)!={"name","address","fields","required","max_hits","guard"}:
+        raise ValueError("fractional IO site keys are fixed")
+    if site["fields"]!=[] or site["required"] is not True or site["max_hits"]!=1:
+        raise ValueError("fractional IO must use one required, field-free hook")
+    guard=site["guard"]
+    if not isinstance(guard,dict) or set(guard)!={"kind","vtable_rva","max_observations","max_input_f64","max_output_f64"}:
+        raise ValueError("fractional entry guard keys are fixed")
+    if guard["kind"]!="fractional_entry_io":
+        raise ValueError("fractional entry kind mismatch")
+    for key, value, limit in (
+        ("max_observations",guard["max_observations"],64),
+        ("max_input_f64",guard["max_input_f64"],7000000),
+        ("max_output_f64",guard["max_output_f64"],7000000),
+    ):
+        if type(value) is not int or value!=limit:
+            raise ValueError(f"fractional {key} requires verified bound {limit}")
+    # Validate *all* common security/launch/output parameters using the
+    # established guarded_metadata validator (not a second permissive parser).
+    # This dummy guard exists ONLY to invoke common validation; it is NEVER
+    # serialized into the resulting entry-hook descriptor or used as an agent.
+    proxy=dict(cfg)
+    proxy["mode"]="guarded_metadata"
+    proxy["sites"]=[dict(site,guard={
+        "kind":"processor_output","owner_reg":"rbx","owner_offset":80,
+        "vtable_rva":guard["vtable_rva"],"output_ref_reg":"r15",
+        "count_reg":"rax","max_samples":4096,"max_observations":64,
+    })]
+    normalized=validate_config(proxy,address_fn)
+    normalized["mode"]="guarded_fractional_io"
+    normalized["sites"]=[dict(normalized["sites"][0],guard={
+        "kind":"fractional_entry_io",
+        "vtable_rva":normalized["sites"][0]["guard"]["vtable_rva"],
+        "max_observations":64,"max_input_f64":7000000,
+        "max_output_f64":7000000,
+    })]
+    return normalized
+
 def validate_config(cfg: dict, address_fn) -> dict:
     """Strict declarative guard schema; arbitrary script payloads are forbidden."""
     if not isinstance(cfg,dict):
         raise ValueError("config must be an object")
     mode=cfg.get("mode")
+    if mode=="guarded_fractional_io":
+        return validate_fractional_io(cfg,address_fn)
     if mode not in ("guarded_metadata","guarded_f64_binary"):
         raise ValueError("guarded mode must be guarded_metadata or guarded_f64_binary")
     trace=cfg.get("trace")
@@ -346,6 +470,8 @@ def persist_guarded_binary(cfg: dict, state: dict, folder: Path,
 
 
 def agent_source(cfg: dict) -> str:
+    if cfg["mode"]=="guarded_fractional_io":
+        return IO_AGENT.replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True))
     return (AGENT.replace("BINARY_EXTENSION_POINT",
                           BINARY_EXTENSION if cfg["mode"]=="guarded_f64_binary" else "")
             .replace("JSON_SPEC",json.dumps(cfg,ensure_ascii=True)))
