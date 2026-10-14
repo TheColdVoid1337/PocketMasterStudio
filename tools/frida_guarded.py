@@ -558,6 +558,24 @@ def reconcile(folder: Path, state: dict):
             state["hits"] = max(1,state.get("hits",0))
             state["metadata_valid"] = True
             state["last_metadata"] = e
+        elif kind == "binary_hit" and e.get("valid") is True:
+            name=e.get("file")
+            n=e.get("copied_bytes")
+            digest=e.get("sha256")
+            if (name=="block_0001.bin" and type(n) is int and 8<=n<=256
+                    and n%8==0 and isinstance(digest,str)
+                    and re.fullmatch(r"[0-9a-f]{64}",digest)):
+                file=folder/name
+                try:
+                    if (file.stat().st_size==n and
+                            hashlib.sha256(file.read_bytes()).hexdigest()==digest):
+                        state["metadata_valid"]=True
+                        state["binary_valid"]=True
+                        state["binary_file"]=name
+                        state["binary_bytes"]=n
+                        state["last_metadata"]=e
+                except OSError:
+                    pass
         elif kind == "first_rejected_return":
             state["first_rejection"] = e.get("reason")
 
