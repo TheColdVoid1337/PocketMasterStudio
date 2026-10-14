@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import platform
 import re
 import threading
@@ -154,30 +154,66 @@ def validate_config(cfg: dict, address_fn) -> dict:
     match=target["process_name_contains"]
     if not isinstance(match,str) or not re.fullmatch(r"[A-Za-z0-9_. -]{3,100}",match):
         raise ValueError("invalid process match string")
+    # Lifecycle is declarative and OPTIONAL for old guarded configs.
+    # All paths are interpreted only on Windows; no app is launched in self-test.
+    lifecycle=cfg.get("lifecycle")
+    if lifecycle is not None:
+        if not isinstance(lifecycle,dict) or set(lifecycle)!={
+            "executable","start","close","close_timeout_seconds"
+        }:
+            raise ValueError("lifecycle must specify executable/start/close/close_timeout_seconds")
+        exe=lifecycle["executable"]
+        if not isinstance(exe,str) or not re.fullmatch(
+            r"[A-Za-z]:/[^\x00-\x1f<>\"|?*]+",exe):
+            raise ValueError("lifecycle.executable must be an absolute C:/... Windows EXE path")
+        if (not exe.lower().endswith(".exe") or
+                any(part in ("",".","..") for part in exe[3:].split("/")) or
+                "\\\\" in exe or PureWindowsPath(exe).drive==""):
+            raise ValueError("unsafe executable path")
+        if lifecycle["start"] not in ("fresh","if_missing","attach_only"):
+            raise ValueError("lifecycle.start must be fresh, if_missing or attach_only")
+        if lifecycle["close"] not in ("if_launched","never"):
+            raise ValueError("lifecycle.close must be if_launched or never")
+        t=lifecycle["close_timeout_seconds"]
+        if type(t) is not int or not 1<=t<=30:
+            raise ValueError("lifecycle.close_timeout_seconds must be 1..30")
+        lifecycle=dict(lifecycle)
+
     completion=cfg.get("completion")
     if not isinstance(completion,dict):
         raise ValueError("completion must be a declarative object")
-    allowed={"type","appdata_subdir","recursive","stable_seconds"}
-    if set(completion)!=allowed or completion["type"]!="changed_clo":
-        raise ValueError("guarded mode requires exact changed_clo completion keys")
-    sub=completion["appdata_subdir"]
-    if not isinstance(sub,str) or not sub or ":" in sub or "\\" in sub or sub.startswith("/"):
-        raise ValueError("appdata_subdir must be safe slash-separated relative segments")
-    if any(part in ("",".","..") or not re.fullmatch(r"[A-Za-z0-9_. -]+",part)
-           for part in sub.split("/")):
-        raise ValueError("unsafe appdata_subdir")
+    shared={"type","recursive","stable_seconds"}
+    locations=set(completion)-shared
+    if (not locations in ({"path"},{"appdata_subdir"}) or
+            set(completion)!=shared|locations or completion["type"]!="changed_clo"):
+        raise ValueError("completion needs exactly one of path or appdata_subdir")
+    if "path" in completion:
+        watch=completion["path"]
+        if (not isinstance(watch,str) or
+                not re.fullmatch(r"[A-Za-z]:/[^\x00-\x1f<>\"|?*]+",watch) or
+                "\\\\" in watch or
+                any(part in ("",".","..") for part in watch[3:].split("/"))):
+            raise ValueError("completion.path must be a safe absolute C:/... directory")
+    else:
+        sub=completion["appdata_subdir"]
+        if not isinstance(sub,str) or not sub or ":" in sub or "\\" in sub or sub.startswith("/"):
+            raise ValueError("appdata_subdir must be safe slash-separated relative segments")
+        if any(part in ("",".","..") or not re.fullmatch(r"[A-Za-z0-9_. -]+",part)
+               for part in sub.split("/")):
+            raise ValueError("unsafe appdata_subdir")
     if type(completion["recursive"]) is not bool:
         raise ValueError("recursive must be a boolean")
     stable=completion["stable_seconds"]
     if type(stable) not in (int,float) or not 2<=stable<=30:
         raise ValueError("stable_seconds must be 2..30")
-    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites"}:
+    if set(cfg)-{"module","sha256","mode","image_base","target","completion","sites","lifecycle"}:
         raise ValueError("unknown top-level guarded config key")
     return {
         "module":cfg["module"],"sha256":cfg["sha256"].lower(),
         "mode":"guarded_metadata","image_base":base,
         "target":{"process_name_contains":match},
         "completion":dict(completion),
+        **({"lifecycle":lifecycle} if lifecycle is not None else {}),
         "sites":[{"name":s["name"],"rva":rv,"required":True,"max_hits":1,
                   "fields":[],"guard":dict(g,owner_offset=off,vtable_rva=vtable,
                                             max_samples=max_samples,
@@ -207,6 +243,8 @@ def resolve_completion(args, cfg: dict):
     completion = cfg.get("completion") or {}
     if args.completion_dir:
         path = args.completion_dir
+    elif completion.get("path"):
+        path = Path(completion["path"])
     elif completion.get("appdata_subdir"):
         appdata = os.environ.get("APPDATA")
         if not appdata:
