@@ -365,7 +365,7 @@ class UniversalFridaTests(unittest.TestCase):
         self.assertEqual(st["cleanup_order"],"OWNED_GUI_BEFORE_FRIDA")
         self.assertEqual(st["frida_cleanup_status"],"TARGET_EXIT_RELEASED_HOOK")
 
-    def test_stage51_preserved_r8_input_count_same_single_hook(self):
+    def test_stage51_postcall_r8_debug_is_not_fractional_input(self):
         cfg=core.validate(json.loads(STAGE51.read_text(encoding="utf-8")))
         baseline=core.validate(json.loads(STAGE50.read_text(encoding="utf-8")))
         self.assertEqual(cfg["mode"],"guarded_f64_binary")
