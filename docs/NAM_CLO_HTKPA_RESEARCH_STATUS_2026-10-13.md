@@ -1,3 +1,7 @@
+> **CURRENT STATUS MOVED — 2026-10-14:** The Stage23O research snapshot below is HISTORICAL. The definitive new-chat handoff and verified Stage38–48 / universal Frida milestone are in **[HTKPA Chat Rollover 2026-10-14](dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md)**. Stage48 has a real DLL post-fractional **114-f64 metadata event** and **new/changed stable 8840-byte CLO**, plus independent Windows owned-GUI auto-close PASS (13/13 universal regressions). **Native post-fractional sample values and full vendor 48-kHz parity remain NOT CAPTURED/UNPROVEN.** Stage49 is the next planned research gate; it must extend shared `tools/`, not add stage-specific Frida runners. [Stage48 evidence](../research/htkpa/stages/stage48/evidence.json) · [RE_LOG](../research/htkpa/RE_LOG.md) · [universal Frida](../tools/FRIDA.md). The dated findings below remain unchanged as a historic 2026-10-13 research checkpoint.
+
+---
+
 # HTKPA / NAM → CLO — current research status (Stage23O)
 
 **Research-cycle log:** [append-only RE_LOG](../research/htkpa/RE_LOG.md) is updated after every RE cycle (including failed hypotheses) with evidence, remaining unknowns and the next disassembly range. The fuller status on this page is refreshed during deliberate DOC-SYNC passes.
