@@ -549,6 +549,56 @@ def persist_guarded_binary(cfg: dict, state: dict, folder: Path,
     return dict(event,file=name,sha256=digest)
 
 
+def persist_fractional_input(cfg: dict, state: dict, folder: Path,
+                             event: dict, binary: bytes) -> dict:
+    """Persist two exact 96k->44.1 native RDX input prefixes, max 2072 bytes.
+
+    No audio bytes enter tracked code or reports. Fail closed if processor,
+    sequence, rate, size, or callback provenance does not match the descriptor.
+    """
+    if cfg.get("mode")!="guarded_fractional_io" or "input_probe" not in cfg:
+        raise ValueError("unapproved fractional input payload")
+    if not isinstance(event,dict):
+        raise ValueError("fractional input event is not an object")
+    p=cfg["input_probe"]
+    step=event.get("step")
+    expected={1:p["first_f64"],2:p["second_f64"]}
+    current=state.get("input_prefix_events",0)
+    n=expected.get(step) if type(step) is int else None
+    owner=event.get("processor_pointer")
+    if (event.get("kind")!="fractional_input_prefix" or event.get("valid") is not True
+            or event.get("site")!=cfg["sites"][0]["name"]
+            or step!=current+1 or n is None
+            or event.get("input_f64")!=n or event.get("copied_bytes")!=n*8
+            or event.get("rate_numerator")!=p["numerator"]
+            or event.get("rate_denominator")!=p["denominator"]
+            or event.get("provenance")!="fractional_rdx_onenter"
+            or type(event.get("observed")) is not int
+            or not 1<=event["observed"]<=cfg["sites"][0]["guard"]["max_observations"]
+            or not isinstance(owner,str) or not re.fullmatch(r"0x[0-9a-fA-F]+",owner)
+            or (step==2 and owner!=state.get("input_probe_processor"))
+            or (step==2 and event["observed"]<=state.get("input_probe_first_observed",0))):
+        raise ValueError("invalid or misaligned fractional input callback")
+    buf=bytes(binary)
+    if len(buf)!=n*8 or len(buf)>p["total_max_bytes"]:
+        raise ValueError("fractional input callback exceeded byte budget")
+    if state.get("input_prefix_total_bytes",0)+len(buf)>p["total_max_bytes"]:
+        raise ValueError("fractional input total byte budget exceeded")
+    name=f"input_{step:04d}.bin"
+    with (folder/name).open("xb") as out:
+        out.write(buf)
+        out.flush()
+        os.fsync(out.fileno())
+    digest=hashlib.sha256(buf).hexdigest()
+    state["input_prefix_events"]=step
+    state["input_prefix_total_bytes"]=state.get("input_prefix_total_bytes",0)+len(buf)
+    state["input_probe_processor"]=owner
+    if step==1:
+        state["input_probe_first_observed"]=event["observed"]
+    state["input_prefix_valid"]=(step==2)
+    return dict(event,file=name,sha256=digest)
+
+
 def agent_source(cfg: dict) -> str:
     if cfg["mode"]=="guarded_fractional_io":
         return (IO_AGENT.replace("RATE_PROBE_EXTENSION",
@@ -877,6 +927,31 @@ def reconcile(folder: Path, state: dict):
                         state["last_metadata"]=e
                 except OSError:
                     pass
+        elif kind == "fractional_input_prefix" and e.get("valid") is True:
+            name=e.get("file")
+            step=e.get("step")
+            n={1:3,2:256}.get(step) if type(step) is int else None
+            processor=e.get("processor_pointer")
+            if (n is not None and name==f"input_{step:04d}.bin"
+                    and e.get("input_f64")==n and e.get("copied_bytes")==n*8
+                    and e.get("rate_numerator")==96000
+                    and e.get("rate_denominator")==44100
+                    and e.get("provenance")=="fractional_rdx_onenter"
+                    and type(e.get("observed")) is int
+                    and re.fullmatch(r"0x[0-9a-fA-F]+",processor or "")
+                    and re.fullmatch(r"[0-9a-f]{64}",e.get("sha256") or "")
+                    and step==state.get("input_prefix_events",0)+1
+                    and (step==1 or processor==state.get("input_probe_processor"))):
+                f=folder/name
+                try:
+                    if (f.stat().st_size==n*8 and
+                            hashlib.sha256(f.read_bytes()).hexdigest()==e["sha256"]):
+                        state["input_prefix_events"]=step
+                        state["input_prefix_total_bytes"]=state.get("input_prefix_total_bytes",0)+n*8
+                        state["input_probe_processor"]=processor
+                        state["input_prefix_valid"]=(step==2)
+                except OSError:
+                    pass
         elif kind == "first_rejected_return":
             state["first_rejection"] = e.get("reason")
         elif kind == "trace_return":
@@ -1021,7 +1096,8 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                  hook_errors=0,field_errors=0,site_hits={},
                  first_rejection=None,completion_verified=False,
                  trace_returns=0,trace_rejections=0,trace_cap_reached=False,
-                 io_events=0)
+                 io_events=0,input_prefix_events=0,input_prefix_total_bytes=0,
+                 input_prefix_valid=False,input_probe_processor=None)
     events=folder/"events.jsonl"
     lock=threading.RLock()
     pending=[]
@@ -1039,15 +1115,20 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
         def on_message(msg,binary):
             if binary is not None:
                 try:
-                    e=persist_guarded_binary(cfg,state,folder,
-                                             msg.get("payload"),binary)
+                    if cfg["mode"]=="guarded_fractional_io" and cfg.get("input_probe"):
+                        e=persist_fractional_input(cfg,state,folder,
+                                                   msg.get("payload"),binary)
+                    else:
+                        e=persist_guarded_binary(cfg,state,folder,
+                                                 msg.get("payload"),binary)
                 except (OSError,ValueError,TypeError) as exc:
                     e={"kind":"unexpected_binary_payload",
                        "error":"binary rejected: "+str(exc)[:120]}
             elif msg.get("type")=="send":
                 e=msg.get("payload",{})
                 if not isinstance(e,dict):e={"kind":"invalid_event"}
-                elif cfg["mode"]=="guarded_f64_binary" and e.get("kind") in ("metadata_hit","binary_hit"):
+                elif (cfg["mode"]=="guarded_f64_binary" and e.get("kind") in ("metadata_hit","binary_hit")
+                      or cfg["mode"]=="guarded_fractional_io" and e.get("kind")=="fractional_input_prefix"):
                     e={"kind":"invalid_event","error":"binary event requires paired bytes"}
             else:
                 e={"kind":"frida_error","error":str(msg)[:400]}
@@ -1077,6 +1158,10 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="trace_cap_reached":state["trace_cap_reached"]=True
                 elif kind=="io_cap_reached":state["io_cap_reached"]=True
                 elif kind=="io_first_reject":state["io_first_rejection"]=e.get("reason")
+            if kind=="fractional_input_prefix":
+                report("CAPTURE","*** NATIVE 96K INPUT SAVED ***",e.get("input_f64"),
+                       "f64 /",e.get("copied_bytes"),"bytes",
+                       "|",e.get("file"),"| SHA256",e.get("sha256"))
             if kind=="hook_attached":
                 report("HOOK","Verified single hook:",e.get("site"),"| RVA",hex(e.get("rva",0)))
             elif kind in ("metadata_hit","binary_hit"):
@@ -1188,8 +1273,10 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 report("WAIT","elapsed",round(now-start),"s | hook",hooked,
                        "| metadata",metadata,"| CLO",state["completion_verified"])
             if (state["runtime_verified"] and hooked and metadata and
-                    (cfg["mode"] in ("guarded_metadata","guarded_fractional_io")
-                     or state["binary_valid"]) and
+                    (cfg["mode"]=="guarded_metadata" or
+                     cfg["mode"]=="guarded_fractional_io" and
+                        (not cfg.get("input_probe") or state["input_prefix_valid"]) or
+                     state["binary_valid"]) and
                     state["completion_verified"] and not errors):
                 if cfg["mode"]=="guarded_f64_binary":
                     if cfg.get("trace"):
@@ -1202,10 +1289,16 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                            state.get("completion_size_bytes"),"bytes")
                     report("PASS","Bounded native prefix capture complete; NOT numerical parity.")
                 if cfg["mode"]=="guarded_fractional_io":
-                    report("PASS","*** NATIVE FRACTIONAL I/O TRACE + STABLE CLO VERIFIED ***",
-                           state.get("io_events",0),"input/output pairs; ZERO audio reads")
+                    if cfg.get("input_probe"):
+                        report("PASS","*** 3+256 NATIVE 96K INPUT F64 VERIFIED + STABLE CLO ***",
+                               state.get("input_prefix_total_bytes",0),
+                               "private bytes; two SHA-verified input events")
+                    else:
+                        report("PASS","*** NATIVE FRACTIONAL I/O TRACE + STABLE CLO VERIFIED ***",
+                               state.get("io_events",0),"input/output pairs; ZERO audio reads")
                 status=("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
-                        else "FRACTIONAL_IO_TRACE_CLO_STABLE" if cfg["mode"]=="guarded_fractional_io"
+                        else ("FRACTIONAL_INPUT_PREFIXES_CLO_STABLE" if cfg.get("input_probe")
+                              else "FRACTIONAL_IO_TRACE_CLO_STABLE") if cfg["mode"]=="guarded_fractional_io"
                         else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE")
                 return (status,"stable_clo_after_guard",pid)
         return (("BINARY_OBSERVED_CLO_UNVERIFIED_TIMEOUT" if cfg["mode"]=="guarded_f64_binary"
