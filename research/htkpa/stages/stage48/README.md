@@ -40,10 +40,15 @@ bash -n tools/FRIDA_WSL.sh
 
 All these commands are offline; they do not import Sonicake DLL as executable code, attach Frida or run conversion.
 
-## Actual guarded metadata run (Manager starts and closes automatically)
+## Windows path preflight and actual guarded run (Manager auto-starts / auto-closes)
 
 ```bash
 cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
+
+# Validate actual Windows EXE and exact CLO folder before any hook or spawn.
+bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json --preflight
+
+# Once preflight PASSES, ensure Manager is CLOSED and start one managed experiment:
 bash tools/FRIDA_WSL.sh --config research/htkpa/stages/stage48/frida.json
 ```
 
