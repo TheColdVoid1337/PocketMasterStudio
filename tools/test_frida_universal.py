@@ -339,14 +339,17 @@ class UniversalFridaTests(unittest.TestCase):
             root=Path(d)
             e=[{"kind":"hook_attached","hooks_installed":1},
                {"kind":"fractional_io","valid":True,"observed":18,
-                "site":"fractional_entry_io","input_f64":237,"output_f64":114}]
+                "site":"fractional_entry_io","input_f64":237,"output_f64":114},
+               {"kind":"fractional_io","valid":True,"observed":19,
+                "site":"fractional_entry_io","input_f64":238,"output_f64":118}]
             (root/"events.jsonl").write_text(
                 "".join(json.dumps(item)+"\n" for item in e),encoding="utf-8")
             restored={}
             guarded.reconcile(root,restored)
+            guarded.reconcile(root,restored)
             self.assertTrue(restored["metadata_valid"])
-            self.assertEqual(restored["last_metadata"]["output_f64"],114)
-            self.assertEqual(restored["io_events"],1)
+            self.assertEqual(restored["last_metadata"]["output_f64"],118)
+            self.assertEqual(restored["io_events"],2)
         log=[]
         class Script:
             def unload(self):log.append("unload")
