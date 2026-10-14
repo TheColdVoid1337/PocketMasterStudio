@@ -233,7 +233,7 @@ def self_test() -> None:
              "output_bytes": 912, "observed": 18},
         ]
         (d / "events.jsonl").write_text(
-            "".join(json.dumps(e)+"\\n" for e in events), encoding="utf-8")
+            "".join(json.dumps(e)+"\n" for e in events), encoding="utf-8")
         restored = {}
         reconcile_events(d, restored)
         assert restored["hook_attached"] is True
