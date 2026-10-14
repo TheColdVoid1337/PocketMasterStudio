@@ -69,7 +69,7 @@ class Stage61Tests(unittest.TestCase):
         with TemporaryDirectory() as d:
             dest=Path(d)/"untouched.f64le"
             response=SimpleNamespace(returncode=0,
-                stdout='{"geometry_ok":false,"taps":22,"phases":673}\\n',
+                stdout='{"geometry_ok":false,"taps":22,"phases":673}\n',
                 stderr="")
             with patch.object(audit.subprocess,"run",return_value=response):
                 metadata,samples=audit.run_one(Path(d)/"fake_public",dest,180.15,0)
