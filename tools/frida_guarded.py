@@ -278,6 +278,30 @@ def choose_pid(device, args, cfg, report):
 
 
 
+def preflight_paths(args, cfg, report):
+    """Verify configured Windows EXE and output directory; ZERO attach/hooks.
+
+    Safe to invoke from universal launcher before any native experiment.
+    """
+    if os.name!="nt" or platform.architecture()[0]!="64bit":
+        raise RuntimeError("Path preflight needs Windows x64 Python; use the shared WSL wrapper")
+    lifecycle=cfg.get("lifecycle") or {}
+    if lifecycle.get("start") in ("fresh","if_missing"):
+        exe=Path(lifecycle["executable"])
+        if not exe.is_file():
+            raise FileNotFoundError(
+                "Configured EXE does not exist: "+str(exe)+
+                "; set lifecycle.executable to the actual installed app EXE in this stage JSON")
+        report("TARGET","Configured EXE exists:",exe)
+    else:
+        report("TARGET","attach_only mode; no EXE launch requested")
+    completion,_,stable=resolve_completion(args,cfg)
+    report("CLO","Configured completion directory exists:",completion,
+           "| stable interval:",stable,"s")
+    report("NOTE","Preflight complete; no process was launched or attached, no hooks installed")
+    return 0
+
+
 def launch_target(device, args, cfg, report, state):
     """Pick an existing PID or SPAWN a fresh app under this session's ownership.
 
