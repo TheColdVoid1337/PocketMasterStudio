@@ -3,7 +3,7 @@
   "date": "2026-10-14",
   "target_manager": "Sonicake Manager V1.5.2 for Windows",
   "target_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
-  "status": "PREPARED_OFFLINE_QA_PENDING_WINDOWS_NOT_RUN",
+  "status": "OFFLINE_CI_PASS_WINDOWS_NOT_RUN",
   "gate_a": {
     "status": "STATIC_POINTER_PROVENANCE_PASS_WITH_LIFETIME_AND_CAPACITY_LIMITATIONS",
     "machine_code_verified_with": "LLVM 17.0.0 objdump, original private DLL",
@@ -30,7 +30,7 @@
     "gui_lifecycle_smoke_passed_separately": true
   },
   "gate_b": {
-    "status": "IMPLEMENTED_IN_GITHUB_UNVERIFIED_OFFLINE",
+    "status": "GITHUB_ACTIONS_OFFLINE_PASS_WINDOWS_PENDING",
     "mode": "guarded_f64_binary",
     "config": "research/htkpa/stages/stage49/frida.json",
     "universal_cli": "tools/frida_capture.py",
@@ -46,7 +46,7 @@
     "dynamic_vtable_guard_required": true,
     "clo_completion_required": true,
     "binary_output_private_only": "research/_LOCAL_FILES/frida_captures/frida_*/block_0001.bin",
-    "offline_suite_result": "PENDING_USER_WSL_RUN",
+    "offline_suite_result": "GitHub Actions 38568363327: 16/16 PASS, Python compile and self-test PASS, generated JS syntax PASS, Bash syntax PASS; USER WSL still pending",
     "native_windows_result": "NOT_RUN"
   },
   "user_required_windows_gate": [
