@@ -639,7 +639,7 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
     baseline=snapshot(watch,recursive)
     report("CLO","Watching",watch,"| baseline files:",len(baseline))
     state.update(pid=pid,runtime_verified=False,ready=False,hits=0,
-                 valid_field_hits=0,metadata_valid=False,hook_attached=False,
+                 valid_field_hits=0,metadata_valid=False,binary_valid=False,hook_attached=False,
                  hook_errors=0,field_errors=0,site_hits={},
                  first_rejection=None,completion_verified=False)
     events=folder/"events.jsonl"
@@ -658,10 +658,42 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
 
         def on_message(msg,binary):
             if binary is not None:
-                e={"kind":"unexpected_binary_payload","error":"guarded metadata mode prohibits bytes"}
+                if cfg["mode"]!="guarded_f64_binary" or msg.get("type")!="send":
+                    e={"kind":"unexpected_binary_payload","error":"binary in metadata mode"}
+                else:
+                    e=msg.get("payload",{})
+                    lim=cfg["binary_capture"]
+                    n=e.get("copied_bytes") if isinstance(e,dict) else None
+                    nf=e.get("copied_f64") if isinstance(e,dict) else None
+                    total=e.get("output_f64") if isinstance(e,dict) else None
+                    if (not isinstance(e,dict) or e.get("kind")!="binary_hit" or
+                            e.get("valid") is not True or type(n) is not int or
+                            type(nf) is not int or type(total) is not int or
+                            not 1<=nf<=total<=cfg["sites"][0]["guard"]["max_samples"] or
+                            n!=nf*8 or not 8<=n<=lim["max_total_bytes"] or
+                            nf>lim["max_samples_per_event"] or state.get("binary_valid")):
+                        e={"kind":"unexpected_binary_payload","error":"binary event validation failed"}
+                    else:
+                        try:
+                            buf=bytes(binary)
+                            if len(buf)!=n:raise ValueError("binary length mismatch")
+                            name="block_0001.bin"
+                            with (folder/name).open("xb") as f:
+                                f.write(buf)
+                                f.flush()
+                                os.fsync(f.fileno())
+                            e=dict(e,file=name,sha256=hashlib.sha256(buf).hexdigest())
+                            state["binary_valid"]=True
+                            state["binary_file"]=name
+                            state["binary_bytes"]=n
+                        except (OSError,ValueError,TypeError) as exc:
+                            e={"kind":"unexpected_binary_payload",
+                               "error":"binary persistence failed: "+str(exc)[:100]}
             elif msg.get("type")=="send":
                 e=msg.get("payload",{})
                 if not isinstance(e,dict):e={"kind":"invalid_event"}
+                elif cfg["mode"]=="guarded_f64_binary" and e.get("kind") in ("metadata_hit","binary_hit"):
+                    e={"kind":"invalid_event","error":"binary event requires paired bytes"}
             else:
                 e={"kind":"frida_error","error":str(msg)[:400]}
             with lock:
@@ -673,7 +705,7 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="hook_attached":
                     state["ready"]=True
                     state["hook_attached"]=True
-                elif kind=="metadata_hit" and e.get("valid") is True:
+                elif kind in ("metadata_hit","binary_hit") and e.get("valid") is True:
                     state["metadata_valid"]=True
                     state["valid_field_hits"]+=1
                     state["hits"]+=1
@@ -685,7 +717,7 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 elif kind=="observation_limit":state["observation_limit_reached"]=True
             if kind=="hook_attached":
                 report("HOOK","Verified single hook:",e.get("site"),"| RVA",hex(e.get("rva",0)))
-            elif kind=="metadata_hit":
+            elif kind in ("metadata_hit","binary_hit"):
                 report("META","Native output:",e.get("output_f64"),"f64 /",
                        e.get("output_bytes"),"bytes",
                        "| observation",e.get("observed"))
@@ -738,7 +770,9 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                     state["module_base"]=pending_module.get("base")
                 if not script.exports_sync.arm():
                     raise RuntimeError("Frida arm() refused to install guarded hook")
-                report("FRIDA","Loaded DLL SHA verified. ONE metadata-only hook armed.")
+                report("FRIDA","Loaded DLL SHA verified. ONE",
+                       "metadata-only" if cfg["mode"]=="guarded_metadata" else "bounded-f64",
+                       "hook armed.")
                 report("NOTE","Perform exactly ONE normal conversion in target app.")
             if now>=next_pid_check:
                 next_pid_check=now+3.0
@@ -769,10 +803,14 @@ def capture(args, cfg, folder: Path, state: dict, report, sha):
                 report("WAIT","elapsed",round(now-start),"s | hook",hooked,
                        "| metadata",metadata,"| CLO",state["completion_verified"])
             if (state["runtime_verified"] and hooked and metadata and
+                    (cfg["mode"]=="guarded_metadata" or state["binary_valid"]) and
                     state["completion_verified"] and not errors):
-                return ("METADATA_GUARD_PASS_CLO_STABLE","stable_clo_after_guard",pid)
-        return ("METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT" if state["metadata_valid"]
-                else "INCOMPLETE_TIMEOUT","timeout",pid)
+                return (("METADATA_GUARD_PASS_CLO_STABLE" if cfg["mode"]=="guarded_metadata"
+                         else "NATIVE_48K_SAMPLES_CAPTURED_CLO_STABLE"),
+                        "stable_clo_after_guard",pid)
+        return (("BINARY_OBSERVED_CLO_UNVERIFIED_TIMEOUT" if cfg["mode"]=="guarded_f64_binary"
+                 else "METADATA_OBSERVED_CLO_UNVERIFIED_TIMEOUT")
+                if state["metadata_valid"] else "INCOMPLETE_TIMEOUT","timeout",pid)
     finally:
         # Progress markers distinguish a slow Frida detach from a slow GUI
         # close. The old Stage48 console printed only the stable CLO message,
