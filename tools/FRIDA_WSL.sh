@@ -1,32 +1,87 @@
 #!/usr/bin/env bash
-# Launch Windows Frida Python from WSL using explicit Windows paths.
+# UNIVERSAL WSL launcher for tools/frida_capture.py.
+# Stage-specific behavior lives ONLY in the JSON config, not in this wrapper.
 set -euo pipefail
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd -- "$HERE/.." && pwd)"
 cd "$ROOT"
-printf '\033[36m[PROJECT]\033[0m %s\n' "$PWD"
-if [[ ! -f .venv/bin/activate ]]; then
-  printf '\033[31m[ERROR]\033[0m Missing WSL .venv/bin/activate\n' >&2
-  exit 2
+
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; MAGENTA=$'\033[35m'; RED=$'\033[31m'; RESET=$'\033[0m'
+  export FORCE_COLOR=1
+else
+  CYAN=''; GREEN=''; YELLOW=''; MAGENTA=''; RED=''; RESET=''
 fi
-# This shell venv is for git/WSL utilities only; native Frida uses Windows Python.
-source .venv/bin/activate
-printf '\033[32m[VENV]\033[0m WSL environment activated (NOT used to run Frida)\n'
-command -v wslpath >/dev/null || { echo '[ERROR] wslpath unavailable'; exit 2; }
-WINPY="$ROOT/research/_LOCAL_FILES/stage23w_native/.venv/Scripts/python.exe"
-[[ -f "$WINPY" ]] || { echo "[ERROR] Windows Python missing: $WINPY" >&2; exit 2; }
-CFG="$ROOT/tools/frida_examples/${FRIDA_CONFIG:-htkpa_stage24c_stack.json}"
-DLL="$ROOT/research/_LOCAL_FILES/vendor/5868USB.dll"
-[[ -f "$CFG" && -f "$DLL" ]] || { echo '[ERROR] Config or original DLL missing' >&2; exit 2; }
-SCRIPT_WIN="$(wslpath -w "$ROOT/tools/frida_capture.py")"
-CFG_WIN="$(wslpath -w "$CFG")"
-DLL_WIN="$(wslpath -w "$DLL")"
-printf '\033[35m[FRIDA]\033[0m Launching Windows Python from WSL: %s\n' "$WINPY"
-printf '\033[33m[ACTION]\033[0m Perform one NAM -> CLO conversion; Frida detaches after %s quiet seconds. Manager stays open.\n' "${FRIDA_AUTO_QUIET:-12}"
+msg() { local color="$1" tag="$2"; shift 2; printf '%s[%s]%s %s\n' "$color" "$tag" "$RESET" "$*"; }
+fail() { msg "$RED" ERROR "$*"; exit 2; }
+command -v wslpath >/dev/null || fail "WSL wslpath is required"
+[[ -f "$ROOT/.venv/bin/activate" ]] || fail "WSL .venv missing"
+source "$ROOT/.venv/bin/activate"
+
+WINPY="${FRIDA_WINPY:-$ROOT/research/_LOCAL_FILES/stage23w_native/.venv/Scripts/python.exe}"
+[[ -f "$WINPY" ]] || fail "Windows Frida Python missing: $WINPY (set FRIDA_WINPY)"
+DLL="${FRIDA_ORIGINAL_DLL:-$ROOT/research/_LOCAL_FILES/vendor/5868USB.dll}"
+if [[ ! -f "$DLL" && -z "${FRIDA_ORIGINAL_DLL:-}" ]]; then
+  DLL="$ROOT/research/_LOCAL_FILES/5868USB.dll"
+fi
+[[ -f "$DLL" ]] || fail "Private original DLL missing: $DLL (set FRIDA_ORIGINAL_DLL)"
+
+# Accept --config from any stage directory; preserve old FRIDA_CONFIG defaults.
+CFG="${FRIDA_CONFIG:-htkpa_stage24c_stack.json}"
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  if [[ "$1" == "--config" ]]; then
+    [[ $# -ge 2 ]] || fail "--config needs a JSON path"
+    CFG="$2"
+    shift 2
+  else
+    ARGS+=("$1")
+    shift
+  fi
+done
+if [[ ! -f "$CFG" ]]; then
+  if [[ -f "$ROOT/$CFG" ]]; then
+    CFG="$ROOT/$CFG"
+  elif [[ -f "$ROOT/tools/frida_examples/$CFG" ]]; then
+    CFG="$ROOT/tools/frida_examples/$CFG"
+  else
+    fail "Frida JSON config missing: $CFG"
+  fi
+fi
+CFG="$(realpath "$CFG")"
+
+# Read mode, never import or execute stage-specific Python.
+MODE="$(python - "$CFG" <<'PY'
+import json,sys
+print(json.load(open(sys.argv[1],encoding="utf-8")).get("mode","scalar"))
+PY
+)"
+msg "$CYAN" PROJECT "$ROOT"
+msg "$CYAN" CONFIG "$CFG"
+msg "$MAGENTA" MODE "$MODE"
+msg "$GREEN" CHECK "Universal Frida Python self-test (offline)"
+python "$ROOT/tools/frida_capture.py" --self-test
+msg "$YELLOW" SAFETY "Exact DLL SHA checked before attachment (and loaded SHA before guarded hook)"
+if [[ "$MODE" == "guarded_metadata" ]]; then
+  msg "$MAGENTA" HOOK "Guarded single-site metadata only; no audio read"
+  msg "$YELLOW" ACTION "Open Manager first; wait for [HOOK], then ONE normal conversion"
+  msg "$CYAN" WATCH "Windows APPDATA path from JSON completion, unless FRIDA_WATCH_CLO supplied"
+else
+  msg "$MAGENTA" FRIDA "Legacy scalar/binary capture mode, original config preserved"
+fi
+
 WATCH_ARGS=()
 if [[ -n "${FRIDA_WATCH_CLO:-}" ]]; then
-  [[ -d "$FRIDA_WATCH_CLO" ]] || { echo "[ERROR] CLO watch directory missing: $FRIDA_WATCH_CLO" >&2; exit 2; }
+  [[ -d "$FRIDA_WATCH_CLO" ]] || fail "CLO folder missing: $FRIDA_WATCH_CLO"
   WATCH_ARGS=(--completion-dir "$(wslpath -w "$FRIDA_WATCH_CLO")")
-  printf '[WATCH] New/changed stable CLO in %s\n' "$FRIDA_WATCH_CLO"
+  msg "$CYAN" WATCH "Override: $FRIDA_WATCH_CLO"
 fi
-"$WINPY" "$SCRIPT_WIN" --config "$CFG_WIN" --module-file "$DLL_WIN" --auto-quiet "${FRIDA_AUTO_QUIET:-12}" "${WATCH_ARGS[@]}" "$@"
+QUIET_ARGS=()
+if [[ "$MODE" != "guarded_metadata" ]]; then
+  QUIET_ARGS=(--auto-quiet "${FRIDA_AUTO_QUIET:-12}")
+fi
+msg "$CYAN" OUTPUT "research/_LOCAL_FILES/frida_captures/frida_*.tar.gz"
+"$WINPY" "$(wslpath -w "$ROOT/tools/frida_capture.py")" \
+  --config "$(wslpath -w "$CFG")" \
+  --module-file "$(wslpath -w "$DLL")" \
+  "${QUIET_ARGS[@]}" "${WATCH_ARGS[@]}" "${ARGS[@]}"
