@@ -1,0 +1,48 @@
+{
+  "stage": 80,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "TWO_NAM_ARCHITECTURES_VERIFIED_STAGE64_INPUT_IDENTITY_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_stage64_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "stage79_authenticated_capture_status": "ACCEPTED_STAGE64_METADATA_HAS_NO_ARCHITECTURE_KEY_RUNTIME_UNPROVEN",
+  "stage64_explicit_architecture_candidate_count": 0,
+  "source_models": {
+    "2203": {
+      "nam_sha256": "29abbdbf982ee64b963d1d8de06848d1b06450a623bb08ba3ffefce146dfac42",
+      "architecture": "SlimmableContainer",
+      "nam_version": "0.7.0",
+      "sample_rate_hz": 48000,
+      "official_reference_clo_sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+      "reference_clo_bytes": 8840
+    },
+    "SC20": {
+      "nam_sha256": "509ad3d6dc31cf0539afe4a264ff7386d6282ffe9d1e0de4b6cce514b1915b11",
+      "architecture": "SlimmableContainer",
+      "nam_version": "0.7.0",
+      "sample_rate_hz": 48000,
+      "official_reference_clo_sha256": "2834c9d3c2dc5835ff7104191aecdeb207fafa104bf16cc076463157b18d504a",
+      "reference_clo_bytes": 8840
+    }
+  },
+  "stage64_completed_clo_bytes": 8840,
+  "stage64_completion_clo_sha256_recorded": false,
+  "stage64_exact_source_nam_sha_or_filename_mentions": [],
+  "source_registered_architecture_name": true,
+  "source_architectures_distinguish_two_models": false,
+  "private_report_path": "research/_LOCAL_FILES/stage80_nam_capture_identity.json",
+  "verification": {
+    "stage80_synthetic_tests": 8,
+    "stage70_through_stage80_offline_tests": 89,
+    "status": "PASS"
+  },
+  "claims": {
+    "specific_stage64_input_nam_identified": false,
+    "specific_stage64_live_factory_selected": false,
+    "original_vendor_dll_executed": false,
+    "frida_run_this_stage": false,
+    "model_weights_exported": false,
+    "complete_vendor_audio_or_antialiasing_parity_proven": false
+  },
+  "next_gate": "Independent same-run association between an exact NAM SHA256 and the captured CLO SHA256; preserve actual source/capture identity, not size-only coincidences."
+}
