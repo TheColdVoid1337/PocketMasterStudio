@@ -179,6 +179,15 @@ class LabTests(unittest.TestCase):
             y.write_bytes(b"\x00")
             with self.assertRaisesRegex(ValueError,"sizes"):
                 lab.compare(x,y)
+            y.write_bytes(b"")
+            x.write_bytes(b"")
+            with self.assertRaisesRegex(ValueError,"empty"):
+                lab.compare(x,y)
+            y.rename(root/"native.f64le.bin")
+            y=root/"native.f64le.bin"
+            y.write_bytes(lab.encode_f64le([1.0]))
+            x.write_bytes(lab.encode_f64le([1.0]))
+            self.assertEqual(lab.compare(x,y)["bit_equal"],1)
 
     def test_sha_guard_rejects_mutated_cpp_and_missing_manifest(self):
         with tempfile.TemporaryDirectory() as td:
