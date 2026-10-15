@@ -86,6 +86,10 @@ def build(source_cache:Path,out_dir:Path,emxx:str)->dict:
                 details["power_hex"]!="0x1.83fa5ca7f6a99p+0"):
             raise ValueError("Stage67 DLL Kaiser coefficient constants changed")
         header.write_text(updated,encoding="utf-8")
+        license_file=public/"LICENSE"
+        if (not license_file.is_file() or
+                "MIT License" not in license_file.read_text(encoding="utf-8")):
+            raise ValueError("Pinned r8brain MIT LICENSE missing; refuse distributable WASM build")
         target=temp/"htkpa_native_frac.mjs"
         argv=command(emxx,public,target)
         proc=subprocess.run(argv,capture_output=True,text=True)
@@ -106,6 +110,7 @@ def build(source_cache:Path,out_dir:Path,emxx:str)->dict:
             "original_vendor_dll_sha256":"fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
             "bridge_cpp_sha256":sha(BRIDGE),
             "consumer_adapter_sha256":sha(ROOT/"src"/"htkpa_wasm_adapter.js"),
+            "public_mit_license_sha256":sha(license_file),
             "patch":details,
             "emxx":emxx,"exports":EXPORTS,"runtime_exports":RUNTIME_EXPORTS,
             "output":{
@@ -115,9 +120,11 @@ def build(source_cache:Path,out_dir:Path,emxx:str)->dict:
             "vendor_binary_included":False
         }
         out_dir.mkdir(parents=True,exist_ok=True)
-        for original_file in (target,wasm):
-            dest=out_dir/original_file.name
-            part=out_dir/(original_file.name+".staging")
+        for original_file in (target,wasm,license_file):
+            dest_name=("LICENSE.r8brain.txt" if original_file==license_file
+                       else original_file.name)
+            dest=out_dir/dest_name
+            part=out_dir/(dest_name+".staging")
             shutil.copyfile(original_file,part)
             os.replace(part,dest)
         final=out_dir/"htkpa_wasm_build.json"
