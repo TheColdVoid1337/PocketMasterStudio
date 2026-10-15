@@ -62,6 +62,8 @@ def verify_build(folder:Path)->dict:
                builder.sha(ROOT/"src"/"htkpa_wasm_adapter.js")
             or data.get("exports")!=builder.EXPORTS
             or data.get("runtime_exports")!=builder.RUNTIME_EXPORTS
+            or data.get("public_mit_license_sha256")!=
+               builder.sha(folder/"LICENSE.r8brain.txt")
             or data.get("vendor_binary_included") is not False):
         raise ValueError("unverified Stage67 WASM build source/bridge/ABI provenance")
     patch=data.get("patch",{})
