@@ -1,0 +1,65 @@
+{
+  "stage": 69,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_SOURCE_PATH_AND_STAGE64_METADATA_REVIEWED_DYNAMIC_PARENT_UNPROVEN",
+  "exact_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "exact_stage64_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "method": "assistant performed read-only pinned PE disassembly via LLVM objdump Intel syntax, inspected private Stage64 archive's config, manifest, events.jsonl; no DLL execution, no Frida, no f64 payload use; script audit_topology.py created for independent user WSL re-verification",
+  "source_confirmed": {
+    "ctor_va": "0x180011b60",
+    "source_rate_input": "XMM1 -> XMM8 at RVA 0x11bd0",
+    "dest_rate_input": "XMM2 -> XMM9 at RVA 0x11bcc",
+    "rate_branch": "At 0x11c62, 2*dst; 0x11c67 compares source; 0x11c6c branches when src>=2*dst",
+    "initial_filter": {
+      "kind": "CDSPBlockConvolver",
+      "constructor_call_rva": "0x11cfe",
+      "ratio": "2:1 via R8D=R13D=2 and R9D=1",
+      "saved_as_intermediate": "resampler[+0x8] at 0x11d22",
+      "intermediate_count": "resampler[+0x48]=1 at 0x11d26",
+      "scope": "Compiled constructor path when dst<src*2, including the hypothetical 48000->44100 case"
+    },
+    "final_fractional": {
+      "vftable_rva": "0x245170",
+      "vtable_install_rva": "0x121ae",
+      "saved_as_final": "resampler[+0x50] at 0x1222a"
+    },
+    "process_order": {
+      "intermediate_virtual_call": "0x118b1",
+      "final_virtual_call": "0x11909"
+    },
+    "high_level_rate_to_44100_candidates": [
+      {
+        "callsite_rva": "0xe28f1",
+        "source_rate": "audio-object [r14+0x8]",
+        "destination_rate": "float constant 44100.0 @ RVA 0x24cdf0",
+        "source_to_vendor_event_link": "UNPROVEN"
+      },
+      {
+        "callsite_rva": "0xbf364",
+        "source_rate": "context [r14+0x20ec0]",
+        "destination_rate": "float constant 44100.0 @ RVA 0x24cdf0",
+        "source_to_vendor_event_link": "UNPROVEN"
+      }
+    ],
+    "native_rva_0x24cdf0_float32": 44100
+  },
+  "stage64_runtime_metadata": {
+    "fractional_observations": 21,
+    "observations_1_through_4_rate": "88200->48000",
+    "observations_5_through_21_rate": "96000->44100",
+    "pointer_group_A": "observations 1-2",
+    "pointer_group_B": "observations 3-21",
+    "interpretation": "Same memory address appears with both ratios; allocator reuse vs re-initialization vs reconfiguration NOT proven",
+    "reverse_114_sha256": "c3bb59aa369f6022c4c23f31fa180a9cc28af3839c12181c1ff631f5906a5df8",
+    "forward_1067_sha256": "c2dd6839637c854b2d971b555f0d3a3b4ecde0c10e687bafbd2b9077bee5eec6",
+    "native_wav_contents_examined_in_this_stage": false
+  },
+  "scientific_limits": [
+    "FIR-before-fractional is verified in a native constructor path; not yet proven as the live parent of Stage64 observed reverse fractional kernel.",
+    "Observed internal 96000->44100 is a fractional stage and need not describe complete vendor resampling of arbitrary 96k source files.",
+    "Original source sample-rate and exact dynamic callsite for Stage64 observed reverse operation are NOT validated.",
+    "No new comparison to vendor audio or end-to-end NAM->CLO parity."
+  ],
+  "next": "Run audit_topology.py against original SHA-pinned DLL and original Stage64 archive locally; then narrow Stage70 to parent/callsite identification before any new guarded runtime observation. Do not change standalone Lab recovered primitive."
+}
