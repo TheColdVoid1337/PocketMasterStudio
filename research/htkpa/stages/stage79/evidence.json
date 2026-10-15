@@ -1,0 +1,46 @@
+{
+  "stage": 79,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STAGE64_PRIVATE_ARCHIVE_UNAVAILABLE_ARCHITECTURE_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage64_exact_archive_sha256_expected": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "independent_original_pe_audit": {
+    "assistant_local_exact_original_vendor_dll_available": true,
+    "original_pe_read_only": true,
+    "stage78_full_exact_source_audit_rerun": true,
+    "original_stage64_private_archive_available": false,
+    "original_stage64_archive_bytes_read_this_stage": 0,
+    "original_input_nam_model_available": false,
+    "source_json_architecture_field_rva": "0x18f890",
+    "source_named_registry_lookup_call_rva": "0xcaa76",
+    "source_known_registered_names": ["SlimmableContainer", "ConvNet", "LSTM", "WaveNet"],
+    "private_source_only_full_report_path": "research/_LOCAL_FILES/stage79_capture_architecture.json"
+  },
+  "optional_exact_stage64_metadata_audit": {
+    "requires_original_sha_match": true,
+    "allowed_members": ["frida_capture/config.json", "frida_capture/manifest.json", "frida_capture/events.jsonl"],
+    "requires_stage69_21_fractional_event_sequence": true,
+    "requires_exact_original_extended_f64_summary_shas": true,
+    "forbids_f64_payload_and_model_weight_reads": true,
+    "any_found_architecture_key_is_candidate_not_selected_model": true,
+    "performed_on_real_stage64_archive": false
+  },
+  "synthetic_offline_tests": {
+    "stage79_count": 12,
+    "stage70_to_stage79_combined_count": 81,
+    "result": "PASS"
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "original_stage64_archive_opened_in_this_stage": false,
+    "source_nam_architecture_path_verified_by_stage78": true,
+    "specific_stage64_architecture_key_observed": false,
+    "specific_stage64_factory_selected": false,
+    "stage64_reverse_resampler_parent_proven": false,
+    "complete_vendor_antialiasing_or_lab_parity_proven": false,
+    "new_hook_or_dsp_patch": false
+  },
+  "next_gate": "Exact original Stage64 input NAM/CLO architecture metadata plus independent association to that finished capture; absence of the private archive cannot be interpreted as absence of a key."
+}
