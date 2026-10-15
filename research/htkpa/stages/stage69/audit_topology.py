@@ -52,12 +52,12 @@ ANCHORS: dict[int, str] = {
     0x1222A: r"mov qword ptr \[rbx \+ 0x50\], rsi\b", # final slot
     0x118B1: r"call qword ptr \[rax \+ 0x30\]\b",    # intermediate process
     0x11909: r"call qword ptr \[rax \+ 0x30\]\b",    # final process
-    0xE28DC: r"movsd xmm1, qword ptr \[r14 \+ 0x8\]\b",  # source rate
+    0xE28DC: r"movsd xmm1, qword ptr \[r14 \+ 0x8\]",  # source rate
     0xE28E6: r"movss xmm2, dword ptr \[rip \+ 0x16a502\].*0x18024cdf0\b",
     0xE28F1: r"call 0x18000ce00\b",                # source -> fixed 44100
     0xBF34D: r"movss xmm6, dword ptr \[rip \+ 0x18da9b\].*0x18024cdf0\b",
     0xBF355: r"movaps xmm2, xmm6\b",
-    0xBF358: r"movss xmm1, dword ptr \[r14 \+ 0x20ec0\]\b",
+    0xBF358: r"movss xmm1, dword ptr \[r14 \+ 0x20ec0\]",
     0xBF364: r"call 0x18000ce00\b",
 }
 SPANS = (
