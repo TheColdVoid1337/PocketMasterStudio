@@ -1,0 +1,56 @@
+{
+  "stage": 77,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "FOUR_NAMED_STATIC_REGISTRATIONS_CALLBACK_BRIDGE_RUNTIME_KEY_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_source": "Private original PE64 supplied previously by user; binary not committed",
+  "independent_original_pe_audit": {
+    "environment": "Assistant Linux scratch, original DLL as read-only file",
+    "disassembler": "GNU objdump Intel syntax",
+    "prior_stage76_rerun": true,
+    "new_instruction_pins_verified": 100,
+    "new_pdata_functions_verified": 10,
+    "original_file_backed_nul_terminated_strings": 4,
+    "file_backed_absolute_virtual_method_pointers": 2,
+    "static_registrations": [
+      {"key": "SlimmableContainer", "registration_function_rva": "0x19f0", "literal_rva": "0x18f488", "builder_rva": "0xc5610"},
+      {"key": "ConvNet", "registration_function_rva": "0x1b50", "literal_rva": "0x18f578", "builder_rva": "0xc62b0"},
+      {"key": "LSTM", "registration_function_rva": "0x1d30", "literal_rva": "0x18fa24", "builder_rva": "0xcc690"},
+      {"key": "WaveNet", "registration_function_rva": "0x1f50", "literal_rva": "0x190c38", "builder_rva": "0xd01a0"}
+    ],
+    "shared_registration_wrapper_vtable_rva": "0x246ef0",
+    "shared_callback_method_rva_at_vtable_plus_0x10": "0x38540",
+    "registration_function_rva": "0x35ee0",
+    "registration_fnv1a64": "0x35f3d..0x35f72",
+    "node_callback_holder_transfer": "0x3604b inserts node, 0x36055 node+0x30, 0x36081 calls 0x69a0, holder store at +0x38",
+    "lookup_callback_field_from_stage76": "0x3f70f reads node+0x68",
+    "callback_wrapper_builder_call": "0x3855d CALL [wrapper+0x8]",
+    "slimmable_additional_factory": {
+      "vtable_rva": "0x246e98",
+      "slot_plus_0x8_method_rva": "0xc56d0",
+      "builder_rate_field_write": "0xc56a4 XMM6 from XMM2 -> [RDI+0x18]",
+      "method_to_constructor_call": "0xc5b8e -> 0xc5f40",
+      "result_constructor_rate_write": "0xc5f90 MOVSD [RCX+0x18],XMM2"
+    },
+    "full_private_report_path": "research/_LOCAL_FILES/stage77_named_registry.json"
+  },
+  "synthetic_offline_tests": {
+    "stage77_count": 8,
+    "stage70_to_stage77_combined_count": 61
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "any_audio_or_native_f64_payload_accessed": false,
+    "four_positive_static_registrations_verified": true,
+    "all_runtime_registry_entries_enumerated": false,
+    "fifth_static_candidate_vtable_verified": true,
+    "specific_stage64_name_or_architecture_observed": false,
+    "specific_stage64_runtime_factory_selected": false,
+    "original_stage64_48000_source_proven": false,
+    "complete_antialiasing_or_lab_parity_proven": false,
+    "new_hook_or_production_patch": false
+  },
+  "next_gate": "Reconstruct input NAM→CLO architecture/name field provenance and compare against static registered names without assigning an unobserved Stage64 key."
+}
