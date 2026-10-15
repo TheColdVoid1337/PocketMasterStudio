@@ -1,6 +1,6 @@
 # Stage71 — NAM→CLO export ancestry and input-rate field provenance
 
-**Status:** local original-DLL source audit pending. The original Stage70
+**Status:** original SHA-pinned DLL WSL source audit **ACCEPTED — bounded negative**. The original Stage70
 direct-call gate was accepted in user WSL: both 44.1-kHz callsites reach
 helper RVA `0xCE00`, and the helper calls `CDSPResampler24` constructor
 RVA `0x11B60` directly at `0xCFF3`. The *runtime* parent of the observed
@@ -64,6 +64,14 @@ inside the Git-ignored local research folder. Do not upload original DLL,
 local JSON reports, archived Stage64 capture, disassembly text or audio.
 No native process, Frida, NAM→CLO conversion, network access, external
 package, WASM, or production/Resampler Lab edit is part of this stage.
+
+## Actual original-DLL WSL result (2026-10-15)
+
+- All **6/6** Stage71 regressions passed; original LLVM 21.1.8 + exact-SHA DLL audit completed.
+- Status `BOUNDED_STATIC_NAM_ANCESTRY_NOT_FOUND_RUNTIME_UNPROVEN`: four original export anchors match; 76 export-root/function visits, 106 direct edges, 131 unresolved indirect-call instructions, no search-budget exhaustion.
+- Neither the owner of `0xE28F1` nor the owner of `0xBF364` was reached from these exports by this **bounded direct-only graph**. This is not a negative claim about indirect or dynamic reachability.
+- Both source-rate load instructions match. Earlier `r14` syntactic assignments at `0xE27D0` / `0xBE88B` remain register-only **hints**, not branch-aware provenance.
+- Runtime original 48k source, Stage64 reverse object's parent and anti-alias performance **remain unproven**. The complete local report remains Git-ignored at `research/_LOCAL_FILES/stage71_nam_ancestry.json`.
 
 ## Acceptance and interpretation
 

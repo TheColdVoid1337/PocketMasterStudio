@@ -2,7 +2,7 @@
   "stage": 71,
   "schema_version": 1,
   "date_utc": "2026-10-15",
-  "status": "NAM_EXPORT_STATIC_ANCESTRY_AUDIT_READY_LOCAL_ORIGINAL_DLL_PENDING",
+  "status": "BOUNDED_STATIC_NAM_ANCESTRY_NOT_FOUND_RUNTIME_UNPROVEN",
   "exact_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "stage70_user_wsl_accepted": {
     "status": "STATIC_DIRECT_CALL_PATH_FOUND_RUNTIME_PARENT_UNPROVEN",
@@ -22,10 +22,25 @@
     "0xbf364": "movss xmm1, dword ptr [r14 + 0x20ec0] @ 0xbf358"
   },
   "offline_test_count_expected": 6,
-  "actual_static_nam_ancestry": "NOT_YET_MEASURED_ON_ORIGINAL_DLL",
+  "actual_static_nam_ancestry": {
+    "target_callsite_to_export_root": {
+      "0xe28f1": null,
+      "0xbf364": null
+    },
+    "visited_root_function_pairs": 76,
+    "direct_edge_count": 106,
+    "unresolved_indirect_call_instructions": 131,
+    "bounded_search_incomplete": false,
+    "interpretation": "No direct-only path in this bounded search; no proof of absence of indirect or dynamic ancestry"
+  },
   "actual_input_rate_values": "UNPROVEN",
   "original_dll_executed": false,
   "frida_used": false,
   "audio_or_f64_extracted": false,
-  "next_gate": "User WSL verifies six offline tests, then runs SHA-gated original static NAM export call ancestry and field-read audit; review output before narrowing data-flow or any prospective metadata-only runtime probe."
+  "next_gate": "Stage72 on explicit #next: inspect r14 source-object assignments and incoming static control/data flow; do not infer dynamic Stage64 parent or create a new hook automatically.",
+  "user_wsl_tests_passed": 6,
+  "rate_field_candidate_prior_r14_assignment_rvas": {
+    "0xe28f1": "0xe27d0",
+    "0xbf364": "0xbe88b"
+  }
 }
