@@ -66,6 +66,8 @@ class Stage67BuildTests(unittest.TestCase):
             def checkout(cache,commit,destination):
                 self.assertEqual(commit,"3c930bf6825c0cfea4a813210c83b1a650c820b5")
                 (destination/"CDSPFracInterpolator.h").write_text("PINNED ORIGINAL HEADER",encoding="utf-8")
+                (destination/"LICENSE").write_text(
+                    "MIT License\nCopyright (c) 2013-2023 Aleksey Vaneev\n",encoding="utf-8")
             def patch_public(original,mode):
                 self.assertEqual(original,"PINNED ORIGINAL HEADER")
                 self.assertEqual(mode,"native_window_poly_673")
@@ -93,18 +95,22 @@ class Stage67BuildTests(unittest.TestCase):
                 "3c930bf6825c0cfea4a813210c83b1a650c820b5")
             self.assertTrue((target/"htkpa_native_frac.mjs").is_file())
             self.assertTrue((target/"htkpa_native_frac.wasm").is_file())
+            self.assertTrue((target/"LICENSE.r8brain.txt").is_file())
             manifest=json.loads((target/"htkpa_wasm_build.json").read_text())
             for file in ("htkpa_native_frac.mjs","htkpa_native_frac.wasm"):
                 self.assertEqual(m.sha(target/file),
                     manifest["output"][file]["sha256"])
             self.assertFalse(any(p.suffix==".staging" for p in target.iterdir()))
             self.assertFalse(manifest["vendor_binary_included"])
+            self.assertEqual(manifest["public_mit_license_sha256"],
+                             m.sha(target/"LICENSE.r8brain.txt"))
 
     def test_stub_compiler_failure_never_creates_output_dir(self):
         with tempfile.TemporaryDirectory() as td:
             top=Path(td)
             def checkout(cache,commit,destination):
                 (destination/"CDSPFracInterpolator.h").write_text("expected")
+                (destination/"LICENSE").write_text("MIT License")
             def patch(*args):
                 return ("HTKPA_Stage62_Params IsWhole = false; FilterFracs = 673;",
                         {"beta_hex":"0x1.91af20df9e8bap+3",
