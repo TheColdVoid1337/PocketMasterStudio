@@ -1,0 +1,50 @@
+{
+  "stage": 82,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_SLIMMABLE_SUBMODEL_RECURSION_AND_RATE_GUARDS_VERIFIED",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage64_capture_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "operator_attested_frida_nam_import_name": "JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+  "operator_attestation_is_not_a_same_run_sha": true,
+  "previous_stage77_named_builder_rva": "0xc5610",
+  "slimmable_virtual_method_rva": "0xc56d0",
+  "native_rdata_keys": {
+    "submodels": "0x18f438",
+    "max_value": "0x18f428",
+    "model": "0x18cd34"
+  },
+  "direct_nested_packet_builder_call_rva": "0xc5a7f",
+  "nested_packet_builder_rva": "0xcc2b0",
+  "nested_packet_metadata_parse_call_rva": "0xcc34b",
+  "nested_packet_dispatch_call_rva": "0xcc3ad",
+  "container_result_constructor_rva": "0xc5f40",
+  "nested_element_stride_bytes": 16,
+  "nested_element_fields": ["max_value_f64", "nested_model_pointer"],
+  "parent_and_nested_rate_field_offset": "0x18",
+  "native_threshold_last_minimum_f64": 1.0,
+  "native_unknown_rate_sentinel_f64": -1.0,
+  "original_double_constants_rvas": ["0x24c918", "0x24ced0"],
+  "verified_instruction_count": 40,
+  "verified_literal_count": 3,
+  "verified_native_function_owner_count": 3,
+  "original_immutable_source_audit": "PASS",
+  "test_results": {
+    "stage82_synthetic_offline": "10/10 PASS",
+    "stage70_through_82_combined_offline": "111/111 PASS"
+  },
+  "private_report": "research/_LOCAL_FILES/stage82_slimmable_submodels.json",
+  "claims": {
+    "original_static_slimmable_nested_construction_path_verified": true,
+    "original_static_rate_mismatch_and_threshold_guards_verified": true,
+    "stage64_live_selected_factory_verified": false,
+    "stage64_live_nested_wavenet_selected": false,
+    "stage64_runtime_sample_rate_verified": false,
+    "stage64_same_run_nam_clo_sha_proven": false,
+    "vendor_dll_executed": false,
+    "new_frida_capture_performed": false,
+    "private_weights_or_original_audio_committed": false,
+    "complete_vendor_dsp_parity_proven": false
+  },
+  "next_gate": "Find historical dispatch evidence for selected factory and nested object before assigning Stage64 runtime identity."
+}
