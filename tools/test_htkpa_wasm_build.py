@@ -44,6 +44,10 @@ class Stage67BuildTests(unittest.TestCase):
         functions=[x for x in command if x.startswith("-sEXPORTED_FUNCTIONS=")]
         self.assertEqual(len(functions),1)
         self.assertEqual(json.loads(functions[0].split("=",1)[1]),m.EXPORTS)
+        runtime=[x for x in command if x.startswith("-sEXPORTED_RUNTIME_METHODS=")]
+        self.assertEqual(len(runtime),1)
+        self.assertEqual(json.loads(runtime[0].split("=",1)[1]),
+                         ["HEAPU8","HEAPF64"])
         self.assertEqual(command[-2:],["-o","/tmp/output.mjs"])
 
     def test_refuse_missing_emscripten_before_extracting_any_public_code(self):
