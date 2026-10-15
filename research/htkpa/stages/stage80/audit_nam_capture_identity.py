@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Stage80: authenticate two NAM headers without inventing a Stage64 input link.
+"""Stage80: authenticate NAM headers and check capture-internal hash provenance.
 
 Only the exact SHA-pinned user-supplied NAM and CLO fixtures are accepted.
 Model weights and audio samples are never reported or passed to the vendor DLL.
 The Stage79 exact-capture metadata gate is rerun first.
+Later operator testimony about the 2203 filename is recorded separately, not
+mistaken for a SHA256 stored within this historical capture.
 """
 from __future__ import annotations
 
@@ -160,13 +162,13 @@ def audit(dll: Path, stage64: Path, nams: dict[str, Path], clos: dict[str, Path]
         "stage64_exact_source_nam_sha_or_filename_mentions": exact_mentions,
         "stage64_architecture_field_present_in_inspected_metadata": False,
         "independent_stage64_input_nam_identity_proven": False,
-        "inference_boundary": "Two authenticated NAMs share an architecture and sample rate; neither a matching architecture nor an 8840-byte CLO establishes which NAM produced the Stage64 capture.",
+        "inference_boundary": "Two authenticated NAMs share an architecture and sample rate; those fields and an 8840-byte CLO do not independently identify the input from capture-internal metadata. The operator subsequently attested the 2203 model filename, but this audit does not claim a same-run SHA256 link.",
         "claims": {
             "original_dll_executed": False,
             "new_frida_hook_or_capture": False,
             "authentic_stage64_metadata_gate_rerun": True,
             "source_nam_architectures_observed": True,
-            "specific_stage64_input_nam_identified": False,
+            "specific_stage64_input_nam_identified_in_capture_metadata": False,
             "specific_stage64_native_factory_selected": False,
             "vendor_audio_or_full_nam_to_clo_parity_proven": False,
         },

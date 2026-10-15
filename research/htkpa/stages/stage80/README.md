@@ -1,8 +1,24 @@
 # Stage80 — authenticated NAM metadata versus Stage64 capture identity
 
-This stage closes Stage79's **missing-private-input** problem without inventing
-the identity of the model used in the completed Stage64 capture. It does not
+This stage closes Stage79's **missing-private-input** problem while separating
+capture-internal evidence from later capture-operator testimony. It does not
 run `5868USB.dll`, a Frida hook, model inference or audio processing.
+
+## Operator provenance correction (2026-10-15 UTC)
+
+The capture operator explicitly confirmed: during **every Frida capture that
+involved importing a NAM**, they used
+`JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam` (2203). This includes the Stage64
+NAM-import capture. **The source model's filename is therefore known by
+firsthand operator testimony**, not unknown as the original Stage80 wording
+suggested. `Marshall JCM 800 SC20 Full Rig.nam` remains a separate comparison
+fixture; it was not the operator's NAM import input for these Frida runs.
+
+The original Stage80 audit status below concerns **independently authenticated
+same-run bytes** only. The Stage64 archive itself did not record a NAM input
+SHA256 or finished CLO SHA256. The SHA-pinned 2203 fixture's bytes cannot be
+cryptographically bound to that particular run on testimony alone. Neither
+the live native factory nor numeric parity is established by this correction.
 
 ## Exact offline result (2026-10-15 UTC)
 
@@ -19,11 +35,15 @@ run `5868USB.dll`, a Frida hook, model inference or audio processing.
   bytes**. Stage64's completion manifest also reports 8,840 bytes, but all
   three having the same size is **not file identity or provenance**. No actual
   Stage64 output CLO hash or source NAM hash/name was preserved in its bounded
-  capture metadata.
+  capture metadata. The operator's subsequent identification of the 2203
+  filename is an independent, testimonial source of provenance.
 - The two NAMs have the **same architecture and sample rate**, so those fields
-  cannot distinguish the model used in the specific captured conversion.
+  cannot *independently* distinguish the model used in the specific captured
+  conversion; the operator's declaration does identify its model label.
 
-Status: `TWO_NAM_ARCHITECTURES_VERIFIED_STAGE64_INPUT_IDENTITY_UNPROVEN`.
+Original **machine-evidence-only** audit status:
+`TWO_NAM_ARCHITECTURES_VERIFIED_STAGE64_INPUT_IDENTITY_UNPROVEN`.
+Operator testimony: `STAGE64_2203_MODEL_LABEL_OPERATOR_ATTESTED`.
 
 ## Verification
 
@@ -51,11 +71,12 @@ offline tests, full real SHA-pinned read-only audit PASS. Private full report:
 
 ## Strict next gate
 
-The specific Stage64 input remains **unproven**. Future evidence must link an
-exact input NAM SHA256 to the output CLO SHA256 **in the same conversion run**,
+The specific Stage64 input **model label is operator-attested as 2203**. What
+remains unproven is a byte-exact same-run input/output association. Future
+evidence would link the input NAM SHA256 to the output CLO SHA256 **in the same conversion run**,
 using an independent application/import manifest or timestamped immutable
-source-file record. Do not correlate by architecture, filename resemblance,
-sample rate, generic CLO size, or model-name guesses. This gate can be designed
+source-file record. Do not claim that architecture, filename, sample rate or
+generic CLO size provide a cryptographic link. This gate can be designed
 without deploying another intrusive Frida hook.
 
 No production DSP changes, native execution, neural weight export, audio

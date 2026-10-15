@@ -3,6 +3,19 @@
   "schema_version": 1,
   "date_utc": "2026-10-15",
   "status": "TWO_NAM_ARCHITECTURES_VERIFIED_STAGE64_INPUT_IDENTITY_UNPROVEN",
+  "status_scope": "original_machine_evidence_only_before_operator_correction",
+  "operator_provenance_correction": {
+    "date_utc": "2026-10-15",
+    "source": "firsthand_capture_operator_declaration_in_project_conversation",
+    "scope": "all Frida captures made by this operator involving NAM import, including Stage64",
+    "attested_source_nam_filename": "JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+    "attested_source_model_label": "2203",
+    "sc20_was_operator_nam_import_input": false,
+    "evidence_type": "operator_testimony_not_capture_internal_hash_provenance",
+    "same_run_nam_sha256_recorded_by_stage64": false,
+    "same_run_completed_clo_sha256_recorded_by_stage64": false,
+    "exact_source_bytes_same_run_cryptographically_bound": false
+  },
   "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "original_stage64_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
   "stage79_authenticated_capture_status": "ACCEPTED_STAGE64_METADATA_HAS_NO_ARCHITECTURE_KEY_RUNTIME_UNPROVEN",
@@ -37,12 +50,14 @@
     "status": "PASS"
   },
   "claims": {
-    "specific_stage64_input_nam_identified": false,
+    "specific_stage64_input_nam_identified_in_original_capture_metadata": false,
+    "stage64_source_model_label_operator_attested_2203": true,
+    "stage64_exact_source_bytes_same_run_cryptographically_proven": false,
     "specific_stage64_live_factory_selected": false,
     "original_vendor_dll_executed": false,
     "frida_run_this_stage": false,
     "model_weights_exported": false,
     "complete_vendor_audio_or_antialiasing_parity_proven": false
   },
-  "next_gate": "Independent same-run association between an exact NAM SHA256 and the captured CLO SHA256; preserve actual source/capture identity, not size-only coincidences."
+  "next_gate": "Operator attests 2203 as the Stage64 NAM model. If byte-exact proof is needed, independently bind input NAM SHA256 and completed CLO SHA256 within the same run; filename testimony alone does not establish those hashes."
 }
