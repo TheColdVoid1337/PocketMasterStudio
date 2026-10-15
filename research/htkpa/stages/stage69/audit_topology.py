@@ -62,8 +62,8 @@ ANCHORS: dict[int, str] = {
     0x11F1F: r"jmp 0x180012170\b",                # construct final interpolator
     0x121AE: r"lea rax, \[rip \+ 0x232fbb\].*0x180245170\b",
     0x1222A: r"mov qword ptr \[rbx \+ 0x50\], rsi\b", # final slot
-    0x118B1: r"call qword ptr \[rax \+ 0x30\]\b",    # intermediate process
-    0x11909: r"call qword ptr \[rax \+ 0x30\]\b",    # final process
+    0x118B1: r"call qword ptr \[rax \+ 0x30\]",    # intermediate process
+    0x11909: r"call qword ptr \[rax \+ 0x30\]",    # final process
     0xE28DC: r"movsd xmm1, qword ptr \[r14 \+ 0x8\]",  # source rate
     0xE28E6: r"movss xmm2, dword ptr \[rip \+ 0x16a502\].*0x18024cdf0\b",
     0xE28F1: r"call 0x18000ce00\b",                # source -> fixed 44100
