@@ -1,0 +1,63 @@
+{
+  "stage": 81,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_SAMPLE_RATE_JSON_TO_F64_METADATA_VERIFIED_2203_NESTED_WAVENET",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage64_capture_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "original_2203_nam_sha256": "29abbdbf982ee64b963d1d8de06848d1b06450a623bb08ba3ffefce146dfac42",
+  "original_sc20_nam_sha256": "509ad3d6dc31cf0539afe4a264ff7386d6282ffe9d1e0de4b6cce514b1915b11",
+  "operator_stage64_import_filename_attestation": "JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+  "operator_attestation_not_same_run_byte_hash": true,
+  "native_reader_function_rva": "0xca4e0",
+  "native_json_key_rvas": ["0x18f920", "0x18f930"],
+  "native_json_key": "sample_rate",
+  "numeric_value_case_rvas": ["0xca663", "0xca689", "0xca69b", "0xca6a1"],
+  "native_missing_value_constant": -1.0,
+  "native_missing_value_constant_rva": "0x24ced0",
+  "metadata_field_writer_rva": "0xcb5f2",
+  "metadata_field_reader_rva": "0xcb026",
+  "metadata_f64_field_offset": "0x78",
+  "packet_f64_copy_rva": "0xcb02c",
+  "verified_instruction_count": 19,
+  "verified_file_backed_sample_rate_literals": 2,
+  "source_path_conditional": true,
+  "verified_private_model_structure": {
+    "2203": {
+      "top_level_architecture": "SlimmableContainer",
+      "nested_architectures": ["WaveNet", "WaveNet"],
+      "max_value_thresholds": [0.5, 1.0],
+      "declared_sample_rate_hz": 48000,
+      "version": "0.7.0"
+    },
+    "SC20": {
+      "top_level_architecture": "SlimmableContainer",
+      "nested_architectures": ["WaveNet", "WaveNet"],
+      "max_value_thresholds": [0.5, 1.0],
+      "declared_sample_rate_hz": 48000,
+      "version": "0.7.0"
+    }
+  },
+  "model_structure_distinguishes_input_identity": false,
+  "private_report": "research/_LOCAL_FILES/stage81_sample_rate_ingress.json",
+  "verification": {
+    "stage81_synthetic_tests": 12,
+    "stage70_through_stage81_offline_tests": 101,
+    "original_immutable_source_audit": "PASS",
+    "disassembler": "GNU objdump"
+  },
+  "claims": {
+    "source_sample_rate_json_to_f64_metadata_path_verified": true,
+    "source_nam_nested_wavenet_layout_verified": true,
+    "stage64_source_model_name_operator_attested_2203": true,
+    "stage64_exact_same_run_input_nam_clo_hashes_proven": false,
+    "stage64_live_sample_rate_48000_verified": false,
+    "stage64_native_factory_or_nested_submodel_selected": false,
+    "stage64_reverse_resampler_parent_proven": false,
+    "original_dll_executed": false,
+    "frida_hook_or_capture_performed": false,
+    "model_weights_exported": false,
+    "complete_vendor_antialiasing_or_audio_parity_proven": false
+  },
+  "next_gate": "Trace the native conditional factory/parent object lineage from this sample_rate field toward the Stage64 reverse resampler; no live execution claim from a static reader/writer path."
+}
