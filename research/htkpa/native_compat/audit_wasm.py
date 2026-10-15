@@ -157,7 +157,7 @@ def main()->int:
         (output/"stage68_wasm_native_parity.json").write_text(
             json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps(report,indent=2,ensure_ascii=False))
-    return 0
+    return 0 if report["status"]=="REAL_WASM_NATIVE_PARITY_MEASURED" else 2
 
 
 if __name__=="__main__":
