@@ -1,0 +1,86 @@
+{
+  "stage": 75,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "FOUR_STATIC_FACTORY_CHAINS_TO_F64_FIELD_WRITER_RUNTIME_TARGET_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_private_source": "Private user rollover ZIP, native DLL excluded from GitHub",
+  "independent_original_dll_audit": {
+    "run_environment": "assistant Linux scratch, original PE read only",
+    "disassembler": "GNU objdump Intel syntax",
+    "stage74_prior_source_gate_rerun": true,
+    "new_verified_instruction_count": 38,
+    "new_instruction_groups": 10,
+    "file_backed_vtable_method_count": 4,
+    "source_virtual_call": {
+      "callsite": "0xcab81 indirect CALL R9",
+      "method_load": "0xcab4f R9=[vtable+0x8]",
+      "f64_argument": "0xcab53 XMM3 source from prior Stage74 packet",
+      "runtime_method_resolved": false
+    },
+    "factory_candidates": [
+      {
+        "family": "A",
+        "vtable_rva": "0x246fb0",
+        "verified_slot_rva": "0x246fb8",
+        "verified_method_rva": "0xc64a0",
+        "method_to_derived_call": "0xc6527->0xc76c0",
+        "derived_to_common_call": "0xc7737->0xca430",
+        "result_store_rva": "0xc652d"
+      },
+      {
+        "family": "B",
+        "vtable_rva": "0x247708",
+        "verified_slot_rva": "0x247710",
+        "verified_method_rva": "0xcc730",
+        "method_to_derived_call": "0xcc798->0xcd220",
+        "derived_to_common_call": "0xcd261->0xca430",
+        "result_store_rva": "0xcc79e"
+      },
+      {
+        "family": "C",
+        "vtable_rva": "0x247ba8",
+        "verified_slot_rva": "0x247bb0",
+        "verified_method_rva": "0xd0c10",
+        "method_to_derived_call": "0xd0cf9->0xd4f40",
+        "derived_to_common_call": "0xd4ff3->0xca430",
+        "result_store_rva": "0xd0cff"
+      },
+      {
+        "family": "D",
+        "vtable_rva": "0x247cc0",
+        "verified_slot_rva": "0x247cc8",
+        "verified_method_rva": "0xd9b90",
+        "method_to_derived_call": "0xda83d->0xdb7d0",
+        "derived_to_common_call": "0xdb81f->0xca430",
+        "result_store_rva": "0xda843"
+      }
+    ],
+    "matching_common_constructor": {
+      "function_rva": "0xca430",
+      "object_vtable_write": "0xca43b/0xca442 sets object vtable RVA 0x247018",
+      "f64_field_write": "0xca44b MOVSD QWORD PTR [RCX+0x18],XMM3"
+    },
+    "unresolved": {
+      "candidate_set_exhaustive": false,
+      "actual_dynamic_factory_chosen": false,
+      "runtime_stage64_object_linked_to_constructor": false,
+      "complete_original_rate_provenance_verified": false
+    },
+    "private_full_report_path": "research/_LOCAL_FILES/stage75_virtual_factories.json"
+  },
+  "synthetic_offline_tests": {
+    "stage75_count": 8,
+    "stage70_to_stage75_combined_count": 45
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "private_audio_or_f64_payload_accessed": false,
+    "specific_stage64_reverse_factory_identified": false,
+    "specific_stage64_input_rate_48000_verified": false,
+    "complete_native_antialiasing_verified": false,
+    "production_or_resampler_lab_changed": false
+  },
+  "next_gate": "Trace the registry factory identity actually selected at 0xcab81, without assuming any one candidate slot is the live method; no automatic runtime probe."
+}
