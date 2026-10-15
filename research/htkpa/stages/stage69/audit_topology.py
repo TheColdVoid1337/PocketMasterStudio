@@ -79,7 +79,7 @@ def parse_instruction_lines(lines: str) -> dict[int, str]:
         match = re.match(r"^\s*([0-9a-fA-F]+):\s*(.+)$", line)
         if match:
             va = int(match.group(1), 16)
-            instr = re.sub(r"\s+", " ", match.group(2).split("#", 1)[0].strip()).lower()
+            instr = re.sub(r"\s+", " ", match.group(2).strip()).lower()
             result[va] = instr
     return result
 
