@@ -1,0 +1,31 @@
+{
+  "stage": 71,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "NAM_EXPORT_STATIC_ANCESTRY_AUDIT_READY_LOCAL_ORIGINAL_DLL_PENDING",
+  "exact_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage70_user_wsl_accepted": {
+    "status": "STATIC_DIRECT_CALL_PATH_FOUND_RUNTIME_PARENT_UNPROVEN",
+    "both_44100_callsites_target": "0xce00",
+    "helper_direct_constructor_callsite": "0xcff3",
+    "constructor_target": "0x11b60",
+    "stage64_runtime_parent": "UNPROVEN"
+  },
+  "nam_export_rva_pins": {
+    "namConvertCloData": "0xe1f70",
+    "namConvertClo": "0xe22a0",
+    "appNamConvertCloData": "0xabeb0",
+    "appNamConvertClo": "0xac0e0"
+  },
+  "source_rate_fields_to_validate": {
+    "0xe28f1": "movsd xmm1, qword ptr [r14 + 0x8] @ 0xe28dc",
+    "0xbf364": "movss xmm1, dword ptr [r14 + 0x20ec0] @ 0xbf358"
+  },
+  "offline_test_count_expected": 6,
+  "actual_static_nam_ancestry": "NOT_YET_MEASURED_ON_ORIGINAL_DLL",
+  "actual_input_rate_values": "UNPROVEN",
+  "original_dll_executed": false,
+  "frida_used": false,
+  "audio_or_f64_extracted": false,
+  "next_gate": "User WSL verifies six offline tests, then runs SHA-gated original static NAM export call ancestry and field-read audit; review output before narrowing data-flow or any prospective metadata-only runtime probe."
+}
