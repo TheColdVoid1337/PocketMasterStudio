@@ -1,0 +1,26 @@
+{
+  "stage": 70,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_AUDIT_TOOL_READY_LOCAL_ORIGINAL_DLL_RESULT_PENDING",
+  "stage69_user_wsl_acceptance": {
+    "offline_regression": "5/5 PASS",
+    "original_sha_guard": "MATCH",
+    "original_instruction_anchors": "34/34 MATCH",
+    "original_stage64_metadata": "21-event sequence verified",
+    "runtime_parent": "UNPROVEN"
+  },
+  "exact_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "accepted_stage69_original_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "static_candidates": {
+    "source_44100_callsites_rva": ["0xe28f1", "0xbf364"],
+    "shared_helper_rva": "0xce00",
+    "r8brain_resampler_constructor_rva": "0x11b60"
+  },
+  "implementation": "PE32+ exception-directory function bounds; LLVM Intel bounded disassembly; direct-call breadth-first graph only; mock-PE offline regression",
+  "runtime_observations_created_in_stage70": 0,
+  "original_dll_executed": false,
+  "original_audio_or_f64_extracted": false,
+  "actual_source_parent_relation": "AWAITING_PRIVATE_LOCAL_STATIC_AUDIT",
+  "next_gate": "Run test_htkpa_stage70.py and audit_parent_calls.py locally; review exact bounded direct-call result before deciding whether additional source analysis is necessary."
+}
