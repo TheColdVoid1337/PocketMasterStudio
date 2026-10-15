@@ -1,6 +1,6 @@
 # Stage70 — SHA-gated source call-graph trace for the 44.1-kHz native path
 
-**Status:** local original-DLL execution of this *read-only audit* is pending.
+**Status:** Stage70 source-only audit independently accepted in user WSL on 2026-10-15; exact runtime parent remains unproven.
 Stage69 was independently accepted in user WSL on 2026-10-15: five offline
 regressions passed, and 34/34 LLVM instruction anchors and the original
 Stage64 metadata matched the exact SHA-pinned artifacts.
@@ -53,6 +53,24 @@ The JSON report stores RVAs, code-graph edges, source SHA/provenance and
 explicit uncertainty flags, **never original machine-code bytes**. Do not
 commit DLLs, stage64 archives, disassembly transcripts, captured audio or
 the local JSON report. Paste the console output for the next review.
+
+## User WSL result (2026-10-15)
+
+- Seven of seven offline regression tests passed.
+- Both high-level 44.1-kHz callsites were reverified against the original DLL:
+  RVA 0xE28F1 (owner 0xE2640..0xE2B87) and RVA 0xBF364
+  (owner 0xBE830..0xBF5AE) each calls shared helper 0xCE00.
+- **Compiled direct call confirmed:** helper instruction RVA 0xCFF3
+  directly targets the original CDSPResampler24 constructor RVA 0x11B60.
+  The path is **0xCE00 → 0x11B60**, observed after visiting only the
+  helper's function; no oversized functions or search budget exhaustion.
+- Two other source direct edges from helper 0xCE00 reach function 0xA32C4
+  at callsite RVAs 0xCEAB and 0xCF15. The scan also saw **eight indirect
+  call instructions**, deliberately unresolved.
+- Exact result: STATIC_DIRECT_CALL_PATH_FOUND_RUNTIME_PARENT_UNPROVEN.
+  A compiled edge is not evidence of the branch taken, live input sample
+  rate, original Stage64 object's constructor or complete anti-alias
+  effectiveness.
 
 ## Acceptance
 

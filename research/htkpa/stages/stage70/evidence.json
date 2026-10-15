@@ -2,7 +2,7 @@
   "stage": 70,
   "schema_version": 1,
   "date_utc": "2026-10-15",
-  "status": "STATIC_AUDIT_TOOL_READY_LOCAL_ORIGINAL_DLL_RESULT_PENDING",
+  "status": "STATIC_DIRECT_CALL_PATH_FOUND_RUNTIME_PARENT_UNPROVEN",
   "stage69_user_wsl_acceptance": {
     "offline_regression": "5/5 PASS",
     "original_sha_guard": "MATCH",
@@ -13,7 +13,10 @@
   "exact_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
   "accepted_stage69_original_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
   "static_candidates": {
-    "source_44100_callsites_rva": ["0xe28f1", "0xbf364"],
+    "source_44100_callsites_rva": [
+      "0xe28f1",
+      "0xbf364"
+    ],
     "shared_helper_rva": "0xce00",
     "r8brain_resampler_constructor_rva": "0x11b60"
   },
@@ -21,6 +24,26 @@
   "runtime_observations_created_in_stage70": 0,
   "original_dll_executed": false,
   "original_audio_or_f64_extracted": false,
-  "actual_source_parent_relation": "AWAITING_PRIVATE_LOCAL_STATIC_AUDIT",
-  "next_gate": "Run test_htkpa_stage70.py and audit_parent_calls.py locally; review exact bounded direct-call result before deciding whether additional source analysis is necessary."
+  "actual_source_parent_relation": "STATIC_DIRECT_COMPILED_CALL_PATH_CONFIRMED_NOT_RUNTIME_PROVEN",
+  "next_gate": "Trace source-rate/data provenance and NAM conversion caller ancestry to determine whether the confirmed constructor call executed for the Stage64 reverse object; prefer static evidence before any new guarded metadata-only runtime probe.",
+  "stage70_user_wsl_acceptance": {
+    "offline_regression": "7/7 PASS",
+    "original_dll_sha256_check": "MATCH",
+    "callsite_0xe28f1_owner": "0xe2640..0xe2b87",
+    "callsite_0xbf364_owner": "0xbe830..0xbf5ae",
+    "both_callsites_target_helper_rva": "0xce00",
+    "direct_constructor_callsite_rva": "0xcff3",
+    "constructor_target_rva": "0x11b60",
+    "direct_compiled_path": [
+      "0xce00",
+      "0x11b60"
+    ],
+    "visited_function_count": 1,
+    "observed_direct_edges_count": 3,
+    "unresolved_indirect_calls": 8,
+    "oversized_skipped_functions": 0,
+    "bounded_search_incomplete": false,
+    "source_level_result": "STATIC_DIRECT_CALL_PATH_FOUND",
+    "runtime_parent_result": "UNPROVEN"
+  }
 }
