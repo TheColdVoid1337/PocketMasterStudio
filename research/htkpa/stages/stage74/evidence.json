@@ -1,0 +1,61 @@
+{
+  "stage": 74,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_METADATA_TO_INDIRECT_FACTORY_BRIDGE_RUNTIME_FIELD_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_private_source": "User-provided rollover ZIP, original bytes never committed",
+  "independent_original_dll_audit": {
+    "run_environment": "assistant Linux scratch, source-only",
+    "disassembler": "GNU objdump Intel syntax",
+    "stage73_acceptance_rerun": true,
+    "stage74_native_anchor_count": 47,
+    "stage74_instruction_groups": 6,
+    "helper_object_path": {
+      "r12_zero": "0xe17f",
+      "rbx_zero": "0xe60c",
+      "parser_mode_word_zero": "0xe614",
+      "direct_parser_call": "0xe698 -> 0xcc4e0",
+      "object_slot_read": "0xe6a7 RBX=[RAX]",
+      "slot_transfer": ["0xe6aa [RAX]=0", "0xe6ad [RSP+0x38]=RBX"],
+      "metadata_nonnull_branch": "0xe6ca TEST RBX,RBX; 0xe6cd JNE to 0xe855",
+      "only_decoded_local_direct_inbound_to_metadata_read": ["0xe6cd:jne"],
+      "prior_block_no_fallthrough": "0xe850 unconditional JMP to 0xe5cd",
+      "reader": "0xe855 f64 [RBX+0x18]",
+      "object_identity_proven": false
+    },
+    "nested_f64_transfer": {
+      "direct_calls": ["0xe698->0xcc4e0", "0xcc58a->0xcae30", "0xcb042->0xca760", "0xca788->0xca810", "0xcaabd->0xcab10"],
+      "zero_mode_to_direct_constructor": "0xe614->0xe682->0xcc511->0xcc57c->0xcae6d->0xcb034->0xca780/0xca786->0xca788",
+      "marshaller_original_double": "0xcb026 [R13+0x78] to 0xcb02c [RBP+0x108]",
+      "marshaller_passed_packet": "0xcb038 pointer [RBP+0x90], so packet+0x78 equals stored value",
+      "packet_reader": "0xca83d RBX=RDX; 0xca8c5 [RBX+0x78] to 0xca8ca [RBP+0x7]",
+      "virtual_argument": "0xcaaae R9=RBP-0x19; 0xcab36 RBX=R9; 0xcab53 XMM3=[RBX+0x20] equals previous RBP+0x7",
+      "virtual_target": "0xcab4f method pointer [vtable+0x8]; 0xcab81 CALL R9",
+      "virtual_target_resolved": false,
+      "result_object_plus_0x18_write_proven": false
+    },
+    "fallback_predicate": {
+      "source": "0xe9b5 zero XMM6; 0xe9b8 COMISS XMM6,XMM9; 0xe9bc JB skips fallback at 0xe9ea",
+      "ordered_positive": "KEEP_METADATA",
+      "ordered_zero_or_negative": "FALLBACK_48000",
+      "unordered_nan": "UNORDERED_BRANCH_IF_MASKED_OR_FP_EXCEPTION",
+      "runtime_branch_observed": false
+    },
+    "private_full_report_path": "research/_LOCAL_FILES/stage74_metadata_bridge.json"
+  },
+  "synthetic_offline_tests": {
+    "stage74_count": 8,
+    "stage70_to_stage74_combined_count": 37
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "native_f64_payload_accessed": false,
+    "specific_stage64_reverse_parent_verified": false,
+    "specific_stage64_source_rate_48000_verified": false,
+    "complete_native_antialias_performance_verified": false,
+    "production_or_resampler_lab_changed": false
+  },
+  "next_gate": "Resolve static virtual factory method at 0xcab81 and object +0x18 field writer before any optional metadata-only dynamic probe."
+}
