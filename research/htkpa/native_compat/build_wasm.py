@@ -34,6 +34,7 @@ EXPORTS=[
     "_htkpa_v1_id","_htkpa_v1_open","_htkpa_v1_min_output_capacity",
     "_htkpa_v1_process","_htkpa_v1_reset","_htkpa_v1_close",
 ]
+RUNTIME_EXPORTS=["HEAPU8","HEAPF64"]
 REQUIRED_PATCH=("HTKPA_Stage62_Params","IsWhole = false;","FilterFracs = 673;")
 
 
@@ -59,6 +60,7 @@ def command(emxx:str,source:Path,dest:Path)->list[str]:
         "-sWASM=1","-sALLOW_MEMORY_GROWTH=1","-sFILESYSTEM=0",
         "-sDISABLE_EXCEPTION_CATCHING=0",
         "-sEXPORTED_FUNCTIONS="+json.dumps(EXPORTS,separators=(",",":")),
+        "-sEXPORTED_RUNTIME_METHODS="+json.dumps(RUNTIME_EXPORTS,separators=(",",":")),
         "-o",str(dest),
     ]
 
@@ -105,7 +107,7 @@ def build(source_cache:Path,out_dir:Path,emxx:str)->dict:
             "bridge_cpp_sha256":sha(BRIDGE),
             "consumer_adapter_sha256":sha(ROOT/"src"/"htkpa_wasm_adapter.js"),
             "patch":details,
-            "emxx":emxx,"exports":EXPORTS,
+            "emxx":emxx,"exports":EXPORTS,"runtime_exports":RUNTIME_EXPORTS,
             "output":{
                 "htkpa_native_frac.mjs":{"sha256":sha(target),"bytes":target.stat().st_size},
                 "htkpa_native_frac.wasm":{"sha256":sha(wasm),"bytes":wasm.stat().st_size}},
