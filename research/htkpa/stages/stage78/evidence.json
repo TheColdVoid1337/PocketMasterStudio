@@ -1,0 +1,64 @@
+{
+  "stage": 78,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_JSON_ARCHITECTURE_TO_NAM_REGISTRY_KEY_RUNTIME_SELECTION_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_source": "Previously provided exact private original PE; only read, never published",
+  "independent_original_pe_audit": {
+    "environment": "Assistant Linux scratch, pinned vendor DLL read only",
+    "prior_stage77_full_sha_and_source_gate_rerun": true,
+    "disassembler": "GNU objdump, Intel syntax",
+    "verified_new_native_instructions": 38,
+    "verified_new_pdata_function_owners": 4,
+    "architecture_json_field": {
+      "literal_rva": "0x18f890",
+      "exact_file_backed_literal": "architecture",
+      "json_property_load_rva": "0xcb44f",
+      "property_lookup_call_rva": "0xcb459",
+      "property_to_string_call_rva": "0xcb465",
+      "output_field_offset": "+0x20",
+      "output_field_copy_rvas": ["0xcb47e", "0xcb481", "0xcb484", "0xcb488"]
+    },
+    "conditional_source_path": {
+      "parser_invocation": "0xcafce -> 0xcb200",
+      "object_field_transfer": "0xcafe3/0xcafee original output+0x20 to stack packet+0x20",
+      "packet_dispatch": "0xcb042 -> 0xca760 -> zero-mode path 0xca810",
+      "registry_call": "0xcaa65 field+0x20 -> 0xcaa76 call 0x3f5c0",
+      "actual_stage64_branch_taken": null
+    },
+    "original_file_backed_nam_rtti_literals": {
+      "ConvNet": "0x2a2840",
+      "LSTM": "0x2a2e08",
+      "WaveNet": "0x2a2f50",
+      "SlimmableWavenet": "0x2a3090",
+      "A2FastModel_encoded_specialization": "0x2a2e60"
+    },
+    "four_static_registration_names_from_stage77": ["SlimmableContainer", "ConvNet", "LSTM", "WaveNet"],
+    "full_private_report_path": "research/_LOCAL_FILES/stage78_architecture_provenance.json"
+  },
+  "original_upstream_primary_sources": {
+    "nam_file_specification": "https://github.com/sdatkinson/neural-amp-modeler/blob/main/docs/source/model-file.rst",
+    "core_source": "https://github.com/sdatkinson/NeuralAmpModelerCore",
+    "core_release_history": "https://github.com/sdatkinson/NeuralAmpModelerCore/releases",
+    "source_only_comparison": "Class and field names agree with upstream vocabulary; no binary origin or exact revision asserted"
+  },
+  "synthetic_offline_tests": {
+    "stage78_count": 8,
+    "stage70_to_stage78_combined_count": 69
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "native_audio_payload_accessed": false,
+    "architecture_json_literal_to_registry_lookup_static_path_verified": true,
+    "five_original_pe_nam_rtti_literals_verified": true,
+    "exact_upstream_binary_or_revision_verified": false,
+    "specific_stage64_architecture_key_observed": false,
+    "specific_stage64_factory_selected": false,
+    "stage64_dynamic_reverse_resampler_parent_proven": false,
+    "complete_vendor_antialiasing_or_lab_parity_proven": false,
+    "new_hook_or_production_dsp_patch": false
+  },
+  "next_gate": "Obtain the actual Stage64 input architecture value or verified runtime association; source names and matching NAM upstream do not establish it."
+}
