@@ -43,6 +43,13 @@ ANCHORS: dict[int, str] = {
     0x11C62: r"addsd xmm0, xmm9\b",                # 2 * destination
     0x11C67: r"comisd xmm0, xmm8\b",               # compare with source
     0x11C6C: r"jbe 0x180011f24\b",                # source >= 2*dst other branch
+    0x11C7A: r"movsd xmm11, qword ptr \[rip \+ 0x23abfd\].*0x18024c880\b",
+    0x11C83: r"comisd xmm9, xmm8\b",              # dst <= src
+    0x11C90: r"movaps xmm6, xmm9\b",
+    0x11C94: r"mulsd xmm6, xmm11\b",              # dst * 0.5
+    0x11C99: r"divsd xmm6, xmm8\b",               # /src; lowpass normalized
+    0x11CE0: r"movaps xmm0, xmm6\b",              # filter norm-frequency
+    0x11CE3: r"call 0x18000bb80\b",               # public-style FIR filter generator
     0x11CEF: r"mov r9d, 0x1\b",                    # first FIR denominator
     0x11CF5: r"mov r8d, r13d\b",                   # first FIR numerator = 2
     0x11CFE: r"call 0x18000bdf0\b",               # convolver init
@@ -222,6 +229,21 @@ def audit(dll: Path, stage64: Path, objdump: str) -> dict:
             break
     if rate_constant != 44100.0:
         raise ValueError("Native output-rate constant at RVA 0x24CDF0 not 44100.0")
+    for rva, expected in ((0x24C880, 0.5),):
+        found = False
+        for i in range(sections):
+            h = section_offset + i*40
+            virtual_size, section_rva, size, offset = unpack_from("<IIII", image, h+8)
+            if section_rva <= rva < section_rva + virtual_size:
+                rel = rva - section_rva
+                if rel + 8 > size:
+                    raise ValueError("FIR normalized-frequency constant outside PE raw section")
+                if unpack_from("<d", image, offset+rel)[0] != expected:
+                    raise ValueError("Native FIR normalized-frequency constant is not 0.5")
+                found = True
+                break
+        if not found:
+            raise ValueError("FIR normalized-frequency constant RVA not mapped")
     history = inspect_stage64(stage64)
     return {
         "stage": 69, "schema_version": 1,
@@ -235,6 +257,8 @@ def audit(dll: Path, stage64: Path, objdump: str) -> dict:
             "source_sample_rate_register": "XMM1 copied to XMM8",
             "destination_sample_rate_register": "XMM2 copied to XMM9",
             "first_intermediate_stage": "CDSPBlockConvolver, upsample 2:1 (source anchor 0x11cfe)",
+            "conditional_fir_normalized_cutoff": "If dst<=src, xmm6=(0.5*dst/src) @ 0x11c90-0x11c99, passed as xmm0 to native filter generator at 0x11ce3; for hypothetical 48000->44100 this is 0.459375 and corresponds to an input-rate frequency of 22050 Hz",
+            "source_filter_half_constant_rva": "0x24c880 (double 0.5 verified from PE data)",
             "direct_to_final_branch": "src*2>dst at 0x11d7c goes to 0x11f04 then 0x11f1f jumps to fractional setup 0x12170",
             "intermediate_object_slot": "resampler +0x8",
             "intermediate_processor_count": "resampler +0x48 = 1",
