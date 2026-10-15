@@ -1,0 +1,59 @@
+{
+  "stage": 73,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "SOURCE_RATE_HELPER_TWO_CANDIDATES_RUNTIME_PARENT_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_private_source": "User-provided rollover ZIP, DLL excluded from GitHub",
+  "independent_original_dll_audit": {
+    "run_environment": "assistant Linux scratch",
+    "disassembler": "GNU objdump Intel syntax",
+    "verified_instruction_anchors": 34,
+    "verified_instruction_groups": 5,
+    "native_pe_constants": {
+      "0x24ccf8_f64": 44100.0,
+      "0x24cef0_f64_error_sentinel": -2.0,
+      "0x24cdf0_f32": 44100.0,
+      "0x24cdf4_f32_fallback": 48000.0
+    },
+    "direct_wrapper_parents": {
+      "0xff40": ["0x11666", "0x611af"],
+      "0x10e70": ["0x11734", "0x6137d"]
+    },
+    "mode_selector": "0x1158b compare [rcx+0x270] to 1; 0x11592 branch, runtime selection unknown",
+    "shared_rate_helper": "0xe0e0 called by 0xff40 at 0x10043 and 0x10e70 at 0x10f7f",
+    "shared_helper_rate_candidates": [
+      "0xe855 f64 metadata [rbx+0x18], converted to f32 at 0xe85b",
+      "0xe9ea conditional original PE f32 fallback 48000 at 0x24cdf4"
+    ],
+    "helper_conversion": "0xf620 XMM9 f32 to EBX integer; 0xf66b EBX to EAX return",
+    "helper_compare_44100": "0xea01 uses original PE f32 44100 at 0x24cdf0",
+    "passed_rate_chain": "0x10f84/0x10f88 EAX to XMM6; 0x11086 f64 to f32; 0x11093 fifth stack arg; 0x110ad to 0x10230; Stage72 0x104e1 to 0xbe830",
+    "fixed_rate_chain": "0x100da original PE f64 44100 at 0x24ccf8; 0x1016d to 0xf940; Stage72 context initialized to f32 44100",
+    "bounded_local_xmm9_cfg": {
+      "entry": "0xe0e0",
+      "conversion": "0xf620",
+      "instruction_state_pairs": 2031,
+      "decoded_local_unresolved_jumps": 0,
+      "possible_sources": ["f64_metadata_object_plus_0x18_to_f32", "conditional_f32_fallback_48000"],
+      "closed_on_decoded_local_paths": true,
+      "actual_runtime_branch_selected": false
+    },
+    "private_full_report_path": "research/_LOCAL_FILES/stage73_incoming_rate.json"
+  },
+  "synthetic_offline_tests": {
+    "stage73_count": 8,
+    "stage70_to_stage73_combined_count": 29
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "native_payload_extracted": false,
+    "specific_stage64_reverse_parent_verified": false,
+    "specific_stage64_reverse_48000_input_verified": false,
+    "real_48000_fallback_branch_observed_running": false,
+    "complete_vendor_antialias_performance_verified": false,
+    "production_or_resampler_lab_changed": false
+  },
+  "next_gate": "Find provenance of [rbx+0x18] metadata in helper 0xe0e0 and clarify static fallback condition; no automatic hook or DSP edit."
+}
