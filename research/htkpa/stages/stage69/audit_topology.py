@@ -52,11 +52,20 @@ ANCHORS: dict[int, str] = {
     0x1222A: r"mov qword ptr \[rbx \+ 0x50\], rsi\b", # final slot
     0x118B1: r"call qword ptr \[rax \+ 0x30\]\b",    # intermediate process
     0x11909: r"call qword ptr \[rax \+ 0x30\]\b",    # final process
+    0xE28DC: r"movsd xmm1, qword ptr \[r14 \+ 0x8\]\b",  # source rate
+    0xE28E6: r"movss xmm2, dword ptr \[rip \+ 0x16a502\].*0x18024cdf0\b",
+    0xE28F1: r"call 0x18000ce00\b",                # source -> fixed 44100
+    0xBF34D: r"movss xmm6, dword ptr \[rip \+ 0x18da9b\].*0x18024cdf0\b",
+    0xBF355: r"movaps xmm2, xmm6\b",
+    0xBF358: r"movss xmm1, dword ptr \[r14 \+ 0x20ec0\]\b",
+    0xBF364: r"call 0x18000ce00\b",
 }
 SPANS = (
     (0x11850, 0x11915),
     (0x11B60, 0x11D40),
     (0x12170, 0x12245),
+    (0xBF34D, 0xBF369),
+    (0xE28DC, 0xE28F6),
 )
 
 def sha_file(path: Path) -> str:
@@ -183,6 +192,30 @@ def audit(dll: Path, stage64: Path, objdump: str) -> dict:
     verify_pinned(dll, DLL_SHA256, "Original Sonicake DLL")
     verify_pinned(stage64, STAGE64_SHA256, "Stage64 source archive")
     anchors = inspect_source(dll, objdump)
+    # Resolve high-level output-rate constant in the original PE as data.
+    from struct import unpack_from
+    image = dll.read_bytes()
+    if image[:2] != b"MZ":
+        raise ValueError("Not a PE executable")
+    pe_offset = unpack_from("<I", image, 0x3C)[0]
+    if image[pe_offset:pe_offset+4] != b"PE\x00\x00":
+        raise ValueError("Invalid PE header")
+    coff = pe_offset + 4
+    sections = unpack_from("<H", image, coff + 2)[0]
+    optional_size = unpack_from("<H", image, coff + 16)[0]
+    section_offset = coff + 20 + optional_size
+    rate_constant = None
+    for i in range(sections):
+        h = section_offset + i*40
+        virtual_size, rva, size, offset = unpack_from("<IIII", image, h+8)
+        if rva <= 0x24CDF0 < rva + virtual_size:
+            raw_offset = offset + (0x24CDF0 - rva)
+            if raw_offset + 4 > offset + size:
+                raise ValueError("Native rate constant outside PE raw section")
+            rate_constant = unpack_from("<f", image, raw_offset)[0]
+            break
+    if rate_constant != 44100.0:
+        raise ValueError("Native output-rate constant at RVA 0x24CDF0 not 44100.0")
     history = inspect_stage64(stage64)
     return {
         "stage": 69, "schema_version": 1,
@@ -201,6 +234,10 @@ def audit(dll: Path, stage64: Path, objdump: str) -> dict:
             "final_stage": "templated CDSPFracInterpolator vtable RVA 0x245170 at 0x121ae",
             "final_object_slot": "resampler +0x50",
             "processing": "intermediate virtual process at 0x118b1, then final process at 0x11909",
+            "candidate_callsite_1": "0xe28f1: source rate from audio object [r14+0x8], output rate from native float32 constant RVA 0x24cdf0",
+            "candidate_callsite_2": "0xbf364: source rate from context [r14+0x20ec0], output rate from same native float32 constant RVA 0x24cdf0",
+            "both_callsites_target_44100": True,
+            "specific_stage64_reverse_callsite_verified": False,
         },
         "runtime": history,
         "claims": {
