@@ -1,0 +1,56 @@
+{
+  "stage": 76,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_STRING_KEYED_REGISTRY_CALLBACK_FACTORY_IDENTITY_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_private_source": "Privately provided original DLL, not published",
+  "source_only_original_dll_audit": {
+    "run_environment": "Assistant Linux scratch; file read as inert SHA-pinned PE64 bytes",
+    "disassembler": "GNU objdump Intel syntax",
+    "stage75_prior_gate_rerun": true,
+    "new_instruction_pins_verified": 62,
+    "new_pdata_functions_verified": 8,
+    "registry_access": {
+      "lazy_global_accessor_rva": "0x35df0",
+      "global_registry_rva": "0x2c74d0",
+      "lookup_call": "0xcaa76->0x3f5c0",
+      "key_pointer": "0xcaa65 R8=&[RBX+0x20]",
+      "key_length": "0x3f615 [R8+0x10]",
+      "hash": "FNV-1a 64-bit original seed/multiplier/byte loop at 0x3f626..0x3f653",
+      "bucket": "0x3f655/0x3f65f/0x3f668",
+      "first_dynamic_callback": "0x3f731 CALL QWORD PTR [R10+0x10]",
+      "callback_target_identified": false
+    },
+    "factory_transfer": {
+      "lookup_result_storage": "0xcaaa2 [RBP-0x61] -> RAX, 0xcaaaa -> [RBP-0x69]",
+      "bridge": "0xcaab6 passes output pointer to 0xcaabd->0xcab10",
+      "second_dynamic_callback": "0xcab81 CALL R9 through selected factory vtable+0x8",
+      "selected_factory_identified": false
+    },
+    "candidate_object_vtable_installs": [
+      {"family": "A", "load_rva": "0xc62fe", "store_rva": "0xc6305", "vtable_rva": "0x246fb0"},
+      {"family": "B", "load_rva": "0xcc6ce", "store_rva": "0xcc6d5", "vtable_rva": "0x247708"},
+      {"family": "C", "load_rva": "0xd02cd", "store_rva": "0xd02d4", "vtable_rva": "0x247ba8"},
+      {"family": "D", "load_rva": "0xdd2b6", "store_rva": "0xdd2bd", "vtable_rva": "0x247cc0"}
+    ],
+    "conditional_c_or_d_construction": "0xd01dc/0xd01e3 branch; two distinct later vtable loads in the same .pdata function",
+    "selected_stage64_branch_verified": false,
+    "private_full_report_path": "research/_LOCAL_FILES/stage76_registry_selection.json"
+  },
+  "synthetic_offline_tests": {
+    "stage76_count": 8,
+    "stage70_to_stage76_combined_count": 53
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_or_new_hook_used": false,
+    "original_f64_or_audio_payload_accessed": false,
+    "stage64_registry_key_captured": false,
+    "stage64_factory_and_dynamic_object_identified": false,
+    "original_stage64_48000_input_rate_verified": false,
+    "complete_antialiasing_verified": false,
+    "production_or_lab_changed": false
+  },
+  "next_gate": "Source-first registry entry/registration analysis and callback target candidates; runtime identification remains separate."
+}
