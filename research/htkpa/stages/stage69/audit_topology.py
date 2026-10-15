@@ -48,6 +48,11 @@ ANCHORS: dict[int, str] = {
     0x11CFE: r"call 0x18000bdf0\b",               # convolver init
     0x11D22: r"mov qword ptr \[rbx \+ 0x8\], rbp\b",  # intermediate slot
     0x11D26: r"mov dword ptr \[rbx \+ 0x48\], 0x1\b", # intermediate count 1
+    0x11D6E: r"movaps xmm0, xmm8\b",               # 2*source
+    0x11D72: r"addsd xmm0, xmm8\b",
+    0x11D77: r"comisd xmm0, xmm9\b",               # compare with destination
+    0x11D7C: r"ja 0x180011f04\b",                 # src*2 > dst -> fractional path
+    0x11F1F: r"jmp 0x180012170\b",                # construct final interpolator
     0x121AE: r"lea rax, \[rip \+ 0x232fbb\].*0x180245170\b",
     0x1222A: r"mov qword ptr \[rbx \+ 0x50\], rsi\b", # final slot
     0x118B1: r"call qword ptr \[rax \+ 0x30\]\b",    # intermediate process
@@ -62,7 +67,8 @@ ANCHORS: dict[int, str] = {
 }
 SPANS = (
     (0x11850, 0x11915),
-    (0x11B60, 0x11D40),
+    (0x11B60, 0x11D90),
+    (0x11F04, 0x11F25),
     (0x12170, 0x12245),
     (0xBF34D, 0xBF369),
     (0xE28DC, 0xE28F6),
@@ -229,6 +235,7 @@ def audit(dll: Path, stage64: Path, objdump: str) -> dict:
             "source_sample_rate_register": "XMM1 copied to XMM8",
             "destination_sample_rate_register": "XMM2 copied to XMM9",
             "first_intermediate_stage": "CDSPBlockConvolver, upsample 2:1 (source anchor 0x11cfe)",
+            "direct_to_final_branch": "src*2>dst at 0x11d7c goes to 0x11f04 then 0x11f1f jumps to fractional setup 0x12170",
             "intermediate_object_slot": "resampler +0x8",
             "intermediate_processor_count": "resampler +0x48 = 1",
             "final_stage": "templated CDSPFracInterpolator vtable RVA 0x245170 at 0x121ae",
