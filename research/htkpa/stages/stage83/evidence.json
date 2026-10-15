@@ -1,0 +1,60 @@
+{
+  "stage": 83,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_SLIMMABLE_THRESHOLD_SELECTOR_AND_CHILD_ROUTING_VERIFIED",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage64_capture_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "operator_attested_frida_nam_import_name": "JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+  "operator_attestation_not_same_run_hash": true,
+  "native_result_constructor_rva": "0xc5f40",
+  "primary_result_vtable_rva": "0x246eb0",
+  "secondary_result_vtable_rva": "0x246f30",
+  "secondary_vtable_result_object_offset": "0x50",
+  "native_vtable_pointer_slots": {
+    "primary_selected_slot_8": ["0x246eb8", "0xc5f00"],
+    "primary_selected_slot_10": ["0x246ec0", "0xc5f20"],
+    "primary_selected_slot_18": ["0x246ec8", "0xc5d10"],
+    "primary_selected_slot_20": ["0x246ed0", "0xc5e10"],
+    "primary_all_children_slot_28": ["0x246ed8", "0xc5eb0"],
+    "secondary_selector_slot_8": ["0x246f38", "0xc5d30"]
+  },
+  "threshold_selector_compare_rva": "0xc5d65",
+  "threshold_selector_strict_ja_rva": "0xc5d69",
+  "selector_child_virtual_call_rva": "0xc5dd2",
+  "selector_store_current_index_rva": "0xc5dd5",
+  "selected_index_object_offset": "0x70",
+  "child_array_begin_object_offset": "0x58",
+  "child_array_record_stride_bytes": 16,
+  "verified_native_instruction_count": 53,
+  "file_backed_vtable_pointer_count": 6,
+  "verified_pdata_owner_count": 4,
+  "bounded_leaf_routine_count": 3,
+  "verified_original_2203_thresholds": [0.5, 1.0],
+  "synthetic_control_boundary_examples_only": {
+    "0.499999": 0,
+    "0.5": 1,
+    "0.75": 1,
+    "1.0": 1
+  },
+  "original_immutable_source_audit": "PASS",
+  "test_results": {
+    "stage83_synthetic_offline": "13/13 PASS",
+    "stage70_through_83_combined_offline": "124/124 PASS"
+  },
+  "private_report": "research/_LOCAL_FILES/stage83_slimmable_selection.json",
+  "claims": {
+    "native_static_selector_logic_verified": true,
+    "native_static_selected_child_routing_verified": true,
+    "historical_stage64_actual_control_value_verified": false,
+    "historical_stage64_selected_nested_wavenet_verified": false,
+    "historical_stage64_active_factory_verified": false,
+    "historical_stage64_reverse_resampler_parent_verified": false,
+    "same_run_nam_clo_hash_pair_verified": false,
+    "vendor_dll_executed": false,
+    "new_frida_capture": false,
+    "private_weights_or_audio_committed": false,
+    "full_vendor_dsp_parity_proven": false
+  },
+  "next_gate": "Identify real historical Stage64 selector control/caller and resampler parent before assigning a selected WaveNet."
+}
