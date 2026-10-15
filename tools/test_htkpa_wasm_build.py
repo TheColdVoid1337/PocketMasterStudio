@@ -111,13 +111,13 @@ class Stage67BuildTests(unittest.TestCase):
             def checkout(cache,commit,destination):
                 (destination/"CDSPFracInterpolator.h").write_text("expected")
                 (destination/"LICENSE").write_text("MIT License")
-            def patch(*args):
+            def fake_patch_header(*args):
                 return ("HTKPA_Stage62_Params IsWhole = false; FilterFracs = 673;",
                         {"beta_hex":"0x1.91af20df9e8bap+3",
                          "power_hex":"0x1.83fa5ca7f6a99p+0"})
             st63=SimpleNamespace(stage55=SimpleNamespace(
                 PINS={"v6.5":"3c930bf6825c0cfea4a813210c83b1a650c820b5"},
-                ensure_checkout=checkout),patch_header=patch)
+                ensure_checkout=checkout),patch_header=fake_patch_header)
             with (patch.object(m,"load_stage63",return_value=st63),
                   patch.object(m.shutil,"which",return_value="em++"),
                   patch.object(m.subprocess,"run",return_value=SimpleNamespace(
