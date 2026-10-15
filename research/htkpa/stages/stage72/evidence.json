@@ -1,0 +1,55 @@
+{
+  "stage": 72,
+  "schema_version": 1,
+  "date_utc": "2026-10-15",
+  "status": "STATIC_CALLER_RATE_PROVENANCE_FOUND_RUNTIME_STAGE64_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_dll_private_source": "User rollover ZIP; DLL itself excluded from GitHub",
+  "independent_original_dll_audit": {
+    "run_environment": "assistant Linux scratch",
+    "disassembler": "GNU objdump Intel syntax",
+    "verified_native_instruction_anchors": 57,
+    "verified_native_anchor_groups": 8,
+    "local_r14_cfg": {
+      "audio_object_0xe28dc": {
+        "owner": "0xe2640",
+        "candidate_assignment": "0xe27d0",
+        "origin": "RAX from direct helper 0x143310",
+        "reachable_state_pairs": 292,
+        "unresolved_local_branch_sites": 0,
+        "one_local_origin_on_decoded_paths": true,
+        "runtime_object_identity_verified": false
+      },
+      "context_object_0xbf358": {
+        "owner": "0xbe830",
+        "candidate_assignment": "0xbe88b",
+        "origin": "Windows x64 entry RCX pointer",
+        "reachable_state_pairs": 602,
+        "unresolved_local_branch_sites": 0,
+        "one_local_origin_on_decoded_paths": true,
+        "runtime_object_identity_verified": false
+      }
+    },
+    "audio_object_factory": "0x143310 directly calls 0x8bb70 at 0x14334a; alternate indirect factory at 0x1433be unresolved",
+    "wav_fmt_branch": "0x8be82 source-backed integer; 0x8be85 and 0x8be89 f64 conversion; 0x8be8d store object+0x8",
+    "context_direct_callers": ["0xfa41", "0x104e1"],
+    "context_constant_caller_44100_hz": "0xf9a7 PE f32 RVA 0x24cdf0",
+    "context_parameter_caller": "0x10287 f32 from incoming [rbp+0x27b20] to xmm6; 0x10453 xmm1=xmm6",
+    "context_initializer": "0xc0626 clears +0x27918; 0xbfe1c copies XMM1 to XMM10; conditional stores at 0xbfef9 and 0xc03ae to +0x20ec0",
+    "private_full_report_path": "research/_LOCAL_FILES/stage72_rate_provenance.json"
+  },
+  "synthetic_offline_tests": {
+    "stage72_count": 8,
+    "stage70_to_stage72_combined_count": 21
+  },
+  "claims": {
+    "original_dll_executed": false,
+    "frida_used": false,
+    "original_audio_or_f64_payload_extracted": false,
+    "specific_stage64_reverse_parent_verified": false,
+    "actual_original_whole_resampler_48000_input_verified": false,
+    "complete_vendor_antialias_performance_verified": false,
+    "production_or_resampler_lab_changed": false
+  },
+  "next_gate": "Source-first entry provenance for caller 0xf940 and 0x10230; no automatic new hook or DSP changes."
+}
