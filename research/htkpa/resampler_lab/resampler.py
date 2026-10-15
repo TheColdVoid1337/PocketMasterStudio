@@ -253,13 +253,9 @@ def convert(source: Path, destination: Path, *, mode: str = "auto",
                 streams.append(stream_factory())
             with tempfile.NamedTemporaryFile(
                     dir=destination.parent, prefix=".htkpa_audio_",
-                    suffix=destination.suffix + ".tmp", delete=False) as f:
+                    suffix=destination.suffix, delete=False) as f:
                 scratch = Path(f.name)
-            with AudioWriter(scratch.with_suffix(destination.suffix),
-                             output_rate, reader.channels) as writer:
-                # AudioWriter uses extension to choose encoding. The scratch
-                # path has the same hidden prefix but a real audio suffix.
-                encoded_scratch = writer.path
+            with AudioWriter(scratch, output_rate, reader.channels) as writer:
                 while True:
                     values = reader.read(chunk)
                     if not values:
@@ -276,6 +272,10 @@ def convert(source: Path, destination: Path, *, mode: str = "auto",
                         raise ValueError("C++ streams returned inconsistent channel lengths")
                     writer.write([value for frame in zip(*out) for value in frame])
                     output_frames += len(out[0])
+                if sent_frames != reader.frames:
+                    raise ValueError(
+                        f"Truncated audio: header/stat says {reader.frames} frames "
+                        f"but read {sent_frames}")
                 remaining = pad_input
                 while remaining > 0:
                     n = min(remaining, chunk)
@@ -287,13 +287,12 @@ def convert(source: Path, destination: Path, *, mode: str = "auto",
                     output_frames += len(out[0])
                     remaining -= n
                 clipped = writer.clipped_samples
-            os.replace(encoded_scratch, destination)
+            os.replace(scratch, destination)
         finally:
             for stream in streams:
                 stream.close()
             if scratch is not None:
                 scratch.unlink(missing_ok=True)
-                scratch.with_suffix(destination.suffix).unlink(missing_ok=True)
     result = {
         "tool": "HTKPA Resampler Lab",
         "created_utc": datetime.now(timezone.utc).isoformat(),
@@ -319,11 +318,15 @@ def compare(actual: Path, reference: Path) -> dict:
     actual, reference = Path(actual), Path(reference)
     if actual.resolve() == reference.resolve():
         raise ValueError("Compare needs independent actual and reference files")
-    if actual.suffix.lower() != ".f64le" or reference.suffix.lower() != ".f64le":
-        raise ValueError("Exact comparison accepts only raw .f64le, not quantized WAV")
+    def is_float64(filename: Path) -> bool:
+        return filename.name.lower().endswith((".f64le", ".f64le.bin"))
+    if not is_float64(actual) or not is_float64(reference):
+        raise ValueError("Exact comparison accepts only raw .f64le or .f64le.bin, not WAV")
     if (actual.stat().st_size != reference.stat().st_size or
             actual.stat().st_size % 8):
         raise ValueError("f64le file sizes must match and be a multiple of 8")
+    if actual.stat().st_size == 0:
+        raise ValueError("Cannot compare empty f64le files")
     digest_a, digest_b = hashlib.sha256(), hashlib.sha256()
     sumsq, native_sq, max_abs, equal, count = [], [], 0.0, 0, 0
     with actual.open("rb") as left, reference.open("rb") as right:
@@ -337,7 +340,7 @@ def compare(actual: Path, reference: Path) -> dict:
             delta = [v - w for v, w in zip(x, y)]
             sumsq.append(math.fsum(z*z for z in delta))
             native_sq.append(math.fsum(z*z for z in y))
-            max_abs = max(max_abs, *(abs(z) for z in delta))
+            max_abs = max(max_abs, max(abs(z) for z in delta))
             equal += sum(a[k:k+8] == b[k:k+8] for k in range(0, len(a), 8))
             count += len(x)
     rms = math.sqrt(math.fsum(sumsq)/count) if count else 0.0
