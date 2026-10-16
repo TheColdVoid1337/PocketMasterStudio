@@ -1,0 +1,28 @@
+{
+  "stage": 85,
+  "schema_version": 1,
+  "date_utc": "2026-10-16",
+  "status": "STATIC_METADATA_RATE_TO_RESAMPLER_CONSTRUCTOR_ABI_VERIFIED_RUNTIME_PARENT_UNPROVEN",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_stage64_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "prior_stage84_gate": "STATIC_CONTAINER_RTTI_AND_LAST_CHILD_CONSTRUCTOR_DEFAULT_VERIFIED",
+  "new_exact_native_instruction_pins": 47,
+  "new_function_entry_groups": 7,
+  "arg_chain": {
+    "nam_metadata_object_rate": "0xe855 [rbx+0x18]",
+    "numeric_return": "0xf620 ebx; 0xf66b eax",
+    "win64_fifth_stack_arg": "0x11093 [rsp+0x20] → 0x10287 [rbp+0x27b20] = entry rsp+0x28",
+    "context_rate_writer": "0xbfe1c xmm10; 0xbfef9/0xc03ae [rdi+0x20ec0]",
+    "context_rate_reader": "0xbf358 [r14+0x20ec0] → xmm1",
+    "helper_rate_forward": "0xce38 xmm9=xmm1; 0xcfdb f64 xmm1",
+    "constructor_source_rate": "0xcff3 → 0x11b60; 0x11bd0 xmm8=xmm1",
+    "constructor_destination_rate": "0xbf34d PE-backed 44100.0f; 0xce34/0xcfd3 xmm2; 0x11bcc xmm9=xmm2"
+  },
+  "original_dll_executed": false,
+  "new_frida_captured": false,
+  "model_object_to_reverse_stage64_resampler_identity_verified": false,
+  "stage64_runtime_source_rate_value_verified": false,
+  "stage64_same_run_nam_clo_sha_verified": false,
+  "full_audio_or_dsp_parity_verified": false,
+  "next_gate": "Historical capture object/caller provenance (not static numeric argument reachability)."
+}
