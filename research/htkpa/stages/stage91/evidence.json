@@ -1,0 +1,31 @@
+{
+  "stage": 91,
+  "date_local_bangkok": "2026-10-17",
+  "status": "STATIC_NAM_WAV_ENTRY_FAMILIES_AND_EXPORTED_WRAPPER_VERIFIED_STAGE89_UPSTREAM_UNBOUND",
+  "method": "original PE offline static audit, cross-checked with private Ghidra Headless 12.1.4",
+  "original_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "stage89_observed_downstream_callsite": "0xD786",
+  "stage89_observed_downstream_callsite_owner": "0xD4A0",
+  "direct_callers_of_d4a0": {
+    "0xEB1E": "0xE0E0: NAM output/input WAV preparation",
+    "0x100EB": "0xFF40: NAM worker then guarded fixed 44100 Hz WAV output",
+    "0x11021": "0x10E70: NAM worker then guarded returned-rate WAV output",
+    "0xAD5E9": "0xAD5D0: exported getAppNormalWav wrapper"
+  },
+  "direct_callers_of_e0e0": ["0x10043", "0x10F7F"],
+  "verified_original_e8_rel32_count_including_stage89_inner": 7,
+  "exact_disassembly_anchors": 40,
+  "verified_nam_wav_diagnostic_literals": 5,
+  "original_export": {"name": "getAppNormalWav", "ordinal": 19, "rva": "0xAD5D0"},
+  "verified_original_literals": {"f64_fixed_hz": 44100, "f32_guard_hz": 44100, "f64_error_sentinel": -2},
+  "new_stage91_synthetic_mutation_tests": 25,
+  "accumulated_stage_tests": 268,
+  "original_dll_executed": false,
+  "new_native_capture": false,
+  "stage89_outer_upstream_caller": "UNBOUND",
+  "source_nam_identity": "OPERATOR_ATTESTED_ONLY",
+  "manager_crash_cause": "UNKNOWN",
+  "native_clo_export_completion": "UNVERIFIED",
+  "private_handoff_folder": "https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+  "privacy": "original DLL, NAM, CLO, raw Frida events, and Ghidra decompilation remain private"
+}
