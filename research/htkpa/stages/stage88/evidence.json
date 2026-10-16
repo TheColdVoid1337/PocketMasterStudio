@@ -1,0 +1,42 @@
+{
+  "stage": 88,
+  "schema_version": 1,
+  "date_utc": "2026-10-16",
+  "status": "STATIC_SIX_DIRECT_GROUP_CALLSITES_AND_RATE_FAMILIES_VERIFIED_RUNTIME_CALLSITE_UNBOUND",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "authentic_stage64_archive_sha256": "aa32d8440b532708ce3551404f5a4292791abd31aba197003e850f61f22683ff",
+  "original_pe_text_rva_bounds": ["0x1000", "0x18ae58"],
+  "original_group_helper_rva": "0xce00",
+  "all_original_disassembler_decoded_direct_call_rvas": [
+    "0xd786", "0x112a2", "0x113c4", "0xbf364", "0xbf47f", "0xe28f1"
+  ],
+  "previous_stage87_sampled_call_rvas": ["0xbf364", "0xe28f1"],
+  "newly_accounted_call_rvas": ["0xd786", "0x112a2", "0x113c4", "0xbf47f"],
+  "original_pdata_owner_rvas": ["0xd4a0", "0x11160", "0xbe830", "0xe2640"],
+  "all_six_original_e8_rel32_direct_targets_verified": true,
+  "four_rate_argument_families_verified": true,
+  "source_selector_word_offset_0x11160": "+0xa",
+  "source_selector_literals_hz": {
+    "other_or_zero": 44100,
+    "one": 48000,
+    "two": 96000
+  },
+  "source_selector_literal_original_rvas": {
+    "44100": "0x24ccf8",
+    "48000": "0x24cd00",
+    "96000": "0x24cd10"
+  },
+  "original_native_exact_instruction_pins": 60,
+  "new_synthetic_regression_tests": 32,
+  "all_stage70_through_stage88_tests_passed": 221,
+  "decoded_direct_calls_are_not_all_possible_runtime_callees": true,
+  "stage64_reverse_rate_pair_uniquely_identifies_caller": false,
+  "historical_stage64_specific_caller_or_parent_pointer_verified": false,
+  "historical_stage64_selector_word_verified": false,
+  "stage64_same_run_nam_clo_sha_verified": false,
+  "actual_stage64_source_48000_verified": false,
+  "original_vendor_dll_executed": false,
+  "new_frida_capture": false,
+  "complete_vendor_dsp_or_audio_parity_verified": false,
+  "next_gate": "Bounded same-run caller/parent pointer capture, or further static guard provenance without runtime identity inference."
+}
