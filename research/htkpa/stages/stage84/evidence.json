@@ -1,0 +1,49 @@
+{
+  "stage": 84,
+  "schema_version": 1,
+  "status": "STATIC_CONTAINER_RTTI_AND_LAST_CHILD_CONSTRUCTOR_DEFAULT_VERIFIED",
+  "analysis_mode": "read-only original SHA-authenticated PE64 plus synthetic tests",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "prior_stage83_required": "STATIC_SLIMMABLE_THRESHOLD_SELECTOR_AND_CHILD_ROUTING_VERIFIED",
+  "native_constructor_rva": "0xc5f40",
+  "native_instruction_pins": 16,
+  "constructor": {
+    "record_array_begin_offset": "0x58",
+    "record_array_end_offset": "0x60",
+    "record_stride_bytes": 16,
+    "temporary_zero_index_store": "0xc6028",
+    "nonempty_guard_branch_to_error": "0xc6045 -> 0xc6226",
+    "record_count": "0xc6050..0xc6056: R9=(end-begin)>>4",
+    "final_success_index": "0xc60e2..0xc60e6: result+0x70 <- R9-1",
+    "result_return": "0xc615b",
+    "2203_authenticated_thresholds": [0.5, 1.0],
+    "2203_static_success_path_initial_child_index": 1
+  },
+  "original_msvc_rtti": {
+    "primary_vtable_col": ["0x246ea8", "0x255798"],
+    "secondary_vtable_col": ["0x246f28", "0x2554b8"],
+    "common_class_type_descriptor": "0x2a2600",
+    "hierarchy_descriptor": "0x255940",
+    "base_descriptor_array": "0x255480",
+    "bases": [
+      {"name": "nam::container::ContainerModel", "descriptor_rva": "0x255a08", "object_offset": "0x0"},
+      {"name": "nam::DSP", "descriptor_rva": "0x2555f8", "object_offset": "0x0"},
+      {"name": "nam::SlimmableModel", "descriptor_rva": "0x255958", "object_offset": "0x50"}
+    ],
+    "secondary_interface_virtual_slot_8": ["0x246f38", "0xc5d30"]
+  },
+  "tests": {"new_stage84": 14, "combined_stage70_to_stage84": 138},
+  "claims": {
+    "static_slimmable_interface_rtti_verified": true,
+    "static_last_child_constructor_default_verified": true,
+    "stage64_actual_constructed_container_verified": false,
+    "stage64_actual_initial_or_active_child_verified": false,
+    "stage64_actual_selector_control_observed": false,
+    "stage64_actual_reverse_resampler_parent_verified": false,
+    "stage64_same_run_nam_clo_hash_verified": false,
+    "original_dll_executed": false,
+    "new_frida_capture": false,
+    "complete_vendor_dsp_parity_verified": false
+  },
+  "next_gate": "Find authenticated Stage64 call/object lineage or selected control evidence; never turn initial constructor child into historical runtime proof."
+}
