@@ -1,0 +1,50 @@
+{
+  "module": "5868USB.dll",
+  "sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "image_base": "0x180000000",
+  "sites": [
+    {
+      "name": "group_ce00_entry",
+      "address": "0xce00",
+      "max_hits": 48,
+      "required": true,
+      "fields": [
+        {"name": "return_address", "type": "ptr", "reg": "rsp", "offset": 0},
+        {"name": "group_input_pointer", "type": "reg_ptr", "reg": "rcx", "offset": 0},
+        {"name": "source_hz_f32", "type": "xmm_f32", "reg": "xmm1", "offset": 0},
+        {"name": "target_hz_f32", "type": "xmm_f32", "reg": "xmm2", "offset": 0}
+      ]
+    },
+    {
+      "name": "group_parent_install",
+      "address": "0xd018",
+      "max_hits": 48,
+      "required": false,
+      "fields": [
+        {"name": "group_input_pointer", "type": "reg_ptr", "reg": "rsi", "offset": 0},
+        {"name": "parent_pointer", "type": "reg_ptr", "reg": "rbx", "offset": 0},
+        {"name": "parent_slot_pointer", "type": "reg_ptr", "reg": "rdi", "offset": 0}
+      ]
+    },
+    {
+      "name": "parent_child_dispatch",
+      "address": "0x118fd",
+      "max_hits": 64,
+      "required": true,
+      "fields": [
+        {"name": "parent_pointer", "type": "reg_ptr", "reg": "rbx", "offset": 0},
+        {"name": "child_pointer", "type": "ptr", "reg": "rbx", "offset": 80}
+      ]
+    },
+    {
+      "name": "fractional_child_entry",
+      "address": "0x135c0",
+      "max_hits": 64,
+      "required": true,
+      "fields": [
+        {"name": "child_pointer", "type": "reg_ptr", "reg": "rcx", "offset": 0},
+        {"name": "input_count_register", "type": "reg_u64", "reg": "r8", "offset": 0}
+      ]
+    }
+  ]
+}
