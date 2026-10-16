@@ -52,8 +52,11 @@ SHA256-pinned `5868USB.dll`:
 Ghidra is used to corroborate function intent and higher-level branch
 structure, but no decompiler output, vendor DLL, NAM model, raw Frida
 capture, or run-specific pointers are uploaded to public GitHub.
-The Ghidra report and original-file audit output are private, in
-[RE_HTKPA](https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK).
+The full Ghidra decompilation and original-file audit output are private,
+not public GitHub assets. As checked on 2026-10-17, the canonical
+[RE_HTKPA](https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK)
+contains the Stage90 critical checkpoint and historical Ghidra audits, but
+no separately named Stage91 checkpoint/report had been uploaded there.
 
 ### Deliberately unproven
 

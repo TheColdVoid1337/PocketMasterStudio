@@ -25,5 +25,6 @@
   "historical_stage64_instance": "UNBOUND",
   "native_clo_export_completion": "UNVERIFIED",
   "private_folder": "https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+  "private_stage92_handoff": "https://drive.google.com/file/d/1KcxkYG5OvL7bGtj2VsKHm4O04KYYuTsA/view",
   "next_gate": "one operator-run crash-aware fresh Frida capture; inspect archive and sanitized audit before runtime acceptance"
 }

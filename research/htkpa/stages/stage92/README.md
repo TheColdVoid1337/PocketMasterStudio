@@ -107,3 +107,7 @@ The original DLL, original NAM file, all Frida archives and full Ghidra
 decompilation remain in the canonical private
 [RE_HTKPA](https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK)
 workflow, not in the public repository.
+
+The [private Stage92 handoff](https://drive.google.com/file/d/1KcxkYG5OvL7bGtj2VsKHm4O04KYYuTsA/view)
+was uploaded and verified in RE_HTKPA. There is no new native capture or
+Stage92 critical ZIP yet; the Stage90 private checkpoint remains available.
