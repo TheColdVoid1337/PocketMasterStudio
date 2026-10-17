@@ -152,9 +152,15 @@ def validated_hits(manifest: dict, events: list[dict], data: bytes) -> list[dict
     return hits
 
 
-def find_observed_sequence(hits: list[dict]) -> tuple[dict | None, int]:
-    """Only a chronological same-thread sequence; not a saved stack identity."""
-    candidates = []
+def find_observed_sequences(hits: list[dict]) -> list[dict]:
+    """Independently pair unambiguous new-run same-thread entry sequences.
+
+    One import may call D4A0 more than once. Do not discard two separately
+    unambiguous observations, and do not silently select a most-recent outer
+    when multiple outer entries remain eligible for the same inner hit.
+    These are *temporal* pairs, not sampled stack-invocation identifiers.
+    """
+    matches = {}
     for idx, inner in enumerate(hits):
         if inner["site"] != "resampler_ce00_entry" or inner["call"] != 0xD786 or inner["owner"] != 0xD4A0:
             continue
@@ -162,10 +168,15 @@ def find_observed_sequence(hits: list[dict]) -> tuple[dict | None, int]:
                      if h["site"] == "wav_worker_d4a0_entry" and
                      h["thread"] == inner["thread"] and h["owner"] is not None and
                      0 <= inner["time"] - h["time"] <= MAX_SEQUENCE_MS]
-        if len(preceding) == 1:
-            candidates.append(preceding[0])
-    distinct = {(h["call"], h["thread"], h["time"]) for h in candidates}
-    return (candidates[0] if len(distinct) == 1 else None), len(distinct)
+        if len(preceding) != 1:
+            continue
+        outer = preceding[0]
+        key = (outer["call"], outer["thread"], outer["time"])
+        if key not in matches:
+            matches[key] = {"call": outer["call"], "owner": outer["owner"],
+                            "inner_hits": 0, "first_gap_ms": inner["time"] - outer["time"]}
+        matches[key]["inner_hits"] += 1
+    return list(matches.values())
 
 
 def audit(manifest: dict, events: list[dict], config: dict,
@@ -173,8 +184,18 @@ def audit(manifest: dict, events: list[dict], config: dict,
     validate_config(config)
     verify_original_dll(data)
     hits = validated_hits(manifest, events, data)
-    matched, number_of_candidates = find_observed_sequence(hits)
-    status = MATCHED if matched is not None else UNBOUND
+    matches = find_observed_sequences(hits)
+    status = MATCHED if matches else UNBOUND
+    observed_outer = [
+        {"callsite_rva": f"0x{x['call']:X}",
+         "original_pdata_owner_rva": f"0x{x['owner']:X}",
+         "paired_inner_hits": x["inner_hits"],
+         "first_gap_ms": x["first_gap_ms"]}
+        for x in matches
+    ]
+    independent_group = sorted({h["call"] for h in hits
+                                if h["site"] == "resampler_ce00_entry" and
+                                h["call"] != 0xD786 and h["owner"] is not None})
     return {
         "stage": 92, "status": status,
         "provenance": "NEW_OPERATOR_FRIDA_JOURNAL_PLUS_SHA_PINNED_ORIGINAL_PE",
@@ -183,10 +204,11 @@ def audit(manifest: dict, events: list[dict], config: dict,
         "installed_hooks": 2, "observed_hits": len(hits),
         "outer_worker_hits": sum(h["site"] == "wav_worker_d4a0_entry" for h in hits),
         "inner_group_hits": sum(h["site"] == "resampler_ce00_entry" for h in hits),
-        "candidate_same_thread_sequences": number_of_candidates,
-        "outer_caller_direct_rva": f"0x{matched['call']:X}" if matched else "UNBOUND",
-        "outer_caller_original_pdata_owner": f"0x{matched['owner']:X}" if matched else "UNBOUND",
-        "inner_original_callsite_rva": "0xD786" if matched else "UNBOUND",
+        "unambiguous_same_thread_temporal_sequences": len(matches),
+        "observed_outer_callers": observed_outer,
+        "separate_non_d4a0_group_direct_calls": [f"0x{x:X}" for x in independent_group],
+        "inner_original_callsite_rva": "0xD786" if matches else "UNBOUND",
+        "manager_launched_by_frida_tool": manifest.get("launched_by_tool") is True,
         "proves_same_invocation_stack_identity": False,
         "identifies_historical_stage89_upstream_call": False,
         "model_identity_in_native_trace": False,
@@ -216,7 +238,7 @@ def main() -> int:
     args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"stage": 92, "status": result["status"],
                       "observed_hits": result["observed_hits"],
-                      "outer_caller": result["outer_caller_direct_rva"]}))
+                      "outer_sequences": result["observed_outer_callers"]}))
     return 0
 
 

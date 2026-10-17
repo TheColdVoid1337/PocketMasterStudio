@@ -143,8 +143,9 @@ class Stage92ProtocolTests(unittest.TestCase):
     def test_native_pair_is_only_new_run_temporal_evidence(self):
         result = synthetic_audit()
         self.assertEqual(result["status"], audit.MATCHED)
-        self.assertEqual(result["outer_caller_direct_rva"], "0xEB1E")
-        self.assertEqual(result["outer_caller_original_pdata_owner"], "0xE0E0")
+        self.assertEqual(result["unambiguous_same_thread_temporal_sequences"], 1)
+        self.assertEqual(result["observed_outer_callers"][0]["callsite_rva"], "0xEB1E")
+        self.assertEqual(result["observed_outer_callers"][0]["original_pdata_owner_rva"], "0xE0E0")
         self.assertFalse(result["proves_same_invocation_stack_identity"])
         self.assertFalse(result["identifies_historical_stage89_upstream_call"])
         self.assertFalse(result["clo_export_completed"])
@@ -153,8 +154,37 @@ class Stage92ProtocolTests(unittest.TestCase):
         for outer in (0xEB1E, 0x100EB, 0x11021, 0xAD5E9):
             with self.subTest(outer=outer):
                 m, e = fixture(outer_call=outer)
-                self.assertEqual(synthetic_audit(m, e)["outer_caller_direct_rva"],
+                self.assertEqual(synthetic_audit(m, e)["observed_outer_callers"][0]["callsite_rva"],
                                  f"0x{outer:X}")
+
+    def test_two_separate_outer_to_inner_sequences_are_both_preserved(self):
+        m, e = fixture()
+        other_outer = copy.deepcopy(e[-2])
+        other_inner = copy.deepcopy(e[-1])
+        other_outer["timestamp_ms"] = 12000
+        other_inner["timestamp_ms"] = 12010
+        other_outer["fields"]["return_address"]["value"] = hex(BASE + 0x11021 + 5)
+        e.extend([other_outer, other_inner])
+        m["state"]["hits"] += 2
+        m["state"]["site_hits"]["wav_worker_d4a0_entry"] += 1
+        m["state"]["site_hits"]["resampler_ce00_entry"] += 1
+        result = synthetic_audit(m, e)
+        self.assertEqual(result["status"], audit.MATCHED)
+        self.assertEqual(result["unambiguous_same_thread_temporal_sequences"], 2)
+        self.assertEqual([c["callsite_rva"] for c in result["observed_outer_callers"]],
+                         ["0xEB1E", "0x11021"])
+
+    def test_other_group_family_is_reported_separately(self):
+        m, e = fixture()
+        other = copy.deepcopy(e[-1])
+        other["timestamp_ms"] = 4000
+        other["fields"]["return_address"]["value"] = hex(BASE + 0xBF364 + 5)
+        e.append(other)
+        m["state"]["hits"] += 1
+        m["state"]["site_hits"]["resampler_ce00_entry"] += 1
+        result = synthetic_audit(m, e)
+        self.assertEqual(result["separate_non_d4a0_group_direct_calls"], ["0xBF364"])
+        self.assertEqual(result["unambiguous_same_thread_temporal_sequences"], 1)
 
     def test_wrong_inner_branch_is_not_a_pair(self):
         m, e = fixture(inner_call=0xBF364)
