@@ -1,6 +1,6 @@
 # Stage92 — bounded native outer-caller capture (new-run observations)
 
-**Status:** `NEW_RUN_TEMPORAL_SEQUENCES_OBSERVED_ORIGINAL_PE_REAUDIT_PENDING`.
+**Status:** `NEW_RUN_TEMPORAL_SEQUENCES_ORIGINAL_PE_AUDIT_VERIFIED`.
 
 Stage90 established a real Stage89 `0xD4A0 → 0xCE00` downstream call,
 with same-run resampler object joins. Stage91 enumerated four *possible*
@@ -84,13 +84,18 @@ ASLR base and five-byte call length, the journal contains:
 Also measured were two separate `0xCE00` entry call RVAs, `0xBF364` and
 `0xBF47F`, not preceded by an eligible `0xD4A0` entry in this capture.
 
-**STATIC (prior Stage88/91 original-DLL audit, not freshly rerun here):**
+**STATIC (prior Stage88/91 original-DLL audit; freshly rechecked by Stage92):**
 `0xEB1E` belongs to `0xE0E0`, `0x11021` belongs to `0x10E70`, and each
 direct `E8` targets `0xD4A0`. `0xD786` is owned by `0xD4A0` and calls
-`0xCE00`; both `0xBF364` and `0xBF47F` belong to `0xBE830`. The private
-original DLL is unavailable to this analysis environment, so fresh byte-level
-E8/`.pdata` and SHA validation by this **Stage92 auditor** remain pending.
-Do not promote the journal-only inference to full audited acceptance.
+`0xCE00`; both `0xBF364` and `0xBF47F` belong to `0xBE830`. On
+2026-10-17 the operator's WSL run of the published Stage92 auditor returned
+`NEW_RUN_DIRECT_OUTER_AND_INNER_CALLS_SAME_THREAD_SEQUENCE_OBSERVED`.
+Independently, the analyst retrieved the original `5868USB.dll` from
+private `HTKPA_CORE_20261016_012322.zip`, measured the pinned SHA256 and
+reran the **same published** auditor against the exact private archive:
+identical 6 hits / 2 paired callsites / 11 ms and 10 ms; exit 0. Thus
+original PE `E8 rel32`, `.pdata` owners and ASLR checks are **PASS** for
+this bounded, new-run temporal result.
 
 **LIMIT:** two separate same-thread time windows are not two proven complete
 call-stack identities. The manifest does not establish whether Manager
@@ -116,8 +121,9 @@ additional stack/exit evidence, and cannot retroactively identify the
 Stage89 or historical Stage64 path. No exact WAV pathname, rates, NAM
 hash, successful CLO or crash diagnosis is claimed.
 
-To close the **original-PE recheck gate**, run this audit on the operator
-workstation with the **exact** Stage92 archive, not the older Stage89 capture:
+The **original-PE recheck gate is closed** by the operator run and an
+independent repeat in the analysis sandbox. For reproducibility only,
+the exact operator WSL command was:
 
 ```bash
 set -e
@@ -130,21 +136,29 @@ python research/htkpa/stages/stage92/audit_outer_caller_capture.py \
   --out research/_LOCAL_FILES/stage92_outer_caller_private_report.json
 ```
 
-If the archive is currently in Downloads, copy it into the private
-`frida_captures/` folder before running this block; do not commit it. A
-full original-byte report must be inspected before final Stage92 acceptance.
+The full sanitized report and private verification checkpoint were inspected
+and stored in the canonical RE_HTKPA folder. No extra Frida capture is
+required for Stage92; do not repeat an import to satisfy the offline gate.
+
+Ghidra 12.1.4 was also restored from four pieces in that same private folder,
+with a SHA-verified portable JDK 21. Headless import, auto-analysis and
+project save of this exact original DLL all returned **PASS**. That verifies
+the PE can be analyzed in a restored Ghidra environment; **a fresh Ghidra
+decompilation claim is not needed** to accept the Stage92 PE-byte auditor.
 
 ## Current offline gates
 
 - Stage92 protocol/synthetic negative controls: **32/32 PASS**.
 - All `test_htkpa_stage*.py` tests: **354/354 PASS**.
 - Universal runner offline self-test: PASS.
-- Scalar config preflight without the private DLL in cloud: PASS for
-  schema/runner; **original-file SHA preflight pending on operator WSL**.
+- Original DLL SHA256 measured independently from private CORE ZIP: **PASS**.
+- Exact Stage92 auditor against real DLL + real tarball: **PASS twice**
+  (operator WSL and independent sandbox run).
 - Original DLL Stage91 static findings remain the accepted upstream
-  direct-call inventory; **no new original DLL static audit** is claimed.
-- **New Stage92 Frida observations are genuine journal evidence**, but
-  byte-level Stage92 offline acceptance remains pending.
+  direct-call inventory; Stage92 independently rechecks the observed subset.
+- Restored Ghidra 12.1.4 original-DLL headless import/analysis/save: **PASS**.
+- **New-run temporal callsite evidence is accepted**; full invocation stack,
+  historical Stage89 caller, Manager outcome and completed CLO remain unproven.
 
 The original DLL, original NAM file, all Frida archives and full Ghidra
 decompilation remain in the canonical private
@@ -152,6 +166,8 @@ decompilation remain in the canonical private
 workflow, not in the public repository.
 
 The [private Stage92 handoff](https://drive.google.com/file/d/1KcxkYG5OvL7bGtj2VsKHm4O04KYYuTsA/view)
-is maintained in RE_HTKPA. The new native archive is privately stored;
-there is no new Stage92 critical ZIP yet, and the Stage90 private checkpoint
-remains available.
+is maintained in RE_HTKPA. The raw native archive and
+`HTKPA_STAGE92_ORIGINAL_PE_AUDIT_VERIFIED_20261017.json` stay private.
+`HTKPA_STAGE92_PRIVATE_VERIFIED_CHECKPOINT_20261017.zip` contains the
+re-imported private Ghidra project, headless log and sanitized auditor report;
+its ZIP integrity passed. The Stage90 checkpoint remains available.
