@@ -1,0 +1,38 @@
+{
+  "stage": 93,
+  "date_local_bangkok": "2026-10-17",
+  "status": "STATIC_DUAL_WAV_CALL_COMPATIBILITY_GUARDS_VERIFIED_STAGE92_STACK_UNBOUND",
+  "scope": "original PE guard and argument dataflow explaining compatibility of two accepted Stage92 temporal entry windows",
+  "original_vendor_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_pe_stage91_upstream_gate": "PASS_REEXECUTED",
+  "new_original_pe_exact_guard_and_dataflow_anchors": 25,
+  "checked_original_pdata_owners": ["0xE0E0", "0x10E70"],
+  "new_direct_e8_calls_rechecked": [
+    {"call_rva": "0x10F7F", "target_rva": "0xE0E0"},
+    {"call_rva": "0xEB1E", "target_rva": "0xD4A0"},
+    {"call_rva": "0x11021", "target_rva": "0xD4A0"}
+  ],
+  "static_rate_guards": {
+    "nested_e0e0": "XMM9 != 44100.0f or unordered branches via 0xEA7D toward 0xEB1E",
+    "outer_10e70": "E0E0 EAX converted into XMM6 f64; -2.0 equality skips 0x11021",
+    "additional_flag_guard": "RSI absent or first byte zero may reach 0x11021; nonzero branches to 0x110CF",
+    "second_wav_target_rate_source": "XMM6 copied into XMM2 before 0x11021"
+  },
+  "stage92_reused_observed_outer_callsite_rvas": ["0xEB1E", "0x11021"],
+  "stage92_reused_inner_callsite_rva": "0xD786",
+  "stage92_reused_gap_ms": [11, 10],
+  "stage92_capture_status": "CAPTURED_HOOKS_ONLY",
+  "stage92_operator_outcome": "FIRSTHAND_SUCCESS_WITHOUT_CRASH_TESTIMONY",
+  "stage92_capture_completion_verified": false,
+  "single_wrapper_invocation_observed": false,
+  "same_invocation_stack_proven": false,
+  "stage89_historical_caller_identified": false,
+  "clo_export_completion_verified": false,
+  "actual_wave_path_or_rate_observed": false,
+  "original_dll_executed": false,
+  "new_frida_capture": false,
+  "synthetic_negative_tests_passed": 26,
+  "htkpa_stage_tests_passed": 380,
+  "private_report_local_path": "research/_LOCAL_FILES/stage93_dual_wav_guard_private_report.json",
+  "next_gate": "Require specific independent runtime stack or completion evidence only if essential; no repeat of accepted Stage92 original-PE audit"
+}
