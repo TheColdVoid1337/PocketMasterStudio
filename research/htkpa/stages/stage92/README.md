@@ -98,11 +98,17 @@ original PE `E8 rel32`, `.pdata` owners and ASLR checks are **PASS** for
 this bounded, new-run temporal result.
 
 **LIMIT:** two separate same-thread time windows are not two proven complete
-call-stack identities. The manifest does not establish whether Manager
-completed an import, crashed, or wrote a CLO; `launched_by_tool=false`
-specifically does not establish a `--fresh` launch by the runner. This new
-run cannot identify the external caller of the *older* Stage89 run or the
-historical Stage64 instance.
+call-stack identities. In a 2026-10-17 follow-up, the operator explicitly
+confirmed that the quoted Stage92 WSL block (tests, SHA preflight, and
+`FRIDA_AUTO_QUIET=15 ... FRIDA_WSL.sh --fresh --timeout 240`) ran successfully
+and **nothing crashed**. This is firsthand operator testimony, not a Frida
+completion flag; separate command output was not supplied with that follow-up.
+The archive still says `completion_verified=false`, `launched_by_tool=false`,
+and does not demonstrate completed NAM import or CLO output. The command
+included `--fresh`, but the archive does not independently confirm a runner
+launch. This new run cannot identify the external caller of the *older*
+Stage89 run or the historical Stage64 instance; the earlier Stage89 crash
+report remains historical and its cause unknown.
 
 ## Offline acceptance after operator delivery
 
@@ -157,8 +163,9 @@ decompilation claim is not needed** to accept the Stage92 PE-byte auditor.
 - Original DLL Stage91 static findings remain the accepted upstream
   direct-call inventory; Stage92 independently rechecks the observed subset.
 - Restored Ghidra 12.1.4 original-DLL headless import/analysis/save: **PASS**.
-- **New-run temporal callsite evidence is accepted**; full invocation stack,
-  historical Stage89 caller, Manager outcome and completed CLO remain unproven.
+- **New-run temporal callsite evidence is accepted**; operator attests the
+  Stage92 WSL run succeeded without a Manager crash. Full invocation stack,
+  historical Stage89 caller and completed CLO remain unproven by the archive.
 
 The original DLL, original NAM file, all Frida archives and full Ghidra
 decompilation remain in the canonical private

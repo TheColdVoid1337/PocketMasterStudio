@@ -17,6 +17,10 @@
   "native_manifest_status": "CAPTURED_HOOKS_ONLY",
   "native_completion_verified": false,
   "native_launched_by_frida_tool": false,
+  "stage92_operator_run_outcome": "OPERATOR_ATTESTED_QUOTED_WSL_BLOCK_SUCCESS_NO_CRASH",
+  "stage92_operator_quoted_command_uses_fresh": true,
+  "stage92_operator_preflight_and_runner_stdout_separately_archived": false,
+  "stage92_operator_testimony_evidence_class": "FIRSTHAND_STATEMENT_NOT_FRIDA_COMPLETION_FLAG",
   "native_runtime_dll_sha_matches_original": true,
   "native_hook_errors": 0,
   "native_field_errors": 0,
@@ -61,5 +65,5 @@
   "native_clo_export_completion": "UNVERIFIED",
   "private_folder": "https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
   "private_stage92_handoff": "https://drive.google.com/file/d/1KcxkYG5OvL7bGtj2VsKHm4O04KYYuTsA/view",
-  "next_gate": "obtain firsthand Manager outcome if available; determine narrowly justified next evidence question; no additional Frida capture needed for Stage92 original-PE audit"
+  "next_gate": "operator attests Stage92 WSL block succeeded without crash; retain CLO completion as unverified and choose only a narrowly justified subsequent evidence question; no additional Frida capture needed for Stage92 original-PE audit"
 }
