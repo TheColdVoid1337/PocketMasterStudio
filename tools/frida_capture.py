@@ -13,6 +13,7 @@ import tarfile
 import threading
 import time
 import frida_guarded
+import frida_invocation
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -50,6 +51,8 @@ def address(value, image_base):
     return v
 
 def validate(cfg):
+    if isinstance(cfg,dict) and cfg.get('mode')=='invocation_trace':
+        return frida_invocation.validate(cfg,address)
     if isinstance(cfg,dict) and cfg.get('mode') in ('guarded_metadata','guarded_f64_binary','guarded_fractional_io'):
         return frida_guarded.validate_config(cfg,address)
     if not isinstance(cfg,dict): raise ValueError('config must be an object')
@@ -99,6 +102,8 @@ def validate(cfg):
                 image_base=base)
 
 def agent_source(cfg):
+    if cfg.get('mode')=='invocation_trace':
+        return frida_invocation.agent_source(cfg)
     # Only the validated descriptor is injected. No arbitrary JavaScript snippets.
     return r"""
 'use strict';
@@ -327,7 +332,9 @@ def capture(args,cfg,folder,state):
                 raise RuntimeError('--fresh requires Manager to be closed first; will not terminate it')
             report('TARGET','Spawning with hooks before resume:',args.exe)
             pid=device.spawn([str(args.exe)]);spawned=True
-    state.update(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,valid_field_hits=0,site_hits={},last_hit_monotonic=None)
+    state.update(runtime_verified=False,ready=False,hits=0,hook_errors=0,field_errors=0,
+                 valid_field_hits=0,site_hits={},last_hit_monotonic=None,
+                 trace_enters=0,trace_leaves=0)
     events_path=folder/'events.jsonl'
     lock=threading.Lock()
     def on_message(msg,data):
@@ -349,20 +356,29 @@ def capture(args,cfg,folder,state):
                 state['runtime_verified']=(actual==cfg['sha256'])
             except OSError as ex:e['sha_error']=str(ex)
         if e.get('kind')=='ready':state['ready']=e.get('installed')==e.get('requested')
-        if e.get('kind')=='hit':
+        if e.get('kind') in ('hit','trace_enter'):
             state['hits']+=1
             state['site_hits'][e.get('site','?')]=state['site_hits'].get(e.get('site','?'),0)+1
             state['last_hit_monotonic']=time.monotonic()
-            fields=e.get('fields',{})
-            errors=sum(isinstance(v,dict) and 'error' in v for v in fields.values())
-            state['field_errors']+=errors
-            if fields and not errors:state['valid_field_hits']+=1
-        if e.get('kind') in ('hook_error','frida_error'):state['hook_errors']+=1
+            if e.get('kind')=='trace_enter':
+                state['valid_field_hits']+=1  # Entry identity, not a scalar field read.
+                state['trace_enters']+=1
+            else:
+                fields=e.get('fields',{})
+                errors=sum(isinstance(v,dict) and 'error' in v for v in fields.values())
+                state['field_errors']+=errors
+                if fields and not errors:state['valid_field_hits']+=1
+        if e.get('kind')=='trace_leave':
+            state['trace_leaves']+=1
+            state['last_hit_monotonic']=time.monotonic()
+        if e.get('kind') in ('hook_error','frida_error','trace_error','trace_limit'):
+            state['hook_errors']+=1
         with lock:
             with events_path.open('a',encoding='utf-8') as f:
                 f.write(json.dumps(e,ensure_ascii=True)+'\n')
-        if e.get('kind') in ('hit','hook_error','ready'):
-            report('ERROR' if e.get('kind')=='hook_error' else 'FRIDA',e.get('kind'),e.get('site',''))
+        if e.get('kind') in ('hit','trace_enter','hook_error','trace_error','trace_limit','ready'):
+            report('ERROR' if e.get('kind') in ('hook_error','trace_error','trace_limit')
+                   else 'FRIDA',e.get('kind'),e.get('site',''))
     watch_dir=args.completion_dir
     def clo_snapshot():
         if watch_dir is None or not watch_dir.is_dir(): return {}
@@ -396,6 +412,8 @@ def capture(args,cfg,folder,state):
             with lock:
                 valid=(state['ready'] and state['runtime_verified'] and state['valid_field_hits']
                     and not state['field_errors'] and not state['hook_errors']
+                    and (cfg.get('mode')!='invocation_trace' or
+                         state['trace_enters']==state['trace_leaves'])
                     and all(state['site_hits'].get(site['name'],0)>0 for site in cfg['sites'] if site['required']))
                 quiet=(state['last_hit_monotonic'] is not None and
                     time.monotonic()-state['last_hit_monotonic']>=args.auto_quiet)
@@ -494,8 +512,10 @@ def main():
                 raise RuntimeError('configured original DLL SHA does not match')
             if guarded:
                 return frida_guarded.preflight_paths(args,cfg,report)
-            report('NOTE','Legacy config and optional private DLL SHA verified;',
-                   'no managed path preflight in legacy mode')
+            report('NOTE',('Stage96 pinned entry/exit config and original DLL SHA verified;'
+                           if cfg.get('mode')=='invocation_trace' else
+                           'Legacy config and optional private DLL SHA verified;'),
+                   'no managed path preflight in this mode')
             return 0
         except (RuntimeError,ValueError,OSError) as e:
             report('ERROR','Preflight failed:',e)
@@ -544,7 +564,7 @@ def main():
             status='BLOCKED_AFTER_METADATA'
     manifest=dict(status=status,method=method,problem=problem,
         date_utc=datetime.now(timezone.utc).isoformat(),module=cfg['module'],
-        mode=(cfg['mode'] if guarded else 'legacy_scalar'),
+        mode=(cfg['mode'] if guarded or cfg.get('mode')=='invocation_trace' else 'legacy_scalar'),
         expected_sha256=cfg['sha256'],
         hook_count=(1 if state.get('hook_attached') else 0) if guarded
                    else (len(cfg['sites']) if state.get('ready') else 0),
@@ -569,7 +589,9 @@ def main():
                        'SHA/vtable-guarded FRACTIONAL INPUT/OUTPUT count pairs; no audio reads')
                  if cfg['mode']=='guarded_fractional_io'
                  else 'SHA/vtable/pointer-guarded one-shot native f64 prefix') if guarded
-               else 'bounded read-only scalar observation'))
+               else ('bounded original-PE invocation enter/leave trace; no audio/model reads'
+                     if cfg.get('mode')=='invocation_trace'
+                     else 'bounded read-only scalar observation')))
     (folder/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     evidence_note=(('Guarded metadata only: no audio reads; original DLL SHA and '
                    'a new stable CLO are mandatory for Stage48 PASS.')
@@ -597,6 +619,10 @@ def main():
                     'paired with binary_hit and a new stable CLO counts as native '
                     'sample capture; NOT numerical output or fitter parity.')
                    if cfg.get('mode')=='guarded_f64_binary' else
+                   ('Stage96 trace: exact original DLL SHA; eight bounded read-only entry/exit '
+                    'hooks; parent IDs are same-thread nesting only. No CLO or algorithm '
+                    'completion claim. Offline strict audit required.')
+                   if cfg.get('mode')=='invocation_trace' else
                    ('Legacy capture: native data and binaries require separate '
                     'runtime checks; private bytes stay local.'))
     (folder/'HANDOFF.md').write_text('# Universal Frida capture\n\nStatus: '+status+

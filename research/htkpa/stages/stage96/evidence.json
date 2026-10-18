@@ -1,0 +1,23 @@
+{
+  "stage": 96,
+  "status": "STAGE96_NATIVE_INVOCATION_PROBE_READY_AWAITING_OPERATOR_CAPTURE",
+  "evidence_type": "OFFLINE_INSTRUMENT_PREPARATION_ONLY",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "prior_accepted_static_stage": 95,
+  "prior_runtime_observations": "Stage92 same-thread windows only; no shared invocation identity",
+  "new_real_frida_capture": false,
+  "native_windows_execution_in_sandbox": false,
+  "stage96_runtime_claim": false,
+  "new_static_decompilation_claim": false,
+  "probes": 8,
+  "max_hits_per_probe": 4,
+  "max_events": 96,
+  "max_instrumented_depth": 12,
+  "no_audio_or_model_reads": true,
+  "clo_completion_verified": false,
+  "offline_tests": "test_htkpa_stage96.py, original DLL SHA preflight, universal runner regression",
+  "private_destination": "Google Drive RE_HTKPA / 1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+  "promotion_rule": "exact DLL SHA + all hooks + no trace faults + per-thread LIFO + pinned direct-call return RVAs + completed NAM then fitter calls under same wrapper invocation",
+  "stop_condition": "failed checksum, missing hooks, missing enter/leave, non-LIFO event, thread mismatch, max-hit/event/depth overflow, or app crash; no automatic retry",
+  "scope_limit": "proof of traced function-invocation nesting only, not model-object identity, -2.0 gate choice, startClone success, DSP parity or CLO completion"
+}

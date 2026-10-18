@@ -110,7 +110,13 @@ PY
   msg "$YELLOW" ACTION "After [HOOK], perform ONE normal conversion"
   msg "$CYAN" WATCH "CLO output path from JSON completion, unless FRIDA_WATCH_CLO supplied"
 else
-  msg "$MAGENTA" FRIDA "Legacy scalar/binary capture mode, original config preserved"
+  if [[ "$MODE" == "invocation_trace" ]]; then
+    msg "$YELLOW" HOOK "Stage96: EIGHT pinned read-only entry/exit hooks, bounded same-thread nesting IDs, NO audio or model reads"
+    msg "$YELLOW" ACTION "Close Manager first, then perform ONE ordinary conversion after [HOOK]"
+    msg "$CYAN" SAFETY "Native invocation capture is diagnostic; no CLO completion or fitting success is implied"
+  else
+    msg "$MAGENTA" FRIDA "Legacy scalar/binary capture mode, original config preserved"
+  fi
 fi
 
 WATCH_ARGS=()
