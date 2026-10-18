@@ -1,8 +1,7 @@
 # Stage96 — bounded native function invocation identity probe
 
-**Prepared status:** `STAGE96_NATIVE_INVOCATION_PROBE_READY_AWAITING_OPERATOR_CAPTURE`.
-**Runtime status:** No new Stage96 Windows/Frida run has occurred. This README
-describes a prepared, offline-tested instrument, not observed branch execution.
+**Accepted runtime status (2026-10-19 Bangkok):** `RUNTIME_SAME_WRAPPER_INVOCATION_NAM_THEN_FITTER_OBSERVED`.
+**Historical preparation state:** `STAGE96_NATIVE_INVOCATION_PROBE_READY_AWAITING_OPERATOR_CAPTURE` (superseded by the audited operator archive below).
 
 The exact 2,902,016-byte original `5868USB.dll` is pinned by SHA-256
 `fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`.
@@ -126,3 +125,46 @@ synthetic positive unit test or JS mock is **not** runtime evidence.
 
 **Accepted Stage96 state remains “probe ready / runtime pending” until a
 real Windows Frida archive is audited.**
+
+
+## Accepted Stage96 operator capture — 2026-10-19 Bangkok
+
+The operator-supplied **real Windows Frida** archive (SHA-256 `24340c1d00f44311376729a2ba8d2813cf774997f0240c8790a7ad6cfa4e0274`,
+four allowlisted archive members) was independently audited with the published
+`audit_invocation_trace.py` on the exact 2,902,016-byte original DLL
+recovered again from the canonical private CORE ZIP. The SHA is
+`fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa`
+for both that original PE and the Frida-reported loaded module.
+Outcome: **`RUNTIME_SAME_WRAPPER_INVOCATION_NAM_THEN_FITTER_OBSERVED`**,
+zero auditor reasons, all eight hooks installed, no Frida/field errors,
+10 invocation entries paired with 10 leaves, no trace limits or LIFO errors.
+
+**Direct stack-invocation relationship proved in this NEW run:**
+
+- One `0x10E70` wrapper invocation contained `0xE0E0` direct child,
+  return RVA `0x10F84`; within it, `0xD4A0` direct child, return RVA
+  `0xEB23`, itself calling `0xCE00` with return RVA `0xD78B`.
+- After `0xE0E0` returned, **that very same `0x10E70` instance** invoked
+  a second direct child `0xD4A0`, return RVA `0x11026`, which called
+  `0xCE00` again with return RVA `0xD78B`.
+- Still inside that wrapper, a direct `0x10230` child (return RVA
+  `0x110B2`) invoked `0xBE830` (return RVA `0x104E6`), which in turn
+  invoked `0xCE00` at **both** static Stage95 callsites (return RVAs
+  `0xBF369` and `0xBF484`). Every entered instance returned and all
+  relationships were one thread's actual nested Frida invocation IDs.
+
+**Evidence boundary:** This supports execution of these **function-call
+relationships in a single observed outer invocation**, rather than merely
+Stage92's separate temporal windows. It does not retroactively prove the
+Stage92 windows shared a stack. The log does not observe branch values,
+model/WAV object identity, success of vendor `startClone`, a completed or
+loadable CLO, or numerical DSP parity. The runner reports
+`CAPTURED_HOOKS_ONLY` and `completion_verified=false`; these flags are
+preserved exactly. `launched_by_tool=false` is also preserved (no invented
+process-launch claim). The raw tar and full private auditor JSON are stored
+only in canonical private Drive `RE_HTKPA`; see public-safe
+`runtime_evidence.json` for details.
+
+**Next independent gate:** inspect a real output CLO artifact and its
+provenance/hash if one exists from this operator run; do not infer CLO success
+from function stack identity and do not request an automatic Frida rerun.

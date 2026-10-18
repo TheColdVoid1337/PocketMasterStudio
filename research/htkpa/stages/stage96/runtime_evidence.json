@@ -1,0 +1,49 @@
+{
+  "stage": 96,
+  "status": "RUNTIME_SAME_WRAPPER_INVOCATION_NAM_THEN_FITTER_OBSERVED",
+  "evidence_type": "OPERATOR_SUPPLIED_NATIVE_WINDOWS_FRIDA_ARCHIVE_VERIFIED_OFFLINE",
+  "capture_sha256": "24340c1d00f44311376729a2ba8d2813cf774997f0240c8790a7ad6cfa4e0274",
+  "original_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "original_pe_bytes": 2902016,
+  "manifest_status": "CAPTURED_HOOKS_ONLY",
+  "method": "auto_quiet_after_hooks",
+  "runtime_loaded_dll_sha_matched": true,
+  "eight_hooks_installed": true,
+  "trace_entries": 10,
+  "trace_leaves": 10,
+  "hook_errors": 0,
+  "field_errors": 0,
+  "auditor_reasons": [],
+  "accepted_wrapper_rva": "0x10e70",
+  "direct_children_in_order": [
+    {
+      "site": "0xe0e0",
+      "return_rva": "0x10f84",
+      "nested_worker": "0xd4a0",
+      "nested_worker_return_rva": "0xeb23"
+    },
+    {
+      "site": "0xd4a0",
+      "return_rva": "0x11026"
+    },
+    {
+      "site": "0x10230",
+      "return_rva": "0x110b2",
+      "descendant": "0xbe830",
+      "descendant_return_rva": "0x104e6",
+      "nested_resampler_returns": [
+        "0xbf369",
+        "0xbf484"
+      ]
+    }
+  ],
+  "stage92_retroactive_stack_proof": false,
+  "completion_verified": false,
+  "clo_artifact_verified": false,
+  "model_and_wav_object_identity_proven": false,
+  "startClone_success_proven": false,
+  "launched_by_tool": false,
+  "private_raw_in_drive_folder": "1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+  "private_report_file_id": "1UdijrFCvWuiguUkyg3pDKogQ5f85XigT",
+  "boundary": "Real new-run same-thread onEnter/onLeave nesting with exact static E8 return RVAs; not file/data provenance, branch return values, model identity, completed CLO or numerical parity."
+}
