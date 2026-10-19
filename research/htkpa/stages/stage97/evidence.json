@@ -1,0 +1,50 @@
+{
+  "stage": 97,
+  "date_bangkok": "2026-10-19",
+  "status": "NEW_RUN_CLO_FORMAT_CRC_CONVERSION_AND_DEVICE_ACK_LOG_CORRELATED",
+  "input_kind": "OPERATOR_CLO_BUNDLE_PLUS_ACCEPTED_STAGE96_FRIDA",
+  "private_bundle_filename": "CLO_10-19-26-0253.zip",
+  "private_bundle_sha256": "2f96dce1ae479a93975cf6247a88a4a08c11de7ae5cab41648faa0d7902e6f46",
+  "private_bundle_bytes": 12740792,
+  "accepted_frida_archive_sha256": "24340c1d00f44311376729a2ba8d2813cf774997f0240c8790a7ad6cfa4e0274",
+  "original_runtime_dll_sha256": "fa8b3613a75de69deb49a9e72dce453312e4814a5c99bb6ea2e8a9e80debd5fa",
+  "clo": {
+    "bytes": 8840,
+    "sha256": "50f362c39362e5c18de0b6778cbfc3acfb845ee709dbdd97fd5d937a43b99fd7",
+    "magic": "VTSI",
+    "body_field_bytes": 8704,
+    "finite_fir_taps": 2048,
+    "crc16_modbus_stored_big_endian_hex": "BA7D",
+    "crc16_modbus_calculated_hex": "BA7D",
+    "manager_crc_field_interpreted_little_endian": 32186,
+    "low_model_projection_bytes": 2696,
+    "low_model_fir_taps": 512
+  },
+  "wav": {
+    "input": {"rate_hz": 44100, "channels": 2, "pcm_bits": 16, "duration_seconds": 70},
+    "output": {"rate_hz": 48000, "channels": 2, "pcm_bits": 16, "duration_seconds": 70}
+  },
+  "manager_log_gates": {
+    "native_success_and_file_write": true,
+    "crc_check_success": true,
+    "low_model_projection_reported": true,
+    "device_import_export_ack_status_zero": true,
+    "wait_import_result_true": true
+  },
+  "frida_manager_correlation": {
+    "timezone_assumption": "Asia/Bangkok_UTC+07",
+    "wrapper_entry_to_manager_native_start_gap_ms": 0.539,
+    "wrapper_leave_to_manager_progress_end_gap_ms": 0.945,
+    "frida_wrapper_entry_local": "2026-10-19T02:53:31.621",
+    "frida_wrapper_leave_local": "2026-10-19T02:53:42.740"
+  },
+  "independent_hardware_readback_verified": false,
+  "device_payload_byte_identity_verified": false,
+  "nam_source_byte_identity_verified": false,
+  "vendor_numeric_parity_verified": false,
+  "stage96_frida_manifest_completion_verified": false,
+  "audit": "research/htkpa/stages/stage97/audit_clo_bundle.py",
+  "tests": "tools/test_htkpa_stage97.py",
+  "stage97_synthetic_tests_passed": 7,
+  "raw_artifacts_storage": "canonical private Google Drive RE_HTKPA only"
+}
