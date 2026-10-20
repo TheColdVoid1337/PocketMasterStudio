@@ -1,0 +1,30 @@
+{
+  "stage": 103,
+  "date_bangkok": "2026-10-20",
+  "status": "STAGE103_GAIN_WINDOW_HARNESS_TESTED_OPERATOR_RUN_PENDING",
+  "evidence_origin": "Stage102 user-provided WSL real run summary, not assistant independent raw-byte inspection",
+  "stage102_operator_calibration": {
+    "fit_frames": 1200000,
+    "manager_rms": 0.02212254891326,
+    "open_core_rms": 0.07139748826850241,
+    "unadjusted_rms_error": 0.049276130906865154,
+    "zero_lag_cosine": 0.9999628271157859,
+    "derived_single_scalar_not_measured": 0.3098390026147448,
+    "derived_single_scalar_residual_rms_not_measured": 0.00019074767596196995
+  },
+  "processing": "offline read-only Stage102 f64le against original Manager 48-kHz WAV",
+  "windows": ["0:300000", "300000:1500000", "1500000:1600000", "six 200000-frame subwindows within 300000:1500000"],
+  "gain_fit": "diagnostic least squares open->vendor; no lag or DC offset fit",
+  "checks_prewarm_raw_output_sha_identity": true,
+  "checks_sha_of_input_and_output_files": true,
+  "original_stage97_zip_sha_pinned": true,
+  "original_vendor_and_model_private_files_committed": false,
+  "vendor_resampler_identity_verified": false,
+  "vendor_model_byte_identity_verified": false,
+  "vendor_nam_numerical_parity_verified": false,
+  "vendor_fitter_parity_verified": false,
+  "clo_generated": false,
+  "production_modified": false,
+  "synthetic_unit_tests_passed": 9,
+  "real_operator_stage103_run_performed": false
+}
