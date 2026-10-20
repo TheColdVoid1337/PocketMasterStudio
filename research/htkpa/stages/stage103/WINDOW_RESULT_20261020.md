@@ -18,3 +18,20 @@ Arithmetic means of **window gains only** (not energy-weighted fits): first 4 = 
 **Harmless Python KeyError:** `fit_block_gain_range` is the summary dictionary, which also starts with `fit_block_`; the assistant's original print loop incorrectly attempted to read per-block coefficient keys from it. All six actual fit-block lines printed *before* the exception and are valid. Correct by accepting only `name.startswith('fit_block_') and name[10:12].isdigit()` or checking the required key in each dict.
 
 **Next bounded step:** read only the existing private Stage103 window metrics `manager_rms`, `open_rms`, `max_abs_error_after_gain_only` alongside gains, then decide whether finer subwindows/lag diagnostics warrant a Stage105 tool. No reason to rerun Stage102/103/104 or the proprietary DLL.
+
+## Second operator readout: energies and maxima (same six Stage103 windows)
+
+The operator read **additional fields from the existing private Stage103 JSON**, without rerunning inference, using a corrected filter that excludes the summary-only `fit_block_gain_range` key.
+
+| 200k-frame window | Manager RMS | Open NAM RMS | Gain-only normalized residual | Maximum absolute gain-fitted residual |
+| --- | ---: | ---: | ---: | ---: |
+| 1 [300k,500k) | 0.01208766 | 0.03910302 | 2.1041% | 0.00226817 |
+| 2 [500k,700k) | 0.01199030 | 0.03878843 | 2.0350% | 0.00204499 |
+| 3 [700k,900k) | 0.01189838 | 0.03848651 | 2.0255% | 0.00231514 |
+| 4 [900k,1100k) | 0.00859691 | 0.02781017 | 2.0695% | 0.00226306 |
+| 5 [1100k,1300k) | 0.04340378 | 0.14001234 | 0.0402% | 0.00003328 |
+| 6 [1300k,1500k) | 0.02339227 | 0.07545826 | 0.0655% | 0.00080958 |
+
+**Derived, not an additional measured run:** multiplying each Manager RMS by its individual normalized residual gives absolute gain-fitted RMS ≈0.0002543, 0.0002440, 0.0002410, 0.0001779, 0.0000175, 0.0000153. Since all six windows contain equally many frames, their squared RMS residuals imply that windows 1–4 account for approximately **99.75% of the independently per-window gain-fitted residual energy**, although their Manager signal RMS-squared energy contribution is only ≈**17.2%**. This must **not** be confused with decomposition of Stage103's *single global-gain* error: each window here had its own optimal gain. The large max/RMS ratio in window 6 suggests sparse residual anomalies worth localizing, but does not prove a cause.
+
+**Scope:** This is an operator-console readout of already existing private audio metrics, **not** assistant-independent access to raw buffers. Differential spectral content, nonlinearity, tiny timing shifts, resampling, model identity and Manager output save normalization are not independently determined. New Stage105 performs only targeted **offline** investigation on the existing private files, no DSP rewrite or vendor execution.
