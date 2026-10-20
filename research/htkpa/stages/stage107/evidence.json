@@ -1,7 +1,7 @@
 {
   "stage": 107,
   "date_bangkok": "2026-10-21",
-  "status": "STAGE107_SOURCE_AND_SYNTHETIC_TESTS_PASS_OPERATOR_RUN_PENDING",
+  "status": "STAGE107_OPERATOR_REAL_SHA_GATED_SILENCE_FLOOR_INSPECTION_COMPLETED",
   "prior_real_gate": "Stage106 operator: 7 of 60 DI-zero fine windows; three around 1.36M showed Manager RMS ~0.000061035 and open RMS ~0.000204393; residual near zero only after individually fitted gain 0.298616879",
   "why": "Confirm whether zero-DI Manager output is a constant PCM16 floor and open NAM output a constant idle level, rather than treating tiny individually fitted residual as proof of vendor parity",
   "private_inputs": [
@@ -14,7 +14,7 @@
   "method": "read-only exact per-bin PCM16 histogram + signed means, RMS, variance, f64 source DI zero check, f64 open output statistics, diagnostic fitted gain and fixed 0.31 gain residual, selected active/neighbor bins",
   "synthetic_tests_passed": 13,
   "integrated_synthetic_fixture_passed": true,
-  "real_stage107_operator_run_performed": false,
+  "real_stage107_operator_run_performed": true,
   "new_nam_inference_or_resampling": false,
   "vendor_dll_manager_or_frida_called": false,
   "production_modified": false,
@@ -23,5 +23,66 @@
   "vendor_nam_numeric_parity_verified": false,
   "vendor_fitter_numeric_parity_verified": false,
   "clo_generated": false,
-  "private_bytes_committed_to_public_github": false
+  "private_bytes_committed_to_public_github": false,
+  "real_operator_regression_tests_passed": 13,
+  "operator_source": "user WSL console transcript 2026-10-21; original private raw data and full JSON not independently accessed by assistant",
+  "operator_observations": {
+    "seven_zero_input_window_starts_48khz": [
+      1020000,
+      1040000,
+      1060000,
+      1080000,
+      1360000,
+      1380000,
+      1400000
+    ],
+    "frames_per_window": 20000,
+    "all_seven_vendor_pcm16_unique_values_count": 1,
+    "all_seven_vendor_pcm16_constant_sample_int16": 2,
+    "all_seven_vendor_sample_count_per_bin": 20000,
+    "vendor_normalized_mean": 0.00006103515625,
+    "vendor_within_bin_std": 0,
+    "all_seven_open_core_mean": 0.00020439285435713828,
+    "all_seven_open_core_reported_std": 9.374415623260666e-11,
+    "all_seven_fixed_0p31_residual_rms": 0.000002326628600894295,
+    "locally_fitted_silence_gain_about": 0.298616879,
+    "fixed_0p31_residual_pcm16_lsb": 0.07623896599410426,
+    "selected_active_window_start_and_relative_residual": [
+      [
+        340000,
+        0.02322171946044755
+      ],
+      [
+        480000,
+        0.02517900960990324
+      ],
+      [
+        580000,
+        0.023842218187072495
+      ],
+      [
+        720000,
+        0.024095316438491995
+      ],
+      [
+        960000,
+        0.024177437859114328
+      ],
+      [
+        1300000,
+        0.0004746444611350305
+      ],
+      [
+        1320000,
+        0.0013977176328504627
+      ],
+      [
+        1340000,
+        0.01706683266865577
+      ]
+    ],
+    "idle_floor_gain_does_not_establish_proprietary_parameter": true,
+    "genuine_open_output_modulation_verified": false
+  },
+  "next_gate": "Compare public f32 44.1-kHz DI to exact vendor input PCM16 normalized /32768 over original Stage97 70 seconds and mapped early/late time windows; no resampling/inference, to test whether open input precision differs from native Manager WAV source."
 }
