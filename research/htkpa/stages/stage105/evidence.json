@@ -1,13 +1,19 @@
 {
   "stage": 105,
   "date_bangkok": "2026-10-20",
-  "status": "STAGE105_OFFLINE_SOURCE_AUDIT_TESTED_REAL_OPERATOR_PENDING",
+  "status": "STAGE105_OPERATOR_REAL_GAIN_ENERGY_DC_LAG_TOPOLOGY_COMPLETED",
   "last_accepted_gate": "Stage104 real WSL: prewarm ON/OFF only differ before sample 5984; all 1.2M fitter-window samples bitwise identical",
   "operator_stage103_window_observation": "first 4 of 6 200k windows lower energy, ~2% gain-fitted residual; last 2 higher energy, ~0.04-0.07% residual",
   "objective": "Localize level/content, DC offset, possible integer lag and high residual 20k subwindows using only already computed 1.6M private samples",
   "inputs": "Stage97 SHA-pinned original vendor ZIP WAV, Stage102 SHA-pinned original resampler input and C++ output, Stage103 and Stage104 private reports",
-  "window_sizes": [200000, 20000],
-  "lag_search_samples": [-4, 4],
+  "window_sizes": [
+    200000,
+    20000
+  ],
+  "lag_search_samples": [
+    -4,
+    4
+  ],
   "gain_and_dc_fit_diagnostic_only": true,
   "all_raw_audio_stays_private": true,
   "production_modified": false,
@@ -15,5 +21,77 @@
   "vendor_resampler_identical_verified": false,
   "vendor_model_byte_identity_verified": false,
   "vendor_NAM_fitter_numeric_parity_verified": false,
-  "real_operator_stage105_run_performed": false
+  "real_operator_stage105_run_performed": true,
+  "operator_tests_passed": 11,
+  "operator_evidence_class": "2026-10-20 user WSL terminal output; private raw WAV/f64 and full private JSON not independently read by assistant",
+  "operator_observations": {
+    "sample_rate_hz": 48000,
+    "fit_window_start": 300000,
+    "fit_window_stop_exclusive": 1500000,
+    "six_200k_coarse_windows": 6,
+    "sixty_20k_fine_windows": 60,
+    "early_first4_fraction_of_individually_fitted_residual_energy": 0.9974831186627082,
+    "first4_fraction_of_reference_squared_energy_derived": 0.17209831560716995,
+    "best_integer_lag_in_all_coarse_windows": 0,
+    "integer_lags_tested": [
+      -4,
+      -3,
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "gain_and_dc_fit_did_not_eliminate_early_approx_2_percent_residual": true,
+    "early_di_rms": [
+      0.0007796187144217288,
+      0.0007599414511837688,
+      0.0007525560863888888,
+      0.000539194047072138
+    ],
+    "later_di_rms": [
+      0.39363222584173707,
+      0.18770784626849532
+    ],
+    "early_relative_residual": [
+      0.021041128149193046,
+      0.020349704297762262,
+      0.02025484703337968,
+      0.02069548251999576
+    ],
+    "later_relative_residual": [
+      0.0004023809455318602,
+      0.0006551181932461511
+    ],
+    "top_20k_relative_residuals": [
+      {
+        "start": 480000,
+        "stop_exclusive": 500000,
+        "value": 0.02517900960990324
+      },
+      {
+        "start": 960000,
+        "stop_exclusive": 980000,
+        "value": 0.02417743785911433
+      },
+      {
+        "start": 720000,
+        "stop_exclusive": 740000,
+        "value": 0.024095316438494344
+      },
+      {
+        "start": 920000,
+        "stop_exclusive": 940000,
+        "value": 0.02395887915452943
+      },
+      {
+        "start": 580000,
+        "stop_exclusive": 600000,
+        "value": 0.023842218187072495
+      }
+    ]
+  },
+  "next_gate": "Stage106 metrics-only validation and fine-bin input-level/residual association using saved Stage105 private report, without rerunning DSP"
 }
