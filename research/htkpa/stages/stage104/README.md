@@ -1,6 +1,6 @@
 # Stage104 — prewarm ON/OFF bitwise difference localization (offline)
 
-**Status:** `STAGE104_OFFLINE_PREWARM_LOCALIZER_TESTED_OPERATOR_RUN_PENDING`.
+**Status:** `STAGE104_OPERATOR_REAL_PREWARM_DIFFERENCE_LOCALIZED` (accepted operator WSL evidence, see `OPERATOR_RESULT_20261020.md`; private raw samples not independently reread by assistant).
 
 Stage103's **real WSL operator** report passed 9/9 regression tests, found least-squares zero-lag gain open NAM → Manager WAV `0.3098390026147448`, corrected RMS `0.0001907476759617998` (normalized `0.008622319096669185`), and a **0.3063457959701221%** gain spread across six consecutive 200k-frame segments. Prewarm ON/OFF gave **different full output SHA hashes**, despite identical Stage102 fit-window summary metrics. The **location, magnitude and duration of the prewarm difference have not yet been determined**.
 
@@ -28,3 +28,9 @@ The CLI prints overall mismatch count, first/last absolute differing sample indi
 - If differences occur in the fit window, Stage102 ON/OFF equal printed statistics merely reflected rounding or very small error.
 - Never generalize a single 1.6M-frame model run to vendor model equivalence, proprietary native resampler matching, closed FIR fitter, numeric CLO parity, hardware readback or complete source→device transformation.
 - Unit tests: **11** isolated synthetic cases, including fake Stage102/103 reports, exact SHA enforcement, no-overwrite, nonfinite samples and signed zero. **Actual operator raw-data verification is pending**.
+
+## Accepted real WSL result — 2026-10-20
+
+The operator ran the full Stage104 offline audit on the original SHA-verified Stage102 prewarm ON/OFF outputs: **11/11 tests PASS**. Of 1,600,000 f64 frames, **5,485** words differ, beginning at absolute sample **0** and ending at absolute sample **5983** (just before **124.667 ms** at 48kHz). All frames **[5984,1600000)** are bitwise identical, including the complete **[300000,1500000)** fitter window and final 100k tail. The maximum absolute ON/OFF difference is `0.13375134021043777`, and overall RMS difference is `0.0009560180605001499` (restricted to first 300k: RMS `0.002207829138319622`). There were no numerically equal but bitwise-different words, and no differing fitter subwindows. See public operator result and machine-readable evidence for complete boundaries and provenance.
+
+**Decision for this one controlled setup:** prewarm difference is a startup-only transient, *not* the source of Manager-vs-open output discrepancy on the fitter window. This is not evidence of Sonicake Manager's actual prewarm behavior or native DSP parity. Do not rerun Stage104 on the same output path (the script intentionally refuses overwrite). The next low-cost action is to inspect existing Stage103 per-window gain and residual data rather than run new inference.
