@@ -1,0 +1,27 @@
+{
+  "stage": 107,
+  "date_bangkok": "2026-10-21",
+  "status": "STAGE107_SOURCE_AND_SYNTHETIC_TESTS_PASS_OPERATOR_RUN_PENDING",
+  "prior_real_gate": "Stage106 operator: 7 of 60 DI-zero fine windows; three around 1.36M showed Manager RMS ~0.000061035 and open RMS ~0.000204393; residual near zero only after individually fitted gain 0.298616879",
+  "why": "Confirm whether zero-DI Manager output is a constant PCM16 floor and open NAM output a constant idle level, rather than treating tiny individually fitted residual as proof of vendor parity",
+  "private_inputs": [
+    "existing Stage102 comparison_private.json",
+    "existing Stage105 fine_20k metrics report",
+    "existing Stage106 metrics report",
+    "SHA-pinned Stage102 resampled DI f64le and prewarm-off NAM output f64le",
+    "original exact-SHA Stage97 Manager ZIP with 48k PCM16 stereo output WAV"
+  ],
+  "method": "read-only exact per-bin PCM16 histogram + signed means, RMS, variance, f64 source DI zero check, f64 open output statistics, diagnostic fitted gain and fixed 0.31 gain residual, selected active/neighbor bins",
+  "synthetic_tests_passed": 13,
+  "integrated_synthetic_fixture_passed": true,
+  "real_stage107_operator_run_performed": false,
+  "new_nam_inference_or_resampling": false,
+  "vendor_dll_manager_or_frida_called": false,
+  "production_modified": false,
+  "vendor_model_byte_identity_verified": false,
+  "vendor_resampler_parity_verified": false,
+  "vendor_nam_numeric_parity_verified": false,
+  "vendor_fitter_numeric_parity_verified": false,
+  "clo_generated": false,
+  "private_bytes_committed_to_public_github": false
+}
