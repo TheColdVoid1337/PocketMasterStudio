@@ -1,6 +1,6 @@
 # Stage102 — candidate 44.1→48-kHz resampling, open NAM vs Manager WAV (no fitter)
 
-**Status:** `STAGE102_SOURCE_BOUNDARY_HARNESS_PREPARED_OPERATOR_RUN_PENDING`.
+**Status:** `STAGE102_OPERATOR_REAL_CANDIDATE_NAM_OUTPUT_COMPARISON_COMPLETED` (accepted operator WSL transcript; see `OPERATOR_RESULT_20261020.md`; the original private raw outputs were not independently inspected by the assistant).
 
 Stage101's real operator test established that the entire reference 70-second DI from `src/assets/nam_reference_di_44100.f32.gz` directly quantizes to the *original Manager* `nam_input_wav.wav` as **3,087,000/3,087,000** identical 44.1-kHz PCM16 frames. This closes the input-file identity question, **not** Manager resampler or NAM inference equivalence.
 
@@ -39,3 +39,10 @@ python3 research/htkpa/stages/stage102/GO.py run \
 - **No Stage102 numerical result** is claimed until the operator supplies successful `doctor` + `run` output. Only private `comparison_private.json` contains the model hash and raw-output SHA; NEVER commit the ZIP, audio, NAM model, or private JSON into public GitHub.
 - Before asserting fitter numerical parity, matched original model, matched actual NAM input after *vendor* resampler, vendor NAM output provenance and output quantization must all be established. Stage102 currently supplies a source-grounded **open** candidate resampler, not the proprietary preprocessor.
 - No DLL execution, Frida, actual hardware, CLO generation, production changes or background tasks.
+
+## Real operator checkpoint and next diagnostic
+
+On 2026-10-20 the operator completed 7/7 targeted tests and the full 1.6M-frame experimental open input-resampler + pinned upstream NAM Core analysis. Across the 1.2M-frame fit window [300000,1500000), Manager output RMS was 0.02212254891326 and open NAM RMS 0.07139748826850241. The **unadjusted** RMS error was 0.049276130906865154, but **zero-lag cosine similarity was 0.9999628271157859**, identical rounded metrics for prewarm ON and OFF. Full numbers and provenance: `OPERATOR_RESULT_20261020.md`.
+
+One global **diagnostic-only** gain calculated algebraically from those aggregate metrics would be approximately 0.309839 (open→Manager), which would reduce ideal RMS residual to about 0.00019075, **if** one constant level multiplier explains the sample-by-sample relationship. This has **not** yet been confirmed by applying the gain across source samples; nor does it prove the proprietary Manager uses that multiplier. Exact prewarm output byte identity remains untested. Stage103 audits time-local gain and output SHA from existing, ignored Stage102 files — it does not repeat inference.
+
