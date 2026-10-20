@@ -1,0 +1,22 @@
+{
+  "stage": 100,
+  "status": "STAGE100_CONTROLLED_LEVEL_AND_CHUNK_SWEEP_HARNESS_TESTED_OPERATOR_RUN_PENDING",
+  "date_bangkok": "2026-10-20",
+  "upstream_core": "NeuralAmpModelerCore pinned original C++ through Stage98",
+  "sonicmaster": "real Stage99 diagnostic-only compiled existing Dart WaveNet",
+  "purpose": "Characterize numeric error across signed input amplitudes and NAM Core streaming chunks for same private model and deterministic 8192-frame 48kHz mono float64 stimulus",
+  "levels": {"quiet": 0.1, "reference": 1.0, "drive": 2.0, "inverted": -1.0},
+  "core_block_sizes": [16, 64, 1024],
+  "planned_core_runs": 12,
+  "planned_sonicmaster_runs": 4,
+  "prewarm": "off at NAM Core load/reset",
+  "slimmable_selection": 1.0,
+  "same_stimulus": "Stage99 SHA-pinned base f64le, scaled without resampling or trimming",
+  "real_operator_sweep_performed": false,
+  "tests_do_not_prove_dsp_parity": true,
+  "vendor_dll_parity_verified": false,
+  "clo_generated": false,
+  "production_converter_modified": false,
+  "private_audio_and_model_publication": false,
+  "next_gate": "Operator WSL doctor/run Stage100, report per-level per-block RMS/max and chunk invariance; inspect results before drawing generalized conclusions"
+}
