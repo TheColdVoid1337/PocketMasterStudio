@@ -1,14 +1,25 @@
 {
   "stage": 104,
   "date_bangkok": "2026-10-20",
-  "status": "STAGE104_OFFLINE_PREWARM_LOCALIZER_TESTED_OPERATOR_RUN_PENDING",
+  "status": "STAGE104_OPERATOR_REAL_PREWARM_DIFFERENCE_LOCALIZED",
   "basis": {
     "stage102": "real operator 1.6M-frame open NAM Core vs 48k Manager WAV; candidate resampler not vendor-verified",
     "stage103": "operator-reported gain 0.3098390026147448; gain spread 0.3063457959701221%; ON/OFF raw output SHA not identical"
   },
   "source_data": "original ignored Stage102 two C++ f64le output files; SHA-pinned by Stage102 and checked against Stage103",
-  "windows": ["0:300000", "six fit-window 200000-frame blocks", "300000:1500000", "1500000:1600000", "0:1600000"],
-  "calculations": ["exact per-f64 bitwise inequality count", "first/last nonidentical index", "RMS and max absolute ON-OFF difference", "signed-zero numerical-equal yet bitwise-unequal count"],
+  "windows": [
+    "0:300000",
+    "six fit-window 200000-frame blocks",
+    "300000:1500000",
+    "1500000:1600000",
+    "0:1600000"
+  ],
+  "calculations": [
+    "exact per-f64 bitwise inequality count",
+    "first/last nonidentical index",
+    "RMS and max absolute ON-OFF difference",
+    "signed-zero numerical-equal yet bitwise-unequal count"
+  ],
   "synthetic_tests_passed": 11,
   "original_vendor_WAV_CLO_or_NAM_committed": false,
   "new_inference_performed": false,
@@ -17,5 +28,34 @@
   "vendor_resampler_parity_verified": false,
   "vendor_NAM_numeric_parity_verified": false,
   "vendor_fitter_parity_verified": false,
-  "real_operator_stage104_run_performed": false
+  "real_operator_stage104_run_performed": true,
+  "operator_regression_tests_passed": 11,
+  "operator_status": "STAGE104_OFFLINE_PREWARM_DIFFERENCE_LOCALIZED",
+  "operator_source": "2026-10-20 WSL terminal output; private raw samples/JSON not independently read by assistant",
+  "operator_observations": {
+    "rate_hz": 48000,
+    "original_f64_frames": 1600000,
+    "different_f64_words": 5485,
+    "fraction_different": 0.003428125,
+    "first_different_index_zero_based": 0,
+    "last_different_index_zero_based": 5983,
+    "first_identical_tail_index": 5984,
+    "from_frame_5984_to_1599999_bitwise_equal": true,
+    "last_difference_time_ms": 124.64583333333333,
+    "first_identical_sample_time_ms": 124.66666666666667,
+    "overall_rms_difference": 0.0009560180605001499,
+    "overall_max_abs_difference": 0.13375134021043777,
+    "first_300k_rms_difference": 0.002207829138319622,
+    "first_300k_max_abs_difference": 0.13375134021043777,
+    "fitter_window_start": 300000,
+    "fitter_window_stop_exclusive": 1500000,
+    "fitter_window_bitwise_equal": true,
+    "fitter_window_different_f64_words": 0,
+    "fitter_window_rms_difference": 0,
+    "tail_window_bitwise_equal": true,
+    "signed_zero_or_nan_word_only_mismatches": 0,
+    "fit_subwindows_differing": []
+  },
+  "operator_boundary_notes": "Stage104 only compares two open NAM Core prewarm variants, not proprietary Manager internals. No vendor resampler, model identity, fitter numerical or CLO parity established. Operator-reported console result, not independent private raw byte rehash by assistant.",
+  "next_gate": "Extract existing private Stage103 per-window gain coefficients and residuals (no rerun of Stage102-104), then investigate stable output scaling and unexplained residual against Manager WAV without claiming vendor numerical parity."
 }
