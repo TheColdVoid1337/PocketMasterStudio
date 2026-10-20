@@ -1,7 +1,7 @@
 {
   "stage": 102,
   "date_bangkok": "2026-10-20",
-  "status": "STAGE102_SOURCE_BOUNDARY_HARNESS_PREPARED_OPERATOR_RUN_PENDING",
+  "status": "STAGE102_OPERATOR_REAL_CANDIDATE_NAM_OUTPUT_COMPARISON_COMPLETED",
   "prior_accepted_gate": "Stage101 operator 3,087,000/3,087,000 direct DI PCM16 sample identity",
   "purpose": "Compare source-pinned NAM Core 1.6M-sample 48kHz output against the first 1.6M frames of original Manager Stage97 output WAV, using the open SonicMaster DI resampler as an explicit unverified input candidate",
   "vendor_zip_sha256": "2f96dce1ae479a93975cf6247a88a4a08c11de7ae5cab41648faa0d7902e6f46",
@@ -11,8 +11,11 @@
   "fit_window_start": 300000,
   "fit_window_end_exclusive": 1500000,
   "native_block": 64,
-  "native_slim": 1.0,
-  "native_prewarm_variants": ["off", "on"],
+  "native_slim": 1,
+  "native_prewarm_variants": [
+    "off",
+    "on"
+  ],
   "input_resampler_source": "tools/nam_js/clo_dsp.dart:_resampleDiTo48 (private Dart VM diagnostic copy only)",
   "candidate_input_resampler_vendor_parity_verified": false,
   "original_vendor_intermediate_output_byte_identity_proven": false,
@@ -20,8 +23,41 @@
   "vendor_nam_numerical_parity_verified": false,
   "vendor_fitter_numerical_parity_verified": false,
   "actual_clo_created": false,
-  "run_performed_on_operator_WSL": false,
+  "run_performed_on_operator_WSL": true,
   "offline_synthetic_tests_passed": 7,
   "original_private_bytes_in_public_repository": false,
-  "production_converter_modified": false
+  "production_converter_modified": false,
+  "operator_tests_passed": 7,
+  "operator_doctor_status": "STAGE102_PREFLIGHT_PASS",
+  "operator_report": {
+    "evidence": "user-provided WSL terminal output; assistant did not independently read original raw samples or comparison_private.json",
+    "frames_compared": 1600000,
+    "fit_window": [
+      300000,
+      1500000
+    ],
+    "fit_window_frames": 1200000,
+    "public_source_dart_sha256": "4d7ef1d732f57ee00d4acab773184445b7ccf928d16cd49608ff967a397197ca",
+    "di_44100_pcm16_exact": true,
+    "prewarm_off": {
+      "rms_error": 0.049276130906865154,
+      "max_abs_error": 0.34653806686401367,
+      "manager_rms": 0.02212254891326,
+      "open_rms": 0.07139748826850241,
+      "normalized_rms_error": 2.227416519681853,
+      "zero_lag_cosine_similarity": 0.9999628271157859,
+      "gain_fitted": false,
+      "lag_aligned": false
+    },
+    "prewarm_on_aggregate_metrics_equal_to_off": true,
+    "bitwise_equal_prewarm_outputs_verified": false,
+    "derived_not_measured": {
+      "least_squares_gain_open_to_manager": 0.3098390026147448,
+      "ideal_gain_only_residual_rms": 0.00019074767596196995,
+      "ideal_gain_only_residual_normalized_rms": 0.008622319096676875
+    }
+  },
+  "note": "Large raw amplitude error but zero-lag shape cosine near 1; the global gain hypothesis is mathematical projection, not an actual Stage103 audio measurement. Vendor resampler/model/intermediate WAV buffer identities and proprietary fitter parity remain unverified.",
+  "private_operator_summary_in_re_htkpa": "HTKPA_STAGE102_OPERATOR_REAL_NAM_OUTPUT_20261020.json",
+  "next_gate": "Stage103 per-window gain projection from existing Stage102 raw outputs and ON/OFF bitwise hash; do not rerun Stage102 due to no-overwrite guard."
 }
