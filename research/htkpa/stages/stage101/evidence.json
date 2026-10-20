@@ -1,0 +1,30 @@
+{
+  "stage": 101,
+  "date_bangkok": "2026-10-20",
+  "status": "STAGE101_OPERATOR_DI_INPUT_PCM16_IDENTITY_VERIFIED",
+  "source": "user-supplied WSL terminal transcript; original private full report and output WAV have not been independently read by assistant",
+  "operator_local_patch_installed": true,
+  "operator_tests_passed": 13,
+  "operator_auditor_status": "STRUCTURAL_FIR_LENGTH_FINGERPRINT_MATCHED_NOT_FITTER_PARITY",
+  "vendor_clo_structure_valid": true,
+  "all_three_clo_fir_lengths_match": true,
+  "all_three_fixed_biquad_match": true,
+  "input_gate": {
+    "public_di": "src/assets/nam_reference_di_44100.f32.gz",
+    "private_stage97_archive": "CLO_10-19-26-0253.zip (stored only in ignored _LOCAL_FILES / private Drive)",
+    "comparison": "direct float32 to signed PCM16 vs original Manager 44.1-kHz 70-s input WAV; no gain change, no lag shift, no resampling",
+    "frames": 3087000,
+    "sample_identity_count": 3087000,
+    "sample_identity_fraction": 1,
+    "same_audio_pcm16_identity_verified": true,
+    "rms_error_lsb": 0,
+    "zero_lag_cosine_similarity_sampled_every_64": 1
+  },
+  "public_code_published": false,
+  "original_model_bytes_in_repo": false,
+  "vendor_output_vs_open_NAM_numeric_parity_verified": false,
+  "vendor_fitter_numeric_parity_verified": false,
+  "clo_generated": false,
+  "hardware_readback_verified": false,
+  "next_gate": "Compare Stage97 original 70-second 48-kHz Manager NAM output WAV (PCM16) with open NAM Core inference on the identical reference DI. Gate model identity, preprocessing/resampling, state/prewarm, format and alignment, then only investigate proprietary fitter after matched inference controls."
+}
