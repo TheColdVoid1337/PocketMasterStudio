@@ -1,7 +1,7 @@
 {
   "stage": 99,
   "date_bangkok": "2026-10-20",
-  "status": "STAGE99_MATCHED_RAW_COMPARISON_HARNESS_TESTED_NATIVE_PAIR_PENDING",
+  "status": "STAGE99_OPERATOR_REAL_RAW_WAVENET_COMPARISON_REPORTED",
   "comparison": "open NeuralAmpModelerCore vs repository SonicMaster Dart WaveNet",
   "upstream_nam_pinned_commit": "0b3d3c97b0859a3a8c92a8628c4dd89a25eb5842",
   "same_input": "8192 raw mono float64 samples at 48000Hz; deterministic Stage98 SHA",
@@ -9,17 +9,33 @@
   "nominal_controls": {
     "core_pre_warm_at_load": false,
     "core_pre_warm_at_reset": false,
-    "core_slim_size_for_container": 1.0,
+    "core_slim_size_for_container": 1,
     "core_chunk_size_frames": 64,
     "sonicmaster_inference": "entire 8192-frame input with causal zero-padding",
     "resampling": "none",
     "clo_fitting": "none"
   },
-  "dart_worker_compiled_with_real_compiler": false,
-  "operator_same_input_comparison_performed": false,
+  "dart_worker_compiled_with_real_compiler": true,
+  "operator_same_input_comparison_performed": true,
   "synthetic_dsp_tests_are_not_numerical_parity": true,
   "real_vendor_dll_inference_parity_verified": false,
   "production_converter_modified": false,
   "private_model_or_audio_committed": false,
-  "note": "Isolated source-first diagnostic harness only. Real paired sample-level RMS/max error requires Dart SDK compilation and a new operator WSL run."
+  "note": "The public OPERATOR_RESULT_20261020.md contains the WSL operator result. Full private hashes and model details are in canonical RE_HTKPA; this is not vendor DLL numerical parity.",
+  "operator_numeric_summary": {
+    "source": "2026-10-20 operator WSL transcript, not independently rehashed raw files",
+    "frames": 8192,
+    "rate_hz": 48000,
+    "model_mode": "slim_1.0_last_wavenet",
+    "prewarm": false,
+    "core_block_size": 64,
+    "rms_error": 2.2696525484244864e-8,
+    "max_abs_error": 1.5437486166475223e-7,
+    "normalized_rms_error": 2.733829451264937e-7,
+    "mean_error": 8.696689549054408e-10,
+    "largest_error_sample": 5393,
+    "bitwise_equal": false,
+    "vendor_dll_parity_verified": false,
+    "clo_generated": false
+  }
 }

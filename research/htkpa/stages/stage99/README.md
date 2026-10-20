@@ -1,6 +1,6 @@
 # Stage99 — source-first matched WaveNet inference: NAM Core vs SonicMaster
 
-**Status:** `STAGE99_MATCHED_RAW_COMPARISON_HARNESS_TESTED_NATIVE_PAIR_PENDING`.
+**Status:** `STAGE99_OPERATOR_REAL_RAW_WAVENET_COMPARISON_REPORTED` (original full report: `OPERATOR_RESULT_20261020.md`; exact model/audio SHA and raw samples are private).
 
 The operator has **already** compiled pinned public NeuralAmpModelerCore and run the
 real JCM800 8192-frame Stage98 probe. Stage99's goal is a *falsifiable numerical
