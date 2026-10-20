@@ -1,7 +1,7 @@
 {
   "stage": 106,
   "date_bangkok": "2026-10-20",
-  "status": "STAGE106_METRICS_ONLY_DIAGNOSTIC_TESTED_OPERATOR_RUN_PENDING",
+  "status": "STAGE106_OPERATOR_REAL_METRICS_ENERGY_ASSOCIATION_COMPLETED",
   "purpose": "Group energy and residual statistics and rank association from already generated Stage105 60x20k and 6x200k metrics",
   "source": "private Stage105 stage105_error_topology_private.json (ignored), stage105 already validated prior SHA-gated Stage102 raw samples",
   "no_original_waveform_model_or_vendor_dll_read": true,
@@ -12,8 +12,16 @@
     "early_first4_fraction_individually_gain_fitted_residual_energy": 0.9974831186627082,
     "all_six_coarse_integer_best_lag": 0,
     "dc_fit_did_not_remove_early_2pct_residual": true,
-    "candidate_di_rms_early": [0.0007796187144217288, 0.0007599414511837688, 0.0007525560863888888, 0.000539194047072138],
-    "candidate_di_rms_late": [0.39363222584173707, 0.18770784626849532]
+    "candidate_di_rms_early": [
+      0.0007796187144217288,
+      0.0007599414511837688,
+      0.0007525560863888888,
+      0.000539194047072138
+    ],
+    "candidate_di_rms_late": [
+      0.39363222584173707,
+      0.18770784626849532
+    ]
   },
   "stage106_expected_windows": {
     "fine_20k": 60,
@@ -24,10 +32,34 @@
   "read_only_prior_artifacts": true,
   "fail_on_existing_private_output": true,
   "offline_synthetic_tests_passed": 12,
-  "actual_stage106_operator_run_performed": false,
+  "actual_stage106_operator_run_performed": true,
   "actual_proprietary_resampler_parity_proven": false,
   "actual_vendor_model_identity_proven": false,
   "actual_vendor_NAM_fitter_parity_proven": false,
   "real_CLO_generated": false,
-  "production_modified": false
+  "production_modified": false,
+  "operator_tests_passed": 12,
+  "operator_result_source": "2026-10-20 operator WSL console, previous private Stage105 numerical metrics; assistant has not independently read original full private JSON",
+  "operator_result": {
+    "early_four_fraction_individually_gain_fitted_residual_energy": 0.9974831186627082,
+    "early_four_fraction_reference_energy": 0.17209831560716993,
+    "late_to_early_candidate_di_pooled_rms_ratio": 431.5479130738116,
+    "early_residual_rms_pcm16_steps": 7.578529494320367,
+    "late_residual_rms_pcm16_steps": 0.5383671297658815,
+    "spearman_log_di_rms_vs_log_relative_error_nonzero_di_bins": -0.2173036606998871,
+    "largest_adjacent_20k_reduction": {
+      "boundary_samples": [
+        1359999,
+        1360000
+      ],
+      "boundary_seconds": 28.333333333333332,
+      "log10_ratio": 4.570758928884041,
+      "prior_relative_residual": 0.01706683266865577,
+      "next_relative_residual": 4.5855771179852703e-7,
+      "prior_di_rms": 0.17782119462369755,
+      "next_di_rms": 0,
+      "causal_transition_proven": false
+    }
+  },
+  "next_gate": "Read existing Stage105 and Stage106 metrics-only private JSON for zero-DI fine windows, reference/open RMS, and top absolute residual-energy bins; no new inference."
 }
