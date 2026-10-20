@@ -1,6 +1,6 @@
 # Stage107 — raw silence-floor verification on existing Stage102 output
 
-**Status:** `STAGE107_SOURCE_AND_SYNTHETIC_TESTS_PASS_OPERATOR_RUN_PENDING`.
+**Status:** `STAGE107_OPERATOR_REAL_SHA_GATED_SILENCE_FLOOR_INSPECTION_COMPLETED` (operator WSL 2026-10-21; 13/13 tests; see `OPERATOR_RESULT_20261021.md`).
 
 This is a **read-only, offline diagnostic** of seven 20,000-frame intervals with zero candidate DI reported by Stage105, plus the neighboring bins around 1.30–1.42M and Stage106's five largest **absolute** residual-error bins. It does **not** execute Sonicake Manager, vendor DLL, Frida, NAM C++ inference, the Dart resampler, FIR fitting, create CLO, access a device, or change production.
 
@@ -35,3 +35,11 @@ python3 research/htkpa/stages/stage107/GO.py \
 ```
 
 If `stage107_silence_floor_private.json` already exists, the script refuses to overwrite; do not delete prior evidence merely to rerun. Test coverage: **13/13 synthetic local PASS**, including strict report SHA, fake end-to-end fixture, sample-index validation, signed PCM16 histogram, nonfinite guard, and no-overwrite. **Real operator results are PENDING**. Private report can be used for later hypothesis design; do not update Stage107 status based solely on synthetic results.
+
+## Real operator checkpoint — 2026-10-21
+
+**13/13 targeted tests PASS**, real operator Stage107 completed. For each of the 7 zero-candidate-DI 20k windows, original vendor saved 48k WAV is **exactly +2 PCM16 in all 20,000 frames** (per-window unique count 1, std 0). The independently generated NAM Core f64 output has printed mean `0.00020439285435713828` with near-zero reported std `9.374415623260666e-11`; near-zero variance can include numerical roundoff in moment-subtraction, so inspect min/max before asserting true modulation. Fixed multiplier `0.31` yields residual RMS `2.326628600894295e-06` full scale (~0.076 PCM16 LSB), whereas separate gain fitting to idle floors produces ~0.298616879. This idle value is **not** a proven Sonicake setting.
+
+Full values, selected eight active residual windows, privacy and provenance boundaries: `OPERATOR_RESULT_20261021.md`. No rerun necessary; the Stage107 private JSON already exists and the script intentionally refuses overwrite.
+
+**Next cheaper hypothesis before a new NAM run:** compare open 44.1-kHz float32 DI against `original Manager input PCM16 / 32768` *sample by sample*. Stage101 proved equality **after quantizing** float32 to PCM16, which is not yet proof the float32 data equals the decoded PCM16 values. Stage102 resampled the float32 DI, while vendor pre-inference path may have read/decoded the input WAV. Quantify or reject that possible difference first; its explanation of Stage105 low-level residuals is unverified.
