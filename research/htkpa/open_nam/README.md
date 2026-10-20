@@ -1,6 +1,7 @@
 # Stage98 — real upstream NeuralAmpModelerCore C++ integration (experimental)
 
-**Status:** `OPEN_NAM_NATIVE_SOURCE_ADAPTER_PREPARED_OFFLINE_TESTED__UPSTREAM_REAL_BUILD_NOT_YET_RUN`.
+**Status:** `OPERATOR_WSL_REAL_UPSTREAM_BUILD_AND_NAM_INFERENCE_8192_FRAMES_REPORTED`.
+**Evidence boundary:** observed via operator WSL console output; the raw private `.nam`, generated `.f64le` bytes, and local binary have not been independently retrieved in the assistant environment.
 **Production NAM→CLO is unchanged.** This stage integrates the *public* NAM model
 loader and actual C++ DSP rather than recreating its network classes from PE
 assembly. It does not implement Sonicake's private `startClone`/CLO fitter.
@@ -48,6 +49,16 @@ python research/htkpa/open_nam/GO.py build
 MIT license, wrong Eigen gitlink or incomplete checkout. No automatic network
 clone occurs from `GO.py`; `build` compiles original upstream C++ directly.
 The build produces `htkpa_nam_probe` and a private SHA manifest.
+
+## Operator real source-build + inference checkpoint — 2026-10-20 (Bangkok)
+
+The operator installed CMake **4.2.3** (Ubuntu WSL) with **g++ 15.2.0**, reran `GO.py doctor` successfully and executed `GO.py build`: it emitted a real upstream build manifest, not the synthetic Stage98 test double. The reported `htkpa_nam_probe` SHA-256 is `245ea5a09e53e07606c75cfcde822fad27983319ac4cad9461fab21f3c6cedf0` (build-produced, **not independently rehashed here**). Core revision and Eigen gitlink matched the pinned commits; Stage98 unit tests had passed **10/10** on the operator's WSL.
+
+The operator then invoked `GO.py smoke --model <private Marshall NAM file>` and received `NAM_CORE_UPSTREAM_INFERENCE_COMPLETED`, **8192 input/output frames**, and a nonempty output SHA in the program report. The input and output hashes, local path, model bytes, and per-sample numeric data remain in the **private** handoff, not the public repo. The result reports `comparison_to_vendor: NOT_PERFORMED`, `vendor_numeric_parity_verified: false`, `clo_generated: false`.
+
+**Classification:** operator-reported real compiled upstream inference succeeded. It proves more than Stage98's stub tests, but is **not** independent sample-byte verification, vendor inference numerical equivalence, vendor prewarm/slim behavior, exact DLL upstream version, or a NAM→CLO implementation. No hardware operation was performed.
+
+Next: independently inspect the private manifest/provenance and prepare a *matched-stimulus* comparison at the real model's rate, under explicit slim/prewarm/chunk conditions. Never directly compare a 44.1-kHz stereo Stage97 WAV with the 48-kHz raw mono NAM sample stream without actual conversion/channel alignment.
 
 ## First real NAM inference smoke test (requires completed upstream build)
 

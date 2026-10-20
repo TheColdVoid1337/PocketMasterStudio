@@ -1,6 +1,6 @@
 {
   "stage": 98,
-  "status": "OPEN_NAM_NATIVE_SOURCE_ADAPTER_PREPARED_OFFLINE_TESTED_UPSTREAM_REAL_BUILD_PENDING",
+  "status": "OPERATOR_WSL_REAL_UPSTREAM_BUILD_AND_8192_FRAME_NAM_INFERENCE_REPORTED",
   "date_bangkok": "2026-10-20",
   "architecture": "source-first experimental upstream NAM loader/process C++ adapter",
   "upstream_repo": "https://github.com/sdatkinson/NeuralAmpModelerCore",
@@ -19,5 +19,23 @@
   "stage97_real_audio_directly_compatible": false,
   "r8brain_full_chain_integrated": false,
   "private_assets_in_git": false,
-  "next_gate": "operator WSL pinned upstream checkout, real CMake build, one actual NAM Core smoke inference hash; then compare carefully with control timebase and resampling"
+  "next_gate": "Independently validate operator private provenance/sample hashes if shared, then construct aligned raw NAM vs vendor matched-stimulus numerical comparison with explicit rate/channel/initial-state controls; do not infer CLO fitter parity.",
+  "operator_wsl_checkpoint": {
+    "source": "user-supplied WSL terminal transcript",
+    "confirmation_level": "operator_console_output_only",
+    "date_bangkok": "2026-10-20",
+    "cmake_version": "4.2.3",
+    "gxx_version": "15.2.0",
+    "pinned_source_checkout_verified_by_doctor": true,
+    "operator_unit_tests_passed": 10,
+    "real_upstream_build_reported_success": true,
+    "build_binary_sha256": "245ea5a09e53e07606c75cfcde822fad27983319ac4cad9461fab21f3c6cedf0",
+    "real_model_loading_and_inference_reported_success": true,
+    "smoke_frames": 8192,
+    "reported_output_sha256_retained_private": true,
+    "model_and_raw_f64le_files_independently_inspected": false,
+    "model_sha256_independently_verified": false,
+    "numeric_parity_to_vendor_dll_verified": false,
+    "clo_generated": false
+  }
 }
