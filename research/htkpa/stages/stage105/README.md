@@ -1,6 +1,6 @@
 # Stage105 — source-grounded gain / energy / integer-lag topology of existing outputs
 
-**Status:** `STAGE105_OFFLINE_SOURCE_AUDIT_TESTED_REAL_OPERATOR_PENDING`. This is an **offline-only** diagnostic: it reads the pinned Stage97 original ZIP and existing SHA-gated ignored Stage102–104 outputs and does **not** perform new NAM inference, vendor processing, resampling, audio generation, or CLO fitting.
+**Status:** `STAGE105_OPERATOR_REAL_GAIN_ENERGY_DC_LAG_TOPOLOGY_COMPLETED` (2026-10-20 accepted operator WSL console; see `OPERATOR_RESULT_20261020.md`; private raw data not independently reread). This is an **offline-only** diagnostic: it reads the pinned Stage97 original ZIP and existing SHA-gated ignored Stage102–104 outputs and does **not** perform new NAM inference, vendor processing, resampling, audio generation, or CLO fitting.
 
 ## Why this stage exists
 
@@ -43,3 +43,9 @@ python3 research/htkpa/stages/stage105/GO.py \
 ## Acceptance boundary
 
 Offline synthetic tests are **not** Stage105 real evidence. No vendor NAM buffer identity, closed resampler or FIR fitting equivalence, model byte parity, produced CLO or device readback is claimed; source hash gates can verify only the artifacts they cover. Interpret the first real WSL output before planning further experiments. Do not rerun Stage102–104 or run Frida for this step.
+
+## Accepted operator checkpoint
+
+Stage105 was executed on the operator's original SHA-gated Stage97 ZIP and private Stage102–104 outputs: 11/11 unit tests PASS. Across all six equal-length coarse 48-kHz windows, the best lag among [-4,+4] is **0**; adding fitted DC intercept does not materially remove the approximately 2% normalized residual of early windows. Early four (lower-level candidate DI RMS approx 0.00054–0.00078) account for **99.7483118663%** of the sum of *individually gain-fitted* residual squared energies, although only 17.21% of reference signal squared energy; last two windows have DI RMS approx 0.188–0.394 and residual 0.0402–0.0655%. See `OPERATOR_RESULT_20261020.md` for six exact window results and top five relative 20k bins. No proprietary fitter or vendor resampler equivalence claimed.
+
+**Next:** Stage106 summarizes the existing private Stage105 60-bin metrics, including per-level energy, quantization-unit scale, rank association and adjacent-bin error transitions. It does not access raw audio or rerender NAM. Do not rerun Stage105 against the same output location; its deliberate no-overwrite gate remains in place.
