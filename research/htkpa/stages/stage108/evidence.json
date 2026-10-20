@@ -1,7 +1,7 @@
 {
   "stage": 108,
   "date_bangkok": "2026-10-21",
-  "status": "STAGE108_OFFLINE_PCM16_CANDIDATE_TESTED_OPERATOR_PENDING",
+  "status": "STAGE108_OPERATOR_REAL_FIXED_GAIN_PCM16_COMPARISON_COMPLETED",
   "trigger": "Stage107 operator found +2 signed PCM16 vendor idle floor in all 140k silent-DI frames; 2026-10-21 post-Stage107 operator proved all 3,087,000 original 44.1-kHz float32 DI samples numerically equal to decoded Manager input PCM16/32768",
   "rejected_hypothesis": "DI original float32 vs decoded PCM16 numerical source-sample precision mismatch",
   "input_quantization_identity_verified_44100": true,
@@ -9,11 +9,21 @@
   "native_output_gain_or_quantizer_verified": false,
   "stage102_exact_model_identity_in_manager_verified": false,
   "experiment": "offline compare Stage97 vendor outputFile.wav 48-kHz PCM16 against fixed 0.31 gain on existing SHA-checked Stage102 upstream C++ NAM output f64 then candidate int16 rounding",
-  "candidate_gains": [0.31, 0.3098390026147448],
+  "candidate_gains": [
+    0.31,
+    0.3098390026147448
+  ],
   "global_fitted_gain_is_diagnostic_control_only": true,
-  "candidate_quantizers": ["nearest_even", "nearest_away", "trunc"],
+  "candidate_quantizers": [
+    "nearest_even",
+    "nearest_away",
+    "trunc"
+  ],
   "frames": 1600000,
-  "fit_window": [300000, 1500000],
+  "fit_window": [
+    300000,
+    1500000
+  ],
   "counts_exact_pcm16_matches_and_lsb_error": true,
   "checks_stage107_seven_zero_di_bins": true,
   "offline_synthetic_tests_passed": 16,
@@ -21,5 +31,73 @@
   "no_nam_inference_resampling_or_vendor_dll": true,
   "no_proprietary_fitter_or_clo": true,
   "production_modified": false,
-  "real_operator_stage108_run_performed": false
+  "real_operator_stage108_run_performed": true,
+  "operator_tests_passed": 16,
+  "operator_source": "2026-10-21 user WSL console; assistant source review but not independent raw private audio inspection",
+  "operator_result": {
+    "fixed_gain": 0.31,
+    "baseline_quantization": "nearest_even",
+    "error_sign": "predicted_pcm16_minus_original_manager_pcm16",
+    "fit_full_300k_1500k": {
+      "frames": 1200000,
+      "exact_pcm16_count": 400362,
+      "exact_pcm16_fraction": 0.333635,
+      "within_one_lsb_fraction": 0.5592625,
+      "mean_abs_error_lsb": 3.388025,
+      "mean_signed_error_lsb": 0.43061166666666667,
+      "rms_error_lsb": 6.268795072951952,
+      "max_abs_error_lsb": 78,
+      "clipped_frames": 0
+    },
+    "quiet_early_300k_1100k": {
+      "frames": 800000,
+      "exact_pcm16_count": 152991,
+      "exact_fraction": 0.19123875,
+      "within_one_lsb_fraction": 0.339605,
+      "mean_abs_error_lsb": 4.889345,
+      "mean_signed_error_lsb": 0.4556475,
+      "rms_error_lsb": 7.664186192936599,
+      "max_abs_error_lsb": 78,
+      "clipped_frames": 0
+    },
+    "loud_late_1100k_1500k": {
+      "frames": 400000,
+      "exact_pcm16_count": 247371,
+      "exact_fraction": 0.6184275,
+      "within_one_lsb_fraction": 0.9985775,
+      "mean_abs_error_lsb": 0.385385,
+      "mean_signed_error_lsb": 0.38054,
+      "rms_error_lsb": 0.6433311744350649,
+      "max_abs_error_lsb": 27,
+      "clipped_frames": 0
+    },
+    "silence_seven_20k": {
+      "frames": 140000,
+      "exact_pcm16_count": 140000,
+      "exact_fraction": 1,
+      "within_one_lsb_fraction": 1,
+      "rms_error_lsb": 0
+    },
+    "late_active_excluding_60000_silence": {
+      "frames": 340000,
+      "exact_pcm16_count": 187371,
+      "exact_fraction": 0.5510911764705883
+    },
+    "early_active_excluding_80000_silence": {
+      "frames": 720000,
+      "exact_pcm16_count": 72991,
+      "exact_fraction": 0.10137638888888889
+    },
+    "stage103_fitted_global_gain": 0.3098390026147448,
+    "stage103_fitted_global_gain_fit_exact_fraction": 0.30956833333333333,
+    "quantizer_exact_fit_fraction": {
+      "nearest_even": 0.333635,
+      "nearest_away": 0.333635,
+      "trunc": 0.3275525
+    },
+    "floor_to_negative_infinity_tested": false,
+    "late_predicted_minus_manager_negative_discrepancy_total_abs_lsb_derived": 969,
+    "late_predicted_minus_manager_positive_discrepancy_total_abs_lsb_derived": 153185
+  },
+  "next_gate": "Offline SHA-gated floor-vs-nearest/trunc/ceil candidate PCM16 quantizer with 0.31 on existing Stage102 output vs original Stage97 Manager WAV, excluding seven quiet DI bins and stratifying by sign; no new NAM inference or proprietary code execution."
 }
