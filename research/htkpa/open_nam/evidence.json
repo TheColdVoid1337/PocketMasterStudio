@@ -37,5 +37,12 @@
     "model_sha256_independently_verified": false,
     "numeric_parity_to_vendor_dll_verified": false,
     "clo_generated": false
+  },
+  "stage99_cold_start_source_revision": {
+    "date_bangkok": "2026-10-20",
+    "changes": "NAM Core DspLoadOptions.prewarm propagated at initial load for Stage99; previous operator binary SHA is HISTORICAL",
+    "new_bridge_real_upstream_compilation_reported": false,
+    "stage99_operator_paired_inference_reported": false,
+    "rebuild_required": true
   }
 }

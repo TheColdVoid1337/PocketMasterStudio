@@ -1,0 +1,25 @@
+{
+  "stage": 99,
+  "date_bangkok": "2026-10-20",
+  "status": "STAGE99_MATCHED_RAW_COMPARISON_HARNESS_TESTED_NATIVE_PAIR_PENDING",
+  "comparison": "open NeuralAmpModelerCore vs repository SonicMaster Dart WaveNet",
+  "upstream_nam_pinned_commit": "0b3d3c97b0859a3a8c92a8628c4dd89a25eb5842",
+  "same_input": "8192 raw mono float64 samples at 48000Hz; deterministic Stage98 SHA",
+  "stage98_original_input_sha256": "f54ab8b3d61cd8d36fafa316f6542f18ede669febd88901b7c974b299de7745e",
+  "nominal_controls": {
+    "core_pre_warm_at_load": false,
+    "core_pre_warm_at_reset": false,
+    "core_slim_size_for_container": 1.0,
+    "core_chunk_size_frames": 64,
+    "sonicmaster_inference": "entire 8192-frame input with causal zero-padding",
+    "resampling": "none",
+    "clo_fitting": "none"
+  },
+  "dart_worker_compiled_with_real_compiler": false,
+  "operator_same_input_comparison_performed": false,
+  "synthetic_dsp_tests_are_not_numerical_parity": true,
+  "real_vendor_dll_inference_parity_verified": false,
+  "production_converter_modified": false,
+  "private_model_or_audio_committed": false,
+  "note": "Isolated source-first diagnostic harness only. Real paired sample-level RMS/max error requires Dart SDK compilation and a new operator WSL run."
+}

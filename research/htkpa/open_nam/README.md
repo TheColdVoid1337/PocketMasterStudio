@@ -99,3 +99,8 @@ into `--input-f64le`** and do not infer a sample rate from file names.
    antialiasing 44.1↔48-kHz native chain.
 
 No Ghidra or new Frida capture is necessary for this first source integration.
+
+## Stage99: cold-start comparison revision (2026-10-20)
+
+`htkpa_nam_probe.cpp` now passes the requested `--prewarm on|off` value into upstream `nam::DspLoadOptions` **during get_dsp loading** as well as before `Reset`. This fixes a possible hidden load-time warmup when using `--prewarm off` for the Stage99 matched comparison. The original Stage98 operator real-build/inference checkpoints remain historical records for the *previous* bridge SHA. **Rebuild with `python3 research/htkpa/open_nam/GO.py build` after updating main** to refresh the binary/manifest. No new real upstream compilation was performed by the assistant for this revision; Stage99 tests only verify synthetic stub C++ compilation.
+

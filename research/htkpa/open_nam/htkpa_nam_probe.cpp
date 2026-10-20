@@ -82,7 +82,10 @@ int run(const Options& opts) {
     throw std::runtime_error("input must be nonempty, <=128MiB and f64-aligned");
   const auto frames = file_size / sizeof(double);
   if (fs::exists(opts.output)) throw std::runtime_error("output already exists");
-  auto model = nam::get_dsp(opts.model); // TRUE upstream loader, not hand-parsed JSON.
+  // Suppress NAM Core constructor-time prewarm too for matched cold-start tests.
+  nam::DspLoadOptions load_options;
+  load_options.prewarm = opts.prewarm;
+  auto model = nam::get_dsp(opts.model, load_options); // Real upstream loader.
   if (!model) throw std::runtime_error("NAM Core returned no model");
   if (model->NumInputChannels() != 1 || model->NumOutputChannels() != 1)
     throw std::runtime_error("Stage98 supports mono input and mono output only");

@@ -158,8 +158,10 @@ class Stage98Tests(unittest.TestCase):
                 #include "dsp.h"
                 #include <filesystem>
                 #include <memory>
+                #include <optional>
                 namespace nam {
-                inline std::unique_ptr<DSP> get_dsp(const std::filesystem::path&) {
+                struct DspLoadOptions { std::optional<bool> prewarm; };
+                inline std::unique_ptr<DSP> get_dsp(const std::filesystem::path&, DspLoadOptions) {
                   return std::make_unique<DSP>();
                 } }
             '''))
