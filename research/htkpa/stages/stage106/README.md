@@ -1,6 +1,6 @@
 # Stage106 — Stage105 metrics-only DI-level versus residual association
 
-**Status:** `STAGE106_METRICS_ONLY_DIAGNOSTIC_TESTED_OPERATOR_RUN_PENDING`.
+**Status:** `STAGE106_OPERATOR_REAL_METRICS_ENERGY_ASSOCIATION_COMPLETED` (2026-10-20 operator WSL report; full original private JSON not reread by assistant).
 
 This is a small, **offline-only, metrics-only** follow-up to real Stage105. It consumes the private `stage105_error_topology_private.json` that Stage105 already created. It **does not read original WAV, NAM models, original PCM/f64 samples, resample, render NAM, run Manager/Frida/DLL, generate CLO, or modify production**. The original Stage102–105 reports and audio are left untouched.
 
@@ -41,3 +41,11 @@ Stage106 does not alter `stage105_error_topology_private.json` or any prior outp
 ## Acceptance boundaries
 
 The source code's **12/12 synthetic tests passed locally in the assistant sandbox** before publication. These validate orchestration and formulas, **not real audio results**. No Stage106 operator result is claimed until the operator runs the command and provides its output. The analysis must not be used to infer an actual proprietary DSP switch, resampler identity, fitter reconstruction, valid CLO, or device hardware parity.
+
+## Accepted Stage106 real WSL checkpoint
+
+The operator completed 12/12 tests and `STAGE106_PRIVATE_METRICS_ONLY_ENERGY_ASSOCIATION_COMPLETED` using the original Stage105 metrics-only private JSON. Early four 200k coarse windows contain **99.7483119%** of the summed **independently gain-fitted** residual squared energy, but only **17.2098316%** of Manager WAV reference squared energy. Candidate DI pooled late/early RMS ratio is **431.5479**. Gain-fitted residual absolute RMS is **7.5785 PCM16 steps early** and **0.5384 steps late** (scale descriptions, not proof of quantizer causality).
+
+Fine-bin descriptive Spearman rank correlation (log DI RMS against log relative residual, excluding zero-DI bins): **-0.21730366**, which does not support a strong monotonic level-only explanation. Largest reported adjacent-bin error drop occurs at sample boundary 1,359,999→1,360,000: candidate DI RMS changes from 0.17782119 to 0, while separately fitted relative residuals change from 0.0170668 to 4.58558e-7. **This is a 20k-bin boundary, not evidence of an instantaneous firmware or DSP transition.** We do not yet know the reference/open RMS in the zero-DI bin from the bounded console summary.
+
+Full operator numbers, provenance limits and the next metrics-only inspection appear in `OPERATOR_RESULT_20261020.md`. Stage106 deliberately refuses to overwrite its existing private report. Do not rerun Stage102–106, resampling, Sonicake Manager, the DLL or hardware for this checkpoint.
