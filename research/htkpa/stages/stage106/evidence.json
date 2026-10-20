@@ -1,0 +1,33 @@
+{
+  "stage": 106,
+  "date_bangkok": "2026-10-20",
+  "status": "STAGE106_METRICS_ONLY_DIAGNOSTIC_TESTED_OPERATOR_RUN_PENDING",
+  "purpose": "Group energy and residual statistics and rank association from already generated Stage105 60x20k and 6x200k metrics",
+  "source": "private Stage105 stage105_error_topology_private.json (ignored), stage105 already validated prior SHA-gated Stage102 raw samples",
+  "no_original_waveform_model_or_vendor_dll_read": true,
+  "new_inference_performed": false,
+  "source_stage105_real_operator_run_performed": true,
+  "stage105_evidence": {
+    "offline_tests_passed": 11,
+    "early_first4_fraction_individually_gain_fitted_residual_energy": 0.9974831186627082,
+    "all_six_coarse_integer_best_lag": 0,
+    "dc_fit_did_not_remove_early_2pct_residual": true,
+    "candidate_di_rms_early": [0.0007796187144217288, 0.0007599414511837688, 0.0007525560863888888, 0.000539194047072138],
+    "candidate_di_rms_late": [0.39363222584173707, 0.18770784626849532]
+  },
+  "stage106_expected_windows": {
+    "fine_20k": 60,
+    "coarse_200k": 6,
+    "fit_window_start": 300000,
+    "fit_window_stop_exclusive": 1500000
+  },
+  "read_only_prior_artifacts": true,
+  "fail_on_existing_private_output": true,
+  "offline_synthetic_tests_passed": 12,
+  "actual_stage106_operator_run_performed": false,
+  "actual_proprietary_resampler_parity_proven": false,
+  "actual_vendor_model_identity_proven": false,
+  "actual_vendor_NAM_fitter_parity_proven": false,
+  "real_CLO_generated": false,
+  "production_modified": false
+}
