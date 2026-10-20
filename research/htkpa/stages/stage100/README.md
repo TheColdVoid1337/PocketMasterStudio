@@ -1,6 +1,6 @@
 # Stage100 — source-first signal-level × chunk-boundary sweep
 
-**Status:** `STAGE100_CONTROLLED_LEVEL_AND_CHUNK_SWEEP_HARNESS_TESTED_OPERATOR_RUN_PENDING`.
+**Status:** `STAGE100_OPERATOR_REAL_4_LEVEL_3_BLOCK_SWEEP_REPORTED` (full public results in `OPERATOR_RESULT_20261020.md`; evidence is WSL transcript, not independently rehashed output samples).
 No vendor DLL, CLO fitter, browser production or actual hardware is accessed.
 
 ## Why

@@ -1,22 +1,79 @@
 {
   "stage": 100,
-  "status": "STAGE100_CONTROLLED_LEVEL_AND_CHUNK_SWEEP_HARNESS_TESTED_OPERATOR_RUN_PENDING",
+  "status": "STAGE100_OPERATOR_REAL_4_LEVEL_3_BLOCK_SWEEP_REPORTED",
   "date_bangkok": "2026-10-20",
   "upstream_core": "NeuralAmpModelerCore pinned original C++ through Stage98",
   "sonicmaster": "real Stage99 diagnostic-only compiled existing Dart WaveNet",
   "purpose": "Characterize numeric error across signed input amplitudes and NAM Core streaming chunks for same private model and deterministic 8192-frame 48kHz mono float64 stimulus",
-  "levels": {"quiet": 0.1, "reference": 1.0, "drive": 2.0, "inverted": -1.0},
-  "core_block_sizes": [16, 64, 1024],
+  "levels": {
+    "quiet": 0.1,
+    "reference": 1,
+    "drive": 2,
+    "inverted": -1
+  },
+  "core_block_sizes": [
+    16,
+    64,
+    1024
+  ],
   "planned_core_runs": 12,
   "planned_sonicmaster_runs": 4,
   "prewarm": "off at NAM Core load/reset",
-  "slimmable_selection": 1.0,
+  "slimmable_selection": 1,
   "same_stimulus": "Stage99 SHA-pinned base f64le, scaled without resampling or trimming",
-  "real_operator_sweep_performed": false,
+  "real_operator_sweep_performed": true,
   "tests_do_not_prove_dsp_parity": true,
   "vendor_dll_parity_verified": false,
   "clo_generated": false,
   "production_converter_modified": false,
   "private_audio_and_model_publication": false,
-  "next_gate": "Operator WSL doctor/run Stage100, report per-level per-block RMS/max and chunk invariance; inspect results before drawing generalized conclusions"
+  "next_gate": "Source-first inference numerically close under expanded levels; focus on reconstructing proprietary Sonicake fitter/output boundary with real Stage97 CLO, avoiding unjustified claims of DLL parity. Consider independent private sweep JSON audit before generalizing.",
+  "operator_evidence_type": "operator-provided WSL terminal output; private sweep_private.json and raw samples not independently read",
+  "operator_tests_passed": 10,
+  "operator_sweep_status": "STAGE100_OPERATOR_REAL_SWEEP_COMPLETED",
+  "operator_core_runs": 12,
+  "operator_sonicmaster_runs": 4,
+  "operator_invariance": {
+    "tested_block_sizes": [
+      16,
+      64,
+      1024
+    ],
+    "all_tested_levels_bitwise_identical": true,
+    "scope": "one private NAM model, 8192 frames, sample rate 48000, 4 input scales, prewarm off; not general"
+  },
+  "operator_measurements": [
+    {
+      "condition": "quiet",
+      "scale": 0.1,
+      "rms_error": 9.24405732487544e-8,
+      "max_abs_error": 5.345279714477624e-7,
+      "normalized_rms_error": 0.0000014781159732665519
+    },
+    {
+      "condition": "reference",
+      "scale": 1,
+      "rms_error": 2.2696525484244864e-8,
+      "max_abs_error": 1.5437486166475223e-7,
+      "normalized_rms_error": 2.733829451264937e-7
+    },
+    {
+      "condition": "drive",
+      "scale": 2,
+      "rms_error": 1.8114593070778437e-8,
+      "max_abs_error": 1.1096097663962357e-7,
+      "normalized_rms_error": 2.1906187782405867e-7
+    },
+    {
+      "condition": "inverted",
+      "scale": -1,
+      "rms_error": 2.5451845213138856e-8,
+      "max_abs_error": 2.740991543251359e-7,
+      "normalized_rms_error": 3.0680222642866394e-7
+    }
+  ],
+  "operator_binary_sha256": "ddcb3880286b7457896032309930d1385c4391c93dde3188d991f77beae07dad",
+  "operator_worker_sha256": "a72b0abead39288f60c1ab4723d7b2c5b0f4e5e6e4a8b221e2cf60e9be04c0f7",
+  "private_report_uploaded_in_re_htkpa": "HTKPA_STAGE100_PRIVATE_OPERATOR_SWEEP_SUMMARY_20261020.json",
+  "private_report_contains_original_raw_sample_hashes": false
 }
