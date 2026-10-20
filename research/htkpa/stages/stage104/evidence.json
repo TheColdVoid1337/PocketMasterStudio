@@ -1,0 +1,21 @@
+{
+  "stage": 104,
+  "date_bangkok": "2026-10-20",
+  "status": "STAGE104_OFFLINE_PREWARM_LOCALIZER_TESTED_OPERATOR_RUN_PENDING",
+  "basis": {
+    "stage102": "real operator 1.6M-frame open NAM Core vs 48k Manager WAV; candidate resampler not vendor-verified",
+    "stage103": "operator-reported gain 0.3098390026147448; gain spread 0.3063457959701221%; ON/OFF raw output SHA not identical"
+  },
+  "source_data": "original ignored Stage102 two C++ f64le output files; SHA-pinned by Stage102 and checked against Stage103",
+  "windows": ["0:300000", "six fit-window 200000-frame blocks", "300000:1500000", "1500000:1600000", "0:1600000"],
+  "calculations": ["exact per-f64 bitwise inequality count", "first/last nonidentical index", "RMS and max absolute ON-OFF difference", "signed-zero numerical-equal yet bitwise-unequal count"],
+  "synthetic_tests_passed": 11,
+  "original_vendor_WAV_CLO_or_NAM_committed": false,
+  "new_inference_performed": false,
+  "production_modified": false,
+  "vendor_model_identity_verified": false,
+  "vendor_resampler_parity_verified": false,
+  "vendor_NAM_numeric_parity_verified": false,
+  "vendor_fitter_parity_verified": false,
+  "real_operator_stage104_run_performed": false
+}
