@@ -1,23 +1,23 @@
 # Development handoffs — current entry points
 
-## HTKPA / Sonicake Manager NAM→CLO reverse engineering
+## Current authoritative new-chat handoff (2026-10-21)
 
-**Canonical new-chat continuation (14 October 2026):** [POCKET_MASTER / HTKPA Chat Rollover 2026-10-14](HTKPA_CHAT_ROLLOVER_2026-10-14.md).
+**PocketMasterStudio / HTKPA:** [`HTKPA_HANDOFF_STAGE109_20261021.json`](HTKPA_HANDOFF_STAGE109_20261021.json) — the current **machine-readable** handoff for the Sonicake Manager NAM→CLO investigation. This is the required bootstrap entry for the next chat, together with **live** GitHub `main`, the tail of [`research/htkpa/RE_LOG.md`](../../research/htkpa/RE_LOG.md), [Stage108](../../research/htkpa/stages/stage108/README.md) and [Stage109](../../research/htkpa/stages/stage109/README.md).
 
-This file is the **current continuation contract** for the project, including exact WSL and Windows paths, original DLL SHA/RVAs, Stage38–48 numerical evidence, the single universal Frida framework, accepted `METADATA_GUARD_PASS_CLO_STABLE` plus `LIFECYCLE_SMOKE_CLOSED_GRACEFULLY`, current privacy rules, a locally packaged private ZIP, and the **Stage49 pending** research plan.
+**Checkpoint:** Stage108 is complete; a read-only, real operator floor-quantizer follow-up established **335248/340000 (98.60235%) exact PCM16** on later **active** frames using `floor(0.31 * open_NAM_f64 * 32768)`, but only ~10.49% exact on early active frames. The separate Stage109 source/tests **15/15 pass on synthetic fixtures**, while **real Stage109 WSL run remains PENDING** as of the handoff. Do not claim proprietary Sonicake quantizer, model, resampler, fitter or hardware parity.
 
-Read the canonical handoff **before** old root-level dated files, especially `docs/HTKPA_CANONICAL_HANDOFF_2026-10-13.md` (historical Stage24B), `docs/NAM_CLO_HTKPA_RESEARCH_STATUS_2026-10-13.md` (historical Stage23O), and `docs/POCKET_MASTER_HTKPA_HANDOFF_2026-10-12.md` (old Stage22/23).
+**Canonical private Drive:** [`RE_HTKPA`](https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK). The original Stage97 ZIP, NAM model, vendor Manager archives, private historical backups and Stage109 tools ZIP have already been listed and verified there. The ignored workstation `research/_LOCAL_FILES/stage102/` numerical outputs/reports are not assumed available in the assistant's cloud sandbox. Do not upload private model/WAV/CLO/vendor captures or their identifying raw hashes to GitHub.
 
-Canonical evidence and workflow:
-- [Append-only chronological RE log](../../research/htkpa/RE_LOG.md) — read the tail.
-- [Stage48 measured runtime](../../research/htkpa/stages/stage48/README.md) / [Stage48 evidence](../../research/htkpa/stages/stage48/evidence.json).
-- [Universal Frida contract](../../tools/FRIDA.md) — future stages use shared `/tools` and stage-local JSON.
-- [Repository product README](../../README.md) — production Studio and HTKPA scope boundary.
+**Current operator WSL checkout:** `/mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod`. Use `source .venv/bin/activate`, `git pull --ff-only origin main`, targeted `python3 -m unittest discover -s tools -p 'test_htkpa_stage109.py' -q`. The canonical Stage109 command is in its README. Do not rerun Stage102–108 or overwrite their private reports.
 
-## Privacy / local evidence
+## Prior historical handoffs — read for history, not as current stages
 
-The handoff references **`POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_2026-10-14.zip`**, a separately generated **LOCAL-ONLY** private archive distributed in the originating ChatGPT conversation (31 user-provided evidence files plus two internal index/readme files; SHA-256 `5e363d0f9ac03388cf19f395a7d4f7fe50b6885e5802d5b7d8cb9f0a6ff161ec`). It includes the original private vendor DLL and captures and **must never be uploaded or committed to GitHub**. To use those originals in a new chat, the user must attach the ZIP separately. Public GitHub handoff does not contain private samples or the DLL.
+- [`HTKPA_HANDOFF_AFTER_STAGE91_20261017.md`](HTKPA_HANDOFF_AFTER_STAGE91_20261017.md) — extensive tooling, private/local Windows paths, provenance discipline and stage history through Stage91.
+- [`HTKPA_CHAT_ROLLOVER_2026-10-14.md`](HTKPA_CHAT_ROLLOVER_2026-10-14.md) — historical Stage48/49 rollover and universal Frida architecture.
+- [`HTKPA_PUBLIC_SOURCE_CANDIDATES_20261019.md`](HTKPA_PUBLIC_SOURCE_CANDIDATES_20261019.md) — open-source candidate provenance.
+- [`tools/FRIDA.md`](../../tools/FRIDA.md) — universal Frida runner and safety protocol (only for specifically warranted future native captures).
+- [Product README](../../README.md) — production Studio scope and usage.
 
-## Workflow rule
+**Rules:** stage-local `README.md`, `evidence.json`, auditor, tests; append-only `RE_LOG.md`; strict distinction real vendor observation / open public numeric match / fitted diagnostic / hypothesis; no unsolicited Codex or production refactor. Direct GitHub/Drive writes are authorized until the operator revokes them, subject to connector permissions. Reply in Russian and give one paste-ready WSL **Bash** code block per operator step.
 
-Current HTKPA research progresses stage by stage, with evidence in `research/htkpa/stages/stageNN/`, append-only `RE_LOG.md` and universally reusable code in `tools/`. The last confirmed stage is **Stage48**. The next planned stage is **Stage49** (native post-fractional **audio sample** observation, not yet implemented). All source data and acceptance conditions are distinguished in the full handoff.
+The 2026-10-14 handoff is **not current** despite older headings which once called it canonical.
