@@ -1,0 +1,29 @@
+{
+  "stage": 114,
+  "date_bangkok": "2026-10-21",
+  "status": "STAGE114_EXISTING_NATIVE_TRACE_PROVENANCE_GAP_CONFIRMED",
+  "evidence_type": "real original SHA-pinned Stage96 archive structure reinspection and Stage113 public provenance cross-check",
+  "real_original_archive_inspected": true,
+  "original_archive_hash_gate_pass": true,
+  "loaded_original_dll_hash_gate_pass": true,
+  "archive_allowlisted_members": 4,
+  "real_trace_event_counts": {
+    "module_loaded": 1,
+    "hook_attached": 8,
+    "ready": 1,
+    "trace_enter": 10,
+    "trace_leave": 10
+  },
+  "real_trace_enter_leave_ids_paired": true,
+  "original_capture_contains_audio_samples": false,
+  "original_capture_contains_verified_vendor_pre_nam_input_buffer": false,
+  "stage113_signal_is_open_resampler_candidate": true,
+  "vendor_pre_nam_48000_buffer_or_numeric_parity_verified": false,
+  "stage96_original_stack_path": "Previously established in Stage96, not rederived from original PE by Stage114",
+  "synthetic_tests_passed_local": 15,
+  "no_vendor_runtime_action": true,
+  "no_new_frida_capture": true,
+  "proprietary_model_fitter_quantizer_clo_device_parity_verified": false,
+  "full_private_report": "RE_HTKPA/HTKPA_STAGE114_NATIVE_INPUT_PROVENANCE_GAP_PRIVATE_20261021.json (local created, upload pending)",
+  "next_gate": "Verify exact original PE ABI and pre-NAM buffer handoff before proposing new guarded metadata-only Frida probe; previous capture alone is insufficient."
+}
