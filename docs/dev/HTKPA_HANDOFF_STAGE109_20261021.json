@@ -1,0 +1,426 @@
+{
+  "schema": "POCKET_MASTER_HTKPA_CHAT_HANDOFF",
+  "schema_version": "1.0.0",
+  "created_at_local": "2026-10-21",
+  "timezone": "Asia/Bangkok",
+  "language": "ru",
+  "handoff_type": "AUTHORITATIVE_NEW_CHAT_CONTINUATION",
+  "canonical_github_url": "https://github.com/TheColdVoid1337/PocketMasterStudio/blob/main/docs/dev/HTKPA_HANDOFF_STAGE109_20261021.json",
+  "self_path_in_repo": "docs/dev/HTKPA_HANDOFF_STAGE109_20261021.json",
+  "provenance": {
+    "checkpoint": "After genuine Stage108 offline floor follow-up and published Stage109 source/test gate; user has NOT supplied a real Stage109 operator run",
+    "live_github_checked_before_creation": "8024e0183f08374affdcb8fefb255d42ca53b27c",
+    "head_rule": "Always query current main HEAD via live GitHub connector; this JSON has an immutable pre-publication head, not an implied frozen future head. Newer verified commits/RE_LOG supersede stale checkpoints.",
+    "evidence_class": "User WSL terminal reports corroborated by published source/test/report records; assistant does NOT have private WSL output bytes and should not pretend independent rehash",
+    "primary_public_ledger": "research/htkpa/RE_LOG.md",
+    "primary_current_stage": "research/htkpa/stages/stage109/",
+    "prior_context": [
+      "docs/dev/HTKPA_HANDOFF_AFTER_STAGE91_20261017.md",
+      "docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md",
+      "docs/dev/HTKPA_PUBLIC_SOURCE_CANDIDATES_20261019.md",
+      "docs/dev/README.md"
+    ]
+  },
+  "task_identity": {
+    "project": "POCKET_MASTER / PocketMasterStudio",
+    "github_repo": "TheColdVoid1337/PocketMasterStudio",
+    "github_branch": "main",
+    "central_goal": "Reverse-engineer original Sonicake Manager HTKPA / proprietary 5868USB.dll NAM→CLO conversion. Distinguish real native evidence from open-source model and candidate DSP; eventually independently reproduce correct CLO without inventing proprietary internals.",
+    "active_track": "Stage97 authentic Manager export audio vs SonicMaster DI + open upstream NeuralAmpModelerCore, through Stage108; Stage109 floor residual localization is NEXT REAL OPERATOR GATE",
+    "out_of_scope_without_request": [
+      "production PocketMasterStudio converter rewrites",
+      "generating a CLO claiming parity",
+      "device I/O or Windows proprietary DLL execution",
+      "Codex task delegation",
+      "repeating accepted already-completed stages"
+    ]
+  },
+  "access_and_authorizations": {
+    "github": "User explicitly authorized direct GitHub writes until explicit #nowritegh; this authorization is still active in this context; check new instructions if any.",
+    "drive": "Private Google Drive RE_HTKPA used and previously authorized; act only through connected Google Drive, obey actual permissions.",
+    "external_write_rule": "Make warranted public-safe source/doc/test commits directly with GitHub connector and report exact commit SHA. Do not claim a file written until verifying by fetch.",
+    "codex": "Do not suggest/use Codex unless user explicitly requests it. Engineer directly with connectors and restored Python/container execution.",
+    "original_vendor_data": "Never write proprietary vendor DLL, NAM, CLO, WAV, raw Frida heap/capture, model bytes, identifying model/output hashes or private reports to public GitHub. Do not include raw private data in git commit messages or handoff JSON.",
+    "operator_local_wsl": "Assistant cloud sandbox and user WSL are SEPARATE. User WSL has F: drive local sources. Do not state cloud can open these unless attachment/mount explicitly verified.",
+    "safety": "Read proprietary DLL or model only as inert data unless user explicitly directs native execution; no Frida capture by default."
+  },
+  "all_paths": {
+    "wsl_repo_root": "/mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod",
+    "windows_repo_root": "F:\\PocketMasterStudio\\PocketMasterStudio_Void_mod",
+    "wsl_venv_activate": "source .venv/bin/activate",
+    "user_platform": "Windows x64, WSL Ubuntu, Python venv; Dart installed in Stage102 experiment; original Manager Windows GUI on user machine",
+    "cloud_workspace_recommendation": "/mnt/data/pocketmaster_htkpa_handoff_work",
+    "ignored_private_root": "research/_LOCAL_FILES/",
+    "original_vendor_capture_zip": "research/_LOCAL_FILES/CLO_10-19-26-0253.zip",
+    "original_zip_members": {
+      "input_wav": "wavs/nam_input_wav.wav",
+      "output_wav": "wavs/outputFile.wav",
+      "authentic_clo": "One original 8840-byte CLO inside original ZIP; validate actual member name from Stage102 authentic_wavs/ZIP, do not guess"
+    },
+    "private_nam_model": "research/_LOCAL_FILES/models/JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+    "private_run_dir": "research/_LOCAL_FILES/stage102/29abbdbf982ee64b_stage102_open_sonicmaster_di_resample_v1",
+    "private_reports_under_run_dir": {
+      "stage102": "comparison_private.json",
+      "stage103": "stage103_gain_audit_private.json",
+      "stage104": "stage104_prewarm_diff_private.json",
+      "stage105": "stage105_error_topology_private.json",
+      "stage106": "stage106_metrics_audit_private.json",
+      "stage107": "stage107_silence_floor_private.json",
+      "stage108": "stage108_fixed_gain_pcm16_private.json",
+      "stage109_pending": "stage109_floor_residual_topology_private.json"
+    },
+    "stage102_raw_open_output": "open_nam_prewarm_off.f64le",
+    "stage102_raw_open_prewarm_on": "open_nam_prewarm_on.f64le",
+    "stage102_raw_candidate_resampled_input": "open_source_resampled_input_48000.f64le",
+    "public_reference_di": "src/assets/nam_reference_di_44100.f32.gz",
+    "public_sonicmaster_dsp": "tools/nam_js/clo_dsp.dart",
+    "open_upstream_nam_runner": "research/htkpa/open_nam/GO.py",
+    "open_upstream_nam_checkout": "research/_LOCAL_FILES/public_sources/NeuralAmpModelerCore",
+    "open_nam_native_build_private": "research/_LOCAL_FILES/nam_core_stage98_build",
+    "native_dll_private": "research/_LOCAL_FILES/vendor/5868USB.dll",
+    "frida_private_capture_root": "research/_LOCAL_FILES/frida_captures/",
+    "private_research_run_archives": "research/_LOCAL_FILES/research_runs/",
+    "windows_manager_exe": "C:\\Program Files\\Sonicake\\Sonicake Manager\\Sonicake Manager.exe",
+    "windows_clo_watching": "C:\\Users\\TheColdVoid\\AppData\\Roaming\\Sonicake\\Sonicake Manager\\clo\\clofile.clo",
+    "installed_vendor_input_wav_on_windows_wsl": "/mnt/c/Program Files/Sonicake/Sonicake Manager/data/flutter_assets/assets/wavs/nam_input_wav.wav",
+    "frida_universal_runner": "tools/FRIDA_WSL.sh",
+    "frida_universal_sources": [
+      "tools/frida_capture.py",
+      "tools/frida_guarded.py",
+      "tools/FRIDA.md",
+      "tools/research_run.py"
+    ],
+    "tests_pattern": "tools/test_htkpa_stageNNN.py",
+    "stage_docs_pattern": "research/htkpa/stages/stageNNN/{README.md,evidence.json,GO.py,OPERATOR_RESULT...}",
+    "historical_ghidra": "Ghidra Headless 12.1.4 for original vendor PE offline static analysis; archives backed up in private Drive"
+  },
+  "private_google_drive": {
+    "canonical_folder_name": "RE_HTKPA",
+    "folder_id": "1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+    "folder_url": "https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+    "legacy_folder_id_do_not_write": "1XeFLIwwHDXPmA74m0ttcHGgCQJG6BS0E",
+    "last_verified_inventory_date": "2026-10-21",
+    "last_verified_folder_item_count": 90,
+    "key_existing_items": [
+      {
+        "name": "CLO_10-19-26-0253.zip",
+        "id": "1P5m7kGb7N1gBYwJsoQLcNa0P2aiD33lo",
+        "purpose": "Genuine Stage97 vendor ZIP with NAM/CLO/WAV export; private; do not publish raw contents"
+      },
+      {
+        "name": "JCM800 2203_4x12 Marshall_CRUNCH_SM57.nam",
+        "id": "11TLcyp58tH9fjRU18M3tLpKVysnxWmZe",
+        "purpose": "Original NAM used by operator local experiment; private"
+      },
+      {
+        "name": "HTKPA_STAGE109_FLOOR_TOPOLOGY_TOOLS_20261021.zip",
+        "id": "1AHuILp-Hw1TMkcFDlfr5HAJIBLCff8Zn",
+        "purpose": "Current Stage109 source/test backup; GitHub has all public source; download only if necessary"
+      },
+      {
+        "name": "HTKPA_STAGE108_FLOOR_TO_STAGE109_CHECKPOINT_20261021.json",
+        "id": "109_74vl-aGkGDzSnfr4yL5sLRkYkWuzM",
+        "purpose": "Private sanitized Stage108 floor-to-Stage109 checkpoint; existing"
+      },
+      {
+        "name": "HTKPA_STAGE108_OPERATOR_CHECKPOINT_20261021.json",
+        "id": "13JNaTdbZw4th16MjERwkbuMluB9hBAwu",
+        "purpose": "Earlier Stage108 PCM16 experiment sanitized summary"
+      },
+      {
+        "name": "HTKPA_STAGE107_OPERATOR_SILENCE_FLOOR_20261021.json",
+        "id": "1cVlYggfERRqICgQxNpiCygXZIlB5GbnY",
+        "purpose": "Stage107 constant +2 PCM16 silence summary"
+      },
+      {
+        "name": "HTKPA_STAGE106_OPERATOR_CHECKPOINT_20261020.json",
+        "id": "1SLhn3lV8RkxcPkjzV2esmZWUt4LPd_2J",
+        "purpose": "Stage106 analysis checkpoint"
+      },
+      {
+        "name": "HTKPA_STAGE102_OPERATOR_REAL_NAM_OUTPUT_20261020.json",
+        "id": "1Fe_q7WU1Jbs9Rqty70vsuQUtcOz29sFL",
+        "purpose": "Stage102 sanitized real WSL result"
+      },
+      {
+        "name": "Sonicake Manager.zip",
+        "id": "1e7cHGHkAf0hArJPZXkvapEve4ALGq5iM",
+        "purpose": "Private vendor installer/assets, already backed up"
+      },
+      {
+        "name": "Sonicake Manager Files.zip",
+        "id": "1GdhDa_THBEaUCluJq7eoG68syFUI8mNt",
+        "purpose": "Private vendor assets, already backed up"
+      },
+      {
+        "name": "Sonicake_Manager_Version_History.zip",
+        "id": "1__P8QuTzciEiEJCMrETbrRHh_MQD4R4L",
+        "purpose": "Version history backup"
+      },
+      {
+        "name": "HTKPA_CORE_20261016_012322.zip",
+        "id": "1eWgUMMfPu5IehfvkkTkZaVoF-1eHkDpM",
+        "purpose": "Historical broad private core research backup"
+      },
+      {
+        "name": "HTKPA_HISTORY_20261016_012322.zip",
+        "id": "1LsRixBa4Lz87wJL6kPNJenFe2FP-DB_g",
+        "purpose": "Historical private history backup"
+      }
+    ],
+    "additional_existing": "Other stage-specific backups (80–108), vendor archives, Ghidra split ZIP parts, previous handoffs and summaries are in same folder; list live rather than hardcoding all 90",
+    "private_artifacts_not_known_to_be_on_drive": [
+      "Full local Stage102 1.6M-frame per-condition f64le audio and candidate DI",
+      "Full local Stage102–108 comparison_private.json / gain and error topology private JSON reports",
+      "Future Stage109 actual private output report, if operator executes it"
+    ],
+    "duplication_decision": "NO NEW PRIVACY ZIP NECESSARY FOR THIS ROLLOVER: public source, stage audits and tests are in GitHub; original vendor ZIP, NAM, Manager archives and Stage109 tools backup are already in Drive; full local numeric reports remain available to operator in original WSL workstation and cannot be read from assistant cloud. If user wants off-machine raw numerical archive, ask them to provide/local-backup it rather than implying it has been uploaded.",
+    "optional_fallback_stage109_zip_url": "https://drive.google.com/file/d/1AHuILp-Hw1TMkcFDlfr5HAJIBLCff8Zn/view"
+  },
+  "verified_chronology": {
+    "early_native_stages": {
+      "stages": "1–97 documented in RE_LOG with detailed native Frida/Ghidra, WAV resampler, portable DSP, vendor fitter static probes",
+      "reference_handoffs": [
+        "docs/dev/HTKPA_CHAT_ROLLOVER_2026-10-14.md",
+        "docs/dev/HTKPA_HANDOFF_AFTER_STAGE91_20261017.md"
+      ],
+      "stage89_note": "Manager failure operator-reported; no proven exception type or crash WER code. Do not distort.",
+      "stage90_to91_note": "Distinguish real same-run native Frida hooks, static callers and inferred paths. Do not infer a call chain from static graph alone.",
+      "stage97_original_sample": "One genuine Manager export ZIP, original 44.1k PCM16 stereo duplicated input WAV (3,087,000 frames) and 48k PCM16 stereo duplicated output WAV (3,360,000 frames), 70 seconds each; original CLO 8,840 bytes. Exact ZIP is pinned by public Stage102 code."
+    },
+    "stage98": {
+      "status": "PASS open upstream pinned NeuralAmpModelerCore C++ runner",
+      "source_pin": "0b3d3c97b0859a3a8c92a8628c4dd89a25eb5842",
+      "model_config": "slim=1.0, sample rate 48k, prewarm on/off, native f64le outputs; private build",
+      "vendor_parity_verified": false
+    },
+    "stages99_100": {
+      "status": "PASS open SonicMaster Dart Wavenet numeric comparison vs pinned open NAM Core at several levels and block sizes",
+      "crucial_limit": "Proves open-to-open candidate comparison only, not proprietary Sonicake native inference."
+    },
+    "stage101": {
+      "status": "PASS real original Manager 44.1k PCM16 DI matches public source DI after quantization, all 3,087,000 frames",
+      "followup_stage107": "Additional full-length operator audit proved float32 DI == decoded signed PCM16/32768 EXACTLY on all 3,087,000 frames; there is no original-source-sample precision gap."
+    },
+    "stage102": {
+      "status": "STAGE102_OPERATOR_REAL_CANDIDATE_NAM_OUTPUT_COMPARISON_COMPLETED",
+      "input": "Open SonicMaster source-exact Dart Blackman-sinc 44.1k→48k candidate, not verified vendor resampler",
+      "output": "Pinned open NAM C++ inference first 1,600,000 f64 frames, open prewarm OFF and ON",
+      "target": "Original Manager 48k PCM16 WAV first 1,600,000 frames",
+      "fit_window": [
+        300000,
+        1500000
+      ],
+      "unadjusted_rms_error": 0.049276130906865154,
+      "manager_rms": 0.02212254891326,
+      "open_rms": 0.07139748826850241,
+      "zero_lag_cosine": 0.9999628271157859,
+      "vendor_resampler_or_nam_parity_verified": false
+    },
+    "stage103": {
+      "status": "STAGE103_OFFLINE_GAIN_WINDOW_DIAGNOSTIC_COMPLETED",
+      "whole_fit_diagnostic_open_to_manager_gain": 0.3098390026147448,
+      "after_gain_rms": 0.0001907476759617998,
+      "after_gain_normalized_rms": 0.008622319096669185,
+      "early_four_200k_gains_approx": "0.309055–0.309094; per-window 2.0–2.1% residual",
+      "later_two_200k_gains_approx": "0.310000; per-window 0.04–0.07% residual",
+      "prewarm_same_full_1600000_raw": false
+    },
+    "stage104": {
+      "status": "STAGE104_OFFLINE_PREWARM_DIFFERENCE_LOCALIZED",
+      "differing_64bit_words": 5485,
+      "first_different_index": 0,
+      "last_different_index": 5983,
+      "entire_fit_300k_to_1500k_bitwise_equal": true,
+      "interpretation": "Open Core prewarm only affects initial transient for this particular input/model, not fitter mismatch. Not proof of proprietary Manager behavior."
+    },
+    "stage105": {
+      "status": "STAGE105_OFFLINE_GAIN_ENERGY_LAG_TOPOLOGY_COMPLETED",
+      "tests_passed": 11,
+      "six_coarse_lag_best": 0,
+      "integer_lag_scan": [
+        -4,
+        4
+      ],
+      "gain_plus_dc_unable_to_eliminate_early_two_percent_error": true,
+      "source_candidate_di_rms_early": "~0.00054–0.00078",
+      "source_candidate_di_rms_late": "~0.188–0.394"
+    },
+    "stage106": {
+      "status": "STAGE106_PRIVATE_METRICS_ONLY_ENERGY_ASSOCIATION_COMPLETED",
+      "tests_passed": 12,
+      "early_four_fraction_individually_gain_fitted_residual_energy": 0.9974831186627082,
+      "early_four_fraction_reference_energy": 0.17209831560716993,
+      "late_to_early_di_rms_ratio": 431.5479130738116,
+      "spearman_di_rms_vs_relative_error_nonzero_di_20k": -0.2173036606998871,
+      "interpretation": "Weak monotonic association; dramatic relative-error bin drop at 1,360,000 coincides with zero DI, not proof of proprietary mode switching."
+    },
+    "stage107": {
+      "status": "STAGE107_SHA_GATED_SILENCE_FLOOR_INSPECTION_COMPLETED",
+      "tests_passed": 13,
+      "seven_zero_di_bin_starts": [
+        1020000,
+        1040000,
+        1060000,
+        1080000,
+        1360000,
+        1380000,
+        1400000
+      ],
+      "samples_per_bin": 20000,
+      "vendor_pcm16_value_all_140k": 2,
+      "vendor_pcm16_std": 0,
+      "open_core_idle_f64_mean": 0.00020439285435713828,
+      "open_core_idle_f64_std_reported": 9.374415623260666e-11,
+      "fixed_0p31_matches_all_vendor_idle_pcm16": true,
+      "post_stage107_input_f32_vs_pcm16_identity": "All 3,087,000 source 44.1k f32 samples numerically identical to Manager WAV PCM16/32768; exact fraction 1.0, RMS difference 0.",
+      "source_precision_mismatch_hypothesis": "REJECTED"
+    },
+    "stage108": {
+      "status": "STAGE108_OFFLINE_FIXED_GAIN_PCM16_OUTPUT_TEST_COMPLETED",
+      "tests_passed": 16,
+      "candidate_formula_nearest_even": "clip_s16(round_nearest_even(0.31 * open_nam_f64 * 32768.0))",
+      "fitter_window_frames": 1200000,
+      "fitter_nearest_exact_count": 400362,
+      "fitter_nearest_exact_fraction": 0.333635,
+      "early_frames_including_idle": 800000,
+      "early_nearest_exact_fraction_including_idle": 0.19123875,
+      "early_active_exact_nearest": "72,991/720,000 = 10.13764%",
+      "late_nearest_exact_fraction_including_idle": 0.6184275,
+      "late_active_exact_nearest": "187,371/340,000 = 55.10912%",
+      "seven_zero_di_nearest_exact": "140,000/140,000",
+      "global_stage103_fitted_gain_exact_fraction_control": 0.30956833333333333,
+      "nearest_even_and_nearest_away_tie_comparison": "Both 0.333635 fitter exact; no tie convention proven",
+      "floor_followup_real_user": {
+        "evidence_path": "research/htkpa/stages/stage108/OPERATOR_FLOOR_FOLLOWUP_20261021.md",
+        "origin": "Read-only WSL inline Python after Stage108, not a real Stage109 run",
+        "predicted_minus_vendor_error_sign": true,
+        "formula": "floor(0.31 * open_core_f64 * 32768.0) then clamp to signed PCM16",
+        "late_active_frames": 340000,
+        "late_floor_exact_count": 335248,
+        "late_floor_exact_fraction": 0.9860235294117647,
+        "late_nearest_exact_count": 187371,
+        "late_nearest_exact_fraction": 0.5510911764705883,
+        "late_floor_within_one_lsb_fraction": 0.9986412,
+        "late_floor_error_rms_lsb": 0.2237,
+        "late_floor_mean_signed_error_lsb": 0.00022,
+        "late_floor_positive_exact_fraction": 0.9880081,
+        "late_floor_negative_exact_fraction": 0.983761,
+        "late_floor_mismatch_count": 4752,
+        "late_floor_histogram_prefix": {
+          "0": 335248,
+          "1": 2195,
+          "2": 90,
+          "-1": 2095,
+          "-2": 102
+        },
+        "early_active_floor_exact_fraction": 0.1048958,
+        "early_active_floor_rms_error_lsb": 8.06338,
+        "result": "FLOOR candidate strongly matches later active Manager PCM16, but poor early active parity persists. Vendor output quantizer/gain NOT proven."
+      }
+    },
+    "stage109": {
+      "status": "STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING",
+      "prepared_paths": [
+        "research/htkpa/stages/stage109/GO.py",
+        "research/htkpa/stages/stage109/README.md",
+        "research/htkpa/stages/stage109/evidence.json",
+        "tools/test_htkpa_stage109.py"
+      ],
+      "synthetic_tests_passed": 15,
+      "real_operator_stage109_run_performed": false,
+      "goal": "SHA-gated offline: find location and sign pattern of remaining 4,752 late active floor PCM16 mismatches across 20k windows and quantify early active mismatch; exact floor versus nearest baseline, no re-inference.",
+      "inputs": "Existing local Stage108 private report and original Stage97 ZIP, Stage102 C++ f64 and prior manifests; user WSL only.",
+      "output_private": "stage109_floor_residual_topology_private.json",
+      "no_overwrite": true
+    }
+  },
+  "current_next_action": {
+    "instruction": "Do not rebuild Stage109. The very next operator action (unless user changes plans) is the Stage109 WSL test + one real run, then interpret and record actual WSL evidence. Avoid guessing its output.",
+    "intended_stage": "Stage109",
+    "wsl_command": [
+      "set -e",
+      "cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod",
+      "source .venv/bin/activate",
+      "git pull --ff-only origin main",
+      "python3 -m unittest discover -s tools -p 'test_htkpa_stage109.py' -q",
+      "python3 research/htkpa/stages/stage109/GO.py \\",
+      "  --stage108-report 'research/_LOCAL_FILES/stage102/29abbdbf982ee64b_stage102_open_sonicmaster_di_resample_v1/stage108_fixed_gain_pcm16_private.json' \\",
+      "  --stage97-zip 'research/_LOCAL_FILES/CLO_10-19-26-0253.zip'"
+    ],
+    "exact_expected_tests": "15 synthetic/fixture tests PASS, NOT a substitute for real Stage109 run",
+    "run_only_once": "Check for already existing ignored stage109_floor_residual_topology_private.json; if present, do not overwrite. Inspect/report existing evidence instead.",
+    "later_decision": "Based on actual Stage109 mismatch localization, decide whether next stage needs targeted resampler/buffer/provenance boundary evidence. Do NOT assert closed NAM inference or fitter parity from output integer matches."
+  },
+  "engineering_workflow": {
+    "empirical_method": [
+      "ONE narrowly falsifiable StageNN at a time. Confirm actual source, status, prior evidence SHA gates, tests and operator terminal output.",
+      "Separate offline synthetic unit test PASS from real user WSL operator PASS. Record PENDING until user actually runs the stage.",
+      "Always distinguish proprietary vendor actual WAV/CLO evidence, original DLL runtime captures, static PE/Ghidra analyses, open public model comparisons, fitted diagnostics, conjectures.",
+      "Preserve per-stage public README.md, evidence.json and focused GO.py/auditor and tools/test_htkpa_stageNN.py. Never edit production DSP just to make a diagnostic match.",
+      "Append-only research/htkpa/RE_LOG.md; do not rewrite or discard older observations. Update stale status in current stage docs after accepted real run and create OPERATOR_RESULT.",
+      "Use strict original Stage97 archive SHA and SHA-gated existing private outputs; prefer offline read-only diagnostics, never silently rerun one-time scripts whose destination files already exist.",
+      "When new code is required, locally test via restored assistant Python/container, use synthetic data only. Commit tested code directly using GitHub connector. Operator runs true Windows/WSL real evidence.",
+      "Keep exact gain formula, PCM16 integer rounding direction and error-sign convention explicit. Show active-only denominators excluding 7 idle bins. No hidden gain/lag/DC fitting.",
+      "After each operator result, report measured values, limitations, exact GitHub commit SHA, updated files and optional private Drive verified checkpoint; provide one complete Bash block for next operator command.",
+      "For reverse engineering of DLL/Manager only when warranted, use universal existing tools/FRIDA_WSL.sh with preflight; do not invent another Frida runner or assume source paths are cloud-mounted."
+    ],
+    "evidence_terms": [
+      "CONFIRMED_OPERATOR_REAL",
+      "OFFLINE_SYNTHETIC_PASS",
+      "PUBLIC_OPEN_COMPARISON",
+      "DIAGNOSTIC_FITTED_ONLY",
+      "NATIVE_UNVERIFIED",
+      "PENDING_REAL_OPERATOR"
+    ],
+    "user_commands": {
+      "#next": "Continue with next evidence-driven stage when requested; verify live repo/main and reports first.",
+      "#nowritegh": "User revokes prior GitHub write authorization; obey immediately."
+    },
+    "Russian_style": "Russian concise technical discussion, mathematically grounded. Highlight substantive discoveries and evidence limits; avoid inflated certainty; no unnecessary Codex prompts.",
+    "shell_contract": {
+      "platform": "WSL Bash, not PowerShell or Windows CMD",
+      "format": "One complete paste-ready fenced bash block with set -e, explicit cd to canonical repo, venv activation, git pull --ff-only, focused unit test command, stage GO.py with correctly escaped backslashes and exact quoted paths.",
+      "no_prompt_markers": true,
+      "no_invented_paths": true,
+      "no_unrequested_rerun": true
+    },
+    "GitHub_conventions": "Use direct GitHub connector, fetch current main first, create/update files with blob SHA safety, report exact returned commit and re-fetch to verify. Inspect for concurrent updates; never force-update refs.",
+    "Drive_conventions": "Use connected Google Drive, canonical RE_HTKPA folder only, list existing assets first, upload private sanitised checkpoints as needed, verify metadata after upload, avoid duplicate vendor backups."
+  },
+  "sandbox_bootstrap_protocol": {
+    "first": [
+      "Read this JSON in full via GitHub connector at its canonical URL, not just bootstrap prompt.",
+      "Immediately fetch LIVE GitHub branch main HEAD, docs/dev/README.md, RE_LOG tail, stage108 floor operator follow-up, stage109 README/evidence/GO.py/test; reconcile newer commits from this frozen JSON.",
+      "List existing contents of canonical RE_HTKPA Drive folder; ensure original Stage97 ZIP, source NAM, Stage109 ZIP/checkpoint already present before deciding to fetch private archives.",
+      "Inspect available current sandbox /mnt/data, Python and test packages; create scratch dir /mnt/data/pocketmaster_htkpa_handoff_work if useful. Cloud scratch is not user WSL; do not search /mnt/f as if mounted.",
+      "If new stage development is requested, transfer only public sources/tests through live GitHub connector into scratch, run synthetic tests there; for original private data use validated local WSL commands and user's terminal reports or connected private Drive only if essential/authorized.",
+      "Inspect existing private report existence only on WSL when running user-given command; no bulk Drive sync or binary copy required for Stage109.",
+      "Start response by stating correct current status (Stage109 source tested 15/15, real WSL not yet done) and proposed one-command next action. Never pretend Stage109 already ran."
+    ],
+    "useful_repo_docs": [
+      "research/htkpa/RE_LOG.md",
+      "research/htkpa/stages/stage108/OPERATOR_FLOOR_FOLLOWUP_20261021.md",
+      "research/htkpa/stages/stage108/OPERATOR_RESULT_20261021.md",
+      "research/htkpa/stages/stage109/README.md",
+      "research/htkpa/stages/stage109/evidence.json",
+      "research/htkpa/stages/stage109/GO.py",
+      "tools/test_htkpa_stage109.py",
+      "research/htkpa/stages/stage107/OPERATOR_INPUT_FLOAT32_PCM16_IDENTITY_20261021.md",
+      "docs/dev/HTKPA_HANDOFF_AFTER_STAGE91_20261017.md",
+      "tools/FRIDA.md"
+    ],
+    "expected_bootstrap_reply": "Brief Russian confirmation of sources read, live main SHA and file inventory, sandbox readiness, Stage109 operator PENDING, exactly one WSL pasteable command or await user's next input. No inflated parity claim."
+  },
+  "never_claim_verified": {
+    "vendor_44k1_to_48k_resampler_identical": false,
+    "vendor_loaded_NAM_model_bytes_identical": false,
+    "vendor_NAM_inference_numerical_parity": false,
+    "vendor_output_buffer_origin_proven": false,
+    "vendor_fixed_gain_0p31_implemented_proven": false,
+    "vendor_floor_quantizer_implemented_proven": false,
+    "proprietary_fitter_parity_proven": false,
+    "generated_CLO_matches_proprietary_conversion": false,
+    "hardware_readback_confirmed": false
+  }
+}
