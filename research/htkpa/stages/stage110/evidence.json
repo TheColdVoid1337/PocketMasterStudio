@@ -1,0 +1,106 @@
+{
+  "stage": 110,
+  "date_bangkok": "2026-10-21",
+  "status": "STAGE110_OFFLINE_1K_GT1_TOPOLOGY_COMPLETED",
+  "provenance": "Assistant independently executed SHA-checked real original private Stage97 WAV plus user-supplied Stage102/105/107/108/109 f64 and reports in cloud sandbox",
+  "sha_gates": {
+    "stage97_original_archive_identity": true,
+    "stage102_open_f64_identity": true,
+    "stage102_candidate_di_f64_identity": true,
+    "stage102_108_109_report_chain": true,
+    "stage107_109_report_chain": true,
+    "stage109_original_20k_active_bins_reconciled": true,
+    "stage105_1420k_di_rms_recomputed": true
+  },
+  "synthetic_test_count": 13,
+  "synthetic_tests_passed": 13,
+  "real_data_run_completed": true,
+  "scan": {
+    "start": 1300000,
+    "stop_exclusive": 1500000,
+    "sample_rate_hz": 48000,
+    "bin_width_frames": 1000,
+    "scanned_bins": 200,
+    "gain_candidate": 0.31,
+    "quantizer_candidate": "floor then PCM16 clip",
+    "error_sign": "predicted_minus_manager"
+  },
+  "reproduced_stage109": {
+    "early_active_frames": 720000,
+    "early_active_exact_pcm16": 75525,
+    "late_active_frames": 340000,
+    "late_active_exact_pcm16": 335248,
+    "late_floor_mismatches": 4752,
+    "late_abs_error_gt_1_lsb": 462
+  },
+  "gt1_bins_1k": [
+    {
+      "start": 1343000,
+      "nonmatches": 41,
+      "gt1": 5,
+      "max_abs_lsb": 3,
+      "nonzero_di_frames": 1000
+    },
+    {
+      "start": 1344000,
+      "nonmatches": 772,
+      "gt1": 408,
+      "max_abs_lsb": 27,
+      "nonzero_di_frames": 17
+    },
+    {
+      "start": 1345000,
+      "nonmatches": 479,
+      "gt1": 16,
+      "max_abs_lsb": 2,
+      "nonzero_di_frames": 0
+    },
+    {
+      "start": 1480000,
+      "nonmatches": 29,
+      "gt1": 1,
+      "max_abs_lsb": 2,
+      "nonzero_di_frames": 1000
+    },
+    {
+      "start": 1488000,
+      "nonmatches": 245,
+      "gt1": 32,
+      "max_abs_lsb": 4,
+      "nonzero_di_frames": 1000
+    }
+  ],
+  "gt1_concentration": {
+    "two_1k_windows_gt1": 440,
+    "all_late_gt1": 462,
+    "fraction": 0.9523809523809523
+  },
+  "candidate_di_cessation": {
+    "parent_start": 1340000,
+    "parent_stop": 1360000,
+    "nonzero_di_frames_in_parent": 4017,
+    "last_nonzero_di_frame": 1344016,
+    "first_gt1_frame_in_parent": 1343968,
+    "last_gt1_frame_in_parent": 1345228
+  },
+  "post_idle_1420k": {
+    "frames": 20000,
+    "nonzero_di_frames": 16,
+    "nonzero_di_range": [
+      1439984,
+      1440000
+    ],
+    "manager_pcm16_exact_frames": 20000,
+    "active_inference_parity_proven": false
+  },
+  "real_result_document": "research/htkpa/stages/stage110/OPERATOR_RESULT_20261021.md",
+  "public_source_package": "HTKPA_STAGE110_PUBLIC_TOOLS_AND_RESULTS.zip (shared with user in this conversation)",
+  "public_source_package_sha256": "6f72d5b0843eccaa48f7632177927fa3c498055eafe72876faafda4a6b0855bb",
+  "code_uploaded_to_git": false,
+  "operator_private_report_location": "assistant sandbox only; never in public repository",
+  "raw_vendor_wav_nam_clo_f64_or_private_reports_committed": false,
+  "new_inference_or_proprietary_runtime_executed": false,
+  "production_code_changed": false,
+  "vendor_resampler_model_quantizer_gain_fitter_clo_hardware_parity_verified": false,
+  "next_hypothesis": "Investigate sample-local input-stop/tail near 1344017 and independently active transient near 1488000, without assuming same DSP cause."
+}
