@@ -24,6 +24,9 @@
   "no_vendor_runtime_action": true,
   "no_new_frida_capture": true,
   "proprietary_model_fitter_quantizer_clo_device_parity_verified": false,
-  "full_private_report": "RE_HTKPA/HTKPA_STAGE114_NATIVE_INPUT_PROVENANCE_GAP_PRIVATE_20261021.json (local created, upload pending)",
-  "next_gate": "Verify exact original PE ABI and pre-NAM buffer handoff before proposing new guarded metadata-only Frida probe; previous capture alone is insufficient."
+  "full_private_report": "RE_HTKPA/HTKPA_STAGE114_NATIVE_INPUT_PROVENANCE_GAP_PRIVATE_20261021.json",
+  "next_gate": "Verify exact original PE ABI and pre-NAM buffer handoff before proposing new guarded metadata-only Frida probe; previous capture alone is insufficient.",
+  "private_report_drive_file_id": "1gAdu_YS4qLuynWxDu295CjQIzsRUP9jO",
+  "private_report_drive_folder_id": "1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK",
+  "private_report_drive_verified": true
 }
