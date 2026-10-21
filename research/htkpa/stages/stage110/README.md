@@ -10,7 +10,7 @@ See [OPERATOR_RESULT_20261021.md](OPERATOR_RESULT_20261021.md) for the measured 
 
 ### Source and reproducibility
 
-The working `GO.py`, `tools/test_htkpa_stage110.py` and corresponding README/evidence/operator note are supplied to the user in the **public, source-only** `HTKPA_STAGE110_PUBLIC_TOOLS_AND_RESULTS.zip` download linked in the current conversation (archive SHA-256 `6f72d5b0843eccaa48f7632177927fa3c498055eafe72876faafda4a6b0855bb`). Source is **not yet mirrored into this GitHub tree**; do not claim otherwise. Private Stage110 200-bin report remains in the assistant sandbox and was not published.
+The complete publicly safe Stage110 source is **now in GitHub** at [`GO.py`](GO.py) and [`tools/test_htkpa_stage110.py`](../../../../tools/test_htkpa_stage110.py), alongside this README, evidence JSON and operator note. Historical standalone source-only ZIP `HTKPA_STAGE110_PUBLIC_TOOLS_AND_RESULTS.zip` remains an earlier conversation artifact, not the canonical current source. The complete private Stage110 200-bin report is stored in the user-designated **Google Drive `RE_HTKPA`** folder (`HTKPA_STAGE110_MICRO_RESIDUAL_PRIVATE_20261021.json`), not in public GitHub.
 
 To run the identical standalone source manually (optional; **not required** since real cloud execution is already complete):
 
@@ -18,7 +18,7 @@ To run the identical standalone source manually (optional; **not required** sinc
 set -e
 cd /mnt/f/PocketMasterStudio/PocketMasterStudio_Void_mod
 source .venv/bin/activate
-# First extract the supplied source-only Stage110 ZIP into this repository.
+# Source and tests are now tracked directly in GitHub; no ZIP extraction necessary.
 python3 -m unittest discover -s tools -p test_htkpa_stage110.py -q
 python3 research/htkpa/stages/stage110/GO.py \
   --private-inputs research/_LOCAL_FILES/HTKPA_STAGE110_PRIVATE_INPUTS.zip \
@@ -28,4 +28,4 @@ python3 research/htkpa/stages/stage110/GO.py \
 
 The tool SHA-checks the private sources, produces **only one ignored JSON file**, refuses to overwrite pre-existing output, and performs no inference, resampling, fitter, proprietary DLL/Manager/Frida execution, CLO generation or device I/O.
 
-**Evidence ceiling:** candidate gain and floor mapping do not prove native output quantization/gain semantics. Vendor loaded model, 44.1→48k resampler, Manager internal buffer, proprietary fitter, valid CLO and hardware parity are unverified. Do not rerun Stage102–109 or overwrite their existing private reports.
+**Evidence ceiling:** candidate gain and floor mapping do not prove native output quantization/gain semantics. Vendor loaded model, 44.1→48k resampler, Manager internal buffer, proprietary fitter, valid CLO and hardware parity are unverified. Do not rerun completed Stage102–111 or overwrite private results; Stage111 subsequently evaluated event-level residual structure.
