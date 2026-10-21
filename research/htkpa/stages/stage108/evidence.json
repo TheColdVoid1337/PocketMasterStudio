@@ -99,5 +99,38 @@
     "late_predicted_minus_manager_negative_discrepancy_total_abs_lsb_derived": 969,
     "late_predicted_minus_manager_positive_discrepancy_total_abs_lsb_derived": 153185
   },
-  "next_gate": "Offline SHA-gated floor-vs-nearest/trunc/ceil candidate PCM16 quantizer with 0.31 on existing Stage102 output vs original Stage97 Manager WAV, excluding seven quiet DI bins and stratifying by sign; no new NAM inference or proprietary code execution."
+  "next_gate": "Stage109 read-only SHA-gated floor residual topology, active 20k bins and 4752 late-active mismatch localization; no new inference.",
+  "operator_floor_followup": {
+    "date_bangkok": "2026-10-21",
+    "evidence_origin": "user-reported WSL read-only Python audit of original authenticated Stage97 and existing SHA-gated Stage102 f64 output; raw bytes not independently checked by assistant",
+    "late_active_nonzero_di_frames": 340000,
+    "floor_exact_count": 335248,
+    "floor_exact_fraction": 0.9860235294117647,
+    "late_nearest_exact_count": 187371,
+    "late_nearest_fraction": 0.5510911764705883,
+    "floor_vs_nearest_gain_percentage_points": 43.493235294117646,
+    "floor_late_within_one_lsb_fraction": 0.9986412,
+    "floor_late_rms_lsb": 0.2237,
+    "floor_late_mean_signed_error_lsb": 0.00022,
+    "floor_positive_sample_exact_fraction": 0.9880081,
+    "floor_negative_sample_exact_fraction": 0.983761,
+    "late_floor_mismatched_samples": 4752,
+    "early_active_frames": 720000,
+    "early_floor_exact_fraction": 0.1048958,
+    "early_nearest_exact_fraction": 0.1013764,
+    "early_floor_rms_lsb": 8.06338,
+    "early_floor_mean_signed_error_lsb": 0.01326,
+    "floor_late_histogram_prefix": {
+      "0": 335248,
+      "1": 2195,
+      "2": 90,
+      "3": 52,
+      "4": 35,
+      "-1": 2095,
+      "-2": 102,
+      "-3": 49,
+      "-4": 24
+    },
+    "floor_is_vendor_quantizer_proven": false
+  }
 }
