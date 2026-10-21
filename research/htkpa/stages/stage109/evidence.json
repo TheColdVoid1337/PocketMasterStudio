@@ -1,0 +1,27 @@
+{
+  "stage": 109,
+  "date_bangkok": "2026-10-21",
+  "status": "STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING",
+  "real_operator_stage108_floor_followup": {
+    "late_active_frames": 340000,
+    "floor_exact_pcm16_fraction": 0.9860235,
+    "nearest_even_exact_pcm16_fraction": 0.5510912,
+    "floor_rms_error_lsb": 0.2237,
+    "floor_signed_mean_error_lsb": 0.00022,
+    "floor_positive_exact_fraction": 0.9880081,
+    "floor_negative_exact_fraction": 0.983761,
+    "early_active_floor_exact_fraction": 0.1048958,
+    "early_active_floor_rms_error_lsb": 8.06338
+  },
+  "source": "user-provided WSL terminal after real Stage108; later offline localizer is synthetic-tested only",
+  "method": "exact SHA-gated Stage108 vs Stage102 reports, original Stage97 ZIP, existing original open f64; fixed 0.31 floor and nearest_even stratified by active DI, time and sign",
+  "source_original_wav_and_f64_committed": false,
+  "production_modified": false,
+  "new_nam_or_proprietary_inference": false,
+  "proprietary_output_gain_or_quantizer_verified": false,
+  "vendor_resampler_or_model_identity_verified": false,
+  "vendor_fitter_parity_verified": false,
+  "actual_stage109_operator_run_performed": false,
+  "offline_synthetic_tests_passed": 15,
+  "synthetic_integrated_no_overwrite_passed": true
+}
