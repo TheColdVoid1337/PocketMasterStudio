@@ -1,6 +1,6 @@
 # Stage109 — fixed `floor(0.31 × open_NAM × 32768)` residual topology
 
-**Status:** `STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING`.
+**Status:** `STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING`. **15/15 local synthetic Python tests PASS in the restored assistant container**, including a fake integrated original-report SHA gate and no-overwrite check. Real operator Stage109 execution is still pending.
 
 ## Why this experiment is warranted
 
