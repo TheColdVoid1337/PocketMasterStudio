@@ -1,7 +1,7 @@
 {
   "stage": 109,
   "date_bangkok": "2026-10-21",
-  "status": "STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING",
+  "status": "STAGE109_OFFLINE_FIXED_FLOOR_RESIDUAL_TOPOLOGY_COMPLETED",
   "real_operator_stage108_floor_followup": {
     "late_active_frames": 340000,
     "floor_exact_pcm16_fraction": 0.9860235,
@@ -13,7 +13,7 @@
     "early_active_floor_exact_fraction": 0.1048958,
     "early_active_floor_rms_error_lsb": 8.06338
   },
-  "source": "user-provided WSL terminal after real Stage108; later offline localizer is synthetic-tested only",
+  "source": "Real 2026-10-21 WSL operator terminal after git fast-forward to 2d53dc00897e0cc03dcce86fb9330c75adb1670b; assistant parsed complete console JSON, not raw private audio or report",
   "method": "exact SHA-gated Stage108 vs Stage102 reports, original Stage97 ZIP, existing original open f64; fixed 0.31 floor and nearest_even stratified by active DI, time and sign",
   "source_original_wav_and_f64_committed": false,
   "production_modified": false,
@@ -21,7 +21,119 @@
   "proprietary_output_gain_or_quantizer_verified": false,
   "vendor_resampler_or_model_identity_verified": false,
   "vendor_fitter_parity_verified": false,
-  "actual_stage109_operator_run_performed": false,
+  "actual_stage109_operator_run_performed": true,
   "offline_synthetic_tests_passed": 15,
-  "synthetic_integrated_no_overwrite_passed": true
+  "synthetic_integrated_no_overwrite_passed": true,
+  "operator_tests_passed": 15,
+  "real_operator_result_public": "research/htkpa/stages/stage109/OPERATOR_RESULT_20261021.md",
+  "operator_private_report_written": true,
+  "real_operator_stage109": {
+    "status": "STAGE109_OFFLINE_FIXED_FLOOR_RESIDUAL_TOPOLOGY_COMPLETED",
+    "gain_candidate": 0.31,
+    "quantizers_compared": [
+      "floor",
+      "nearest_even"
+    ],
+    "error_sign": "predicted_integer_minus_original_manager_integer",
+    "early_active": {
+      "frames": 720000,
+      "floor_exact": 75525,
+      "floor_exact_fraction": 0.10489583333333333,
+      "nearest_even_exact": 72991,
+      "floor_within_one_fraction": 0.2713638888888889,
+      "floor_error_rms_lsb": 8.06337820367838,
+      "floor_max_abs_lsb": 77
+    },
+    "late_active": {
+      "frames": 340000,
+      "floor_exact": 335248,
+      "floor_exact_fraction": 0.9860235294117647,
+      "nearest_even_exact": 187371,
+      "floor_within_one_fraction": 0.9986411764705883,
+      "floor_error_rms_lsb": 0.22369885218880367,
+      "floor_mean_signed_lsb": 0.00021764705882352942,
+      "floor_mean_absolute_lsb": 0.01801764705882353,
+      "floor_max_abs_lsb": 27,
+      "mismatches": 4752,
+      "abs_error_gt_one_lsb_frames": 462,
+      "first_mismatch_absolute_index": 1104003,
+      "last_mismatch_absolute_index": 1499952,
+      "positive_error_frames": 2426,
+      "negative_error_frames": 2326
+    },
+    "late_nonnegative_open_output": {
+      "frames": 181123,
+      "floor_exact": 178951,
+      "floor_exact_fraction": 0.9880081491583068
+    },
+    "late_negative_open_output": {
+      "frames": 158877,
+      "floor_exact": 156297,
+      "floor_exact_fraction": 0.9837610226779206
+    },
+    "late_mismatch_top_bins": [
+      {
+        "start": 1340000,
+        "stop_exclusive": 1360000,
+        "mismatches": 1700,
+        "max_abs_error_lsb": 27
+      },
+      {
+        "start": 1480000,
+        "stop_exclusive": 1500000,
+        "mismatches": 810,
+        "max_abs_error_lsb": 4
+      },
+      {
+        "start": 1440000,
+        "stop_exclusive": 1460000,
+        "mismatches": 561,
+        "max_abs_error_lsb": 1
+      },
+      {
+        "start": 1460000,
+        "stop_exclusive": 1480000,
+        "mismatches": 268,
+        "max_abs_error_lsb": 1
+      },
+      {
+        "start": 1100000,
+        "stop_exclusive": 1120000,
+        "mismatches": 222,
+        "max_abs_error_lsb": 1
+      },
+      {
+        "start": 1120000,
+        "stop_exclusive": 1140000,
+        "mismatches": 178,
+        "max_abs_error_lsb": 1
+      },
+      {
+        "start": 1160000,
+        "stop_exclusive": 1180000,
+        "mismatches": 154,
+        "max_abs_error_lsb": 1
+      },
+      {
+        "start": 1180000,
+        "stop_exclusive": 1200000,
+        "mismatches": 141,
+        "max_abs_error_lsb": 1
+      }
+    ],
+    "late_error_histogram_bounded": {
+      "0": 335248,
+      "1": 2195,
+      "2": 90,
+      "3": 52,
+      "<-3": 80,
+      "-3": 49,
+      "-2": 102,
+      "-1": 2095,
+      ">3": 89
+    },
+    "stage108_nearest_even_baseline_revalidated": true,
+    "operator_console_only_not_independent_private_raw_rehash": true
+  },
+  "next_gate": "Undecided: evaluate a narrow read-only transition/localized provenance check informed by Stage109 hotspot [1340000,1360000); no new Stage110 tool, NAM inference or vendor parity claim yet."
 }
