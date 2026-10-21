@@ -1,12 +1,21 @@
 # Stage109 — fixed `floor(0.31 × open_NAM × 32768)` residual topology
 
-**Status:** `STAGE109_OFFLINE_FLOOR_TOPOLOGY_TESTED_OPERATOR_PENDING`. **15/15 local synthetic Python tests PASS in the restored assistant container**, including a fake integrated original-report SHA gate and no-overwrite check. Real operator Stage109 execution is still pending.
+**Status:** `STAGE109_OFFLINE_FIXED_FLOOR_RESIDUAL_TOPOLOGY_COMPLETED` — **real WSL operator run accepted on 2026-10-21** after `git pull --ff-only` to `2d53dc00897e0cc03dcce86fb9330c75adb1670b` and **15/15 operator unit tests PASS**. Synthetic fixture testing remains documented separately. See [OPERATOR_RESULT_20261021.md](OPERATOR_RESULT_20261021.md) for the exact measured console results and limits.
 
 ## Why this experiment is warranted
 
 The operator independently compared four explicit integer-output encoders (nearest-even, floor, truncation toward zero, ceiling) with the original SHA-pinned Stage97 Manager output PCM16. On **late active nonzero DI** [1,100,000–1,500,000) excluding 60,000 zero-DI frames, **floor** matched **98.60235%** of 340,000 frames, versus 55.10912% nearest-even. The floor RMS integer residual was 0.22370 LSB; mean signed 0.00022 LSB; by sign, exact rates were 98.80081% on positive open-output values and 98.37610% on negative ones. **Early active nonzero DI**, excluding 80,000 silent frames, only matched 10.48958% even with floor (RMS ~8.06338 LSB).
 
 These numbers are **real WSL operator console observations**, not yet Stage109 results. They support a **candidate quantization convention**, not proof of Sonicake's native implementation, model bytes, resampling, true internal buffer, FIR fitter, valid CLO or hardware behavior.
+
+## Real WSL operator results (2026-10-21)
+
+The existing SHA-gated Stage109 auditor completed **once** on the operator's private original data; its ignored `stage109_floor_residual_topology_private.json` now exists on the operator's WSL workstation, **not** in GitHub or this assistant's cloud sandbox. Stage108 nearest-even active exact counts were revalidated automatically. Full findings are in [OPERATOR_RESULT_20261021.md](OPERATOR_RESULT_20261021.md).
+
+- **Late active, 340,000 frames:** floor exact **335,248/340,000 = 98.60235%**, nearest-even exact **187,371**; **4,752 floor mismatches**, with only **462** larger than 1 LSB. Floor RMS **0.223699 LSB**, mean signed **+0.000218 LSB**.
+- **Early active, 720,000 frames:** floor exact **75,525/720,000 = 10.48958%**, nearest-even exact **72,991**; floor RMS **8.063378 LSB**.
+- **Leading 20k residual hotspot:** `[1340000,1360000)` has **1,700/4,752** late errors (35.77%), **91.5%** exact within that window and maximum **27 LSB**. It immediately precedes the known `[1360000,1380000)` candidate-DI-zero bin; this is a localized association, **not a proven native transition or DSP mode switch**. Other high-count windows begin at 1,480,000 (810 errors) and 1,440,000 (561).
+- Native model, vendor resampler, actual internal output buffer, final gain/quantizer implementation, proprietary FIR fitter, CLO parity and hardware readback **remain unverified**. The assistant saw the operator's terminal JSON, not the underlying private raw files.
 
 ## Stage109 checks
 
@@ -17,7 +26,7 @@ These numbers are **real WSL operator console observations**, not yet Stage109 r
 
 This audit answers whether the ~1.4% residual late-active mismatches cluster around specific signal transitions or are broadly distributed. Remaining early-stage waveform error is intentionally **not corrected** by fitting a gain or changing the original NAM/resampler. No new proprietary DLL/Frida, Sonicake Manager, NAM C++ inference, open resampling, FIR fitting, CLO generation or hardware I/O.
 
-## Run in operator WSL
+## Historical operator WSL command (already executed; do not rerun)
 
 ```bash
 set -e
@@ -30,4 +39,4 @@ python3 research/htkpa/stages/stage109/GO.py \
   --stage97-zip 'research/_LOCAL_FILES/CLO_10-19-26-0253.zip'
 ```
 
-**Do not rerun Stage102–108**. The Stage109 tool is verified only on synthetic fixtures until the operator runs it locally and reports the output. Every fit performed in earlier stages remains explicitly diagnostic; no `vendor_*_parity_verified` flag is promoted based on matching integer samples.
+**Do not rerun Stage102–109 or overwrite the now-existing Stage109 private report.** The above one-time command remains solely to preserve reproducibility. Stage109 has real operator evidence, but no `vendor_*_parity_verified` flag is promoted based on matching integer samples. Next experiment has not yet been implemented.
