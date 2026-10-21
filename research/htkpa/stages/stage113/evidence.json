@@ -1,0 +1,63 @@
+{
+  "stage": 113,
+  "date_bangkok": "2026-10-21",
+  "status": "STAGE113_OFFLINE_SOURCE_INPUT_TRANSITION_SUPPORT_COMPLETED",
+  "real_cloud_authentic_input_run_performed": true,
+  "synthetic_tests_passed": 17,
+  "data_source": "SHA-validated original Sonicake Manager Stage97 44.1 kHz input WAV vs existing Stage102 SonicMaster candidate 48 kHz f64 input",
+  "source_pcm44_last_nonzero_index": 1234799,
+  "source_last_nonzero_mapped_48": 1343998.9115646258,
+  "candidate_f64_last_nonzero_48_index": 1344016,
+  "candidate_tail_extension_48_frames": 17.08843537414966,
+  "source_pcm44_first_reentry_index": 1323001,
+  "source_first_reentry_mapped_48": 1440001.0884353742,
+  "candidate_f64_first_reentry_index": 1439984,
+  "candidate_reentry_advance_48_frames": 17.08843537414966,
+  "source_pcm44_exact_zero_bridge_frames": 88201,
+  "open_candidate_f64_exact_zero_bridge_frames": 95967,
+  "secondary_three_original_input_and_candidate_nonzero_controls": [
+    {
+      "window_48k": [
+        1487800,
+        1488000
+      ],
+      "source_nonzero_frames": 184,
+      "source_covering_frames": 184,
+      "candidate_nonzero_frames": 200,
+      "candidate_frames": 200,
+      "source_normalized_rms": 0.010945068504043838,
+      "candidate_f64_rms": 0.010944032696373328
+    },
+    {
+      "window_48k": [
+        1488000,
+        1488200
+      ],
+      "source_nonzero_frames": 184,
+      "source_covering_frames": 184,
+      "candidate_nonzero_frames": 200,
+      "candidate_frames": 200,
+      "source_normalized_rms": 0.0043991445891349585,
+      "candidate_f64_rms": 0.004395778796949612
+    },
+    {
+      "window_48k": [
+        1488200,
+        1488400
+      ],
+      "source_nonzero_frames": 185,
+      "source_covering_frames": 185,
+      "candidate_nonzero_frames": 200,
+      "candidate_frames": 200,
+      "source_normalized_rms": 0.010125998551664954,
+      "candidate_f64_rms": 0.010130669604184092
+    }
+  ],
+  "stage111_primary_gt1_after_candidate_zero_onset": 408,
+  "stage112_secondary_gt1_at_active_input": 32,
+  "source_identity_not_vendor_48k_capture": true,
+  "vendor_resampler_model_gain_quantizer_fitter_clo_or_device_parity_verified": false,
+  "new_resampling_or_inference_or_vendor_runtime": false,
+  "private_report_drive_name": "HTKPA_STAGE113_SOURCE_INPUT_TRANSITION_PRIVATE_20261021.json",
+  "full_private_raw_audio_f64_or_digest_in_public_git": false
+}
