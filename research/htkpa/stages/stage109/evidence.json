@@ -135,5 +135,186 @@
     "stage108_nearest_even_baseline_revalidated": true,
     "operator_console_only_not_independent_private_raw_rehash": true
   },
-  "next_gate": "Undecided: evaluate a narrow read-only transition/localized provenance check informed by Stage109 hotspot [1340000,1360000); no new Stage110 tool, NAM inference or vendor parity claim yet."
+  "next_gate": "Read-only metrics-only cross-reference in preexisting Stage105 private report for candidate_di_rms/reference_rms/open_rms and diagnostic gain on [1300000,1500000), emphasizing exact [1420000,1440000). Decide narrow Stage110 sample-local localization only afterward; do not rerun Stage102–109.",
+  "operator_postrun_full_late_20k_followup": {
+    "date_bangkok": "2026-10-21",
+    "provenance": "user WSL text-only read of existing ignored Stage109 private report; no Stage109 rerun and no assistant independent private data rehash",
+    "bin_width_frames": 20000,
+    "bins": [
+      {
+        "start": 1100000,
+        "stop_exclusive": 1120000,
+        "mismatches": 222,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.10536,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.0002
+      },
+      {
+        "start": 1120000,
+        "stop_exclusive": 1140000,
+        "mismatches": 178,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.09434,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.0002
+      },
+      {
+        "start": 1140000,
+        "stop_exclusive": 1160000,
+        "mismatches": 103,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.07176,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.00045
+      },
+      {
+        "start": 1160000,
+        "stop_exclusive": 1180000,
+        "mismatches": 154,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.08775,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.0008
+      },
+      {
+        "start": 1180000,
+        "stop_exclusive": 1200000,
+        "mismatches": 141,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.08396,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.00005
+      },
+      {
+        "start": 1200000,
+        "stop_exclusive": 1220000,
+        "mismatches": 111,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.0745,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.00085
+      },
+      {
+        "start": 1220000,
+        "stop_exclusive": 1240000,
+        "mismatches": 119,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.07714,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.00015
+      },
+      {
+        "start": 1240000,
+        "stop_exclusive": 1260000,
+        "mismatches": 126,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.07937,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.0005
+      },
+      {
+        "start": 1260000,
+        "stop_exclusive": 1280000,
+        "mismatches": 77,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.06205,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.00055
+      },
+      {
+        "start": 1280000,
+        "stop_exclusive": 1300000,
+        "mismatches": 52,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.05099,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.0002
+      },
+      {
+        "start": 1300000,
+        "stop_exclusive": 1320000,
+        "mismatches": 62,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.05568,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.0004
+      },
+      {
+        "start": 1320000,
+        "stop_exclusive": 1340000,
+        "mismatches": 68,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.05831,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.0005
+      },
+      {
+        "start": 1340000,
+        "stop_exclusive": 1360000,
+        "mismatches": 1700,
+        "abs_error_gt_one_lsb_frames": 429,
+        "rms_error_lsb_display_5dp": 0.83069,
+        "max_abs_error_lsb": 27,
+        "mean_signed_error_lsb_display_6dp": 0.00075
+      },
+      {
+        "start": 1420000,
+        "stop_exclusive": 1440000,
+        "mismatches": 0,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0,
+        "max_abs_error_lsb": 0,
+        "mean_signed_error_lsb_display_6dp": 0
+      },
+      {
+        "start": 1440000,
+        "stop_exclusive": 1460000,
+        "mismatches": 561,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.16748,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": -0.00045
+      },
+      {
+        "start": 1460000,
+        "stop_exclusive": 1480000,
+        "mismatches": 268,
+        "abs_error_gt_one_lsb_frames": 0,
+        "rms_error_lsb_display_5dp": 0.11576,
+        "max_abs_error_lsb": 1,
+        "mean_signed_error_lsb_display_6dp": 0.0007
+      },
+      {
+        "start": 1480000,
+        "stop_exclusive": 1500000,
+        "mismatches": 810,
+        "abs_error_gt_one_lsb_frames": 33,
+        "rms_error_lsb_display_5dp": 0.22034,
+        "max_abs_error_lsb": 4,
+        "mean_signed_error_lsb_display_6dp": 0.00195
+      }
+    ],
+    "check_total_mismatches": 4752,
+    "check_total_abs_error_gt_one_lsb": 462,
+    "two_bins_contain_all_gt1": true,
+    "leading_gt1_bin": {
+      "start": 1340000,
+      "gt1_count": 429,
+      "share": 0.9285714285714286
+    },
+    "other_gt1_bin": {
+      "start": 1480000,
+      "gt1_count": 33,
+      "share": 0.07142857142857142
+    },
+    "exact_bin_after_known_silence": {
+      "start": 1420000,
+      "stop_exclusive": 1440000,
+      "exact_count": 20000,
+      "frame_count": 20000,
+      "stage105_candidate_di_rms_still_to_be_checked": true
+    },
+    "original_seven_zero_di_bins_excluded_not_remeasured": true
+  }
 }
