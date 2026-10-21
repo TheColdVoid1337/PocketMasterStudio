@@ -96,11 +96,16 @@
   "real_result_document": "research/htkpa/stages/stage110/OPERATOR_RESULT_20261021.md",
   "public_source_package": "HTKPA_STAGE110_PUBLIC_TOOLS_AND_RESULTS.zip (shared with user in this conversation)",
   "public_source_package_sha256": "6f72d5b0843eccaa48f7632177927fa3c498055eafe72876faafda4a6b0855bb",
-  "code_uploaded_to_git": false,
-  "operator_private_report_location": "assistant sandbox only; never in public repository",
+  "code_uploaded_to_git": true,
+  "operator_private_report_location": "Google Drive RE_HTKPA/HTKPA_STAGE110_MICRO_RESIDUAL_PRIVATE_20261021.json (user-designated private folder; not GitHub)",
   "raw_vendor_wav_nam_clo_f64_or_private_reports_committed": false,
   "new_inference_or_proprietary_runtime_executed": false,
   "production_code_changed": false,
   "vendor_resampler_model_quantizer_gain_fitter_clo_hardware_parity_verified": false,
-  "next_hypothesis": "Investigate sample-local input-stop/tail near 1344017 and independently active transient near 1488000, without assuming same DSP cause."
+  "next_hypothesis": "Investigate sample-local input-stop/tail near 1344017 and independently active transient near 1488000, without assuming same DSP cause.",
+  "public_source_files": [
+    "research/htkpa/stages/stage110/GO.py",
+    "tools/test_htkpa_stage110.py"
+  ],
+  "stage111_followup": "STAGE111_OFFLINE_EVENT_BOUNDARY_AUDIT_COMPLETED; see research/htkpa/stages/stage111/evidence.json"
 }
