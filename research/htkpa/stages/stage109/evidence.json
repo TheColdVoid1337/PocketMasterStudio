@@ -135,7 +135,7 @@
     "stage108_nearest_even_baseline_revalidated": true,
     "operator_console_only_not_independent_private_raw_rehash": true
   },
-  "next_gate": "Read-only metrics-only cross-reference in preexisting Stage105 private report for candidate_di_rms/reference_rms/open_rms and diagnostic gain on [1300000,1500000), emphasizing exact [1420000,1440000). Decide narrow Stage110 sample-local localization only afterward; do not rerun Stage102–109.",
+  "next_gate": "Possible Stage110 design only: SHA-gated read-only existing Stage97/102 residual GT1 sub-window localization in [1340000,1360000) and [1480000,1500000), with controls, no refit and no inference. Stage110 not yet created or executed.",
   "operator_postrun_full_late_20k_followup": {
     "date_bangkok": "2026-10-21",
     "provenance": "user WSL text-only read of existing ignored Stage109 private report; no Stage109 rerun and no assistant independent private data rehash",
@@ -313,8 +313,156 @@
       "stop_exclusive": 1440000,
       "exact_count": 20000,
       "frame_count": 20000,
-      "stage105_candidate_di_rms_still_to_be_checked": true
+      "stage105_candidate_di_rms_still_to_be_checked": false,
+      "stage105_candidate_di_rms_confirmed": 5.8582174869318434e-8,
+      "signal_classification": "nonzero_float_but_quasi_idle_not_materially_active"
     },
     "original_seven_zero_di_bins_excluded_not_remeasured": true
+  },
+  "operator_postrun_stage105_crossref": {
+    "date_bangkok": "2026-10-21",
+    "origin": "User WSL console read-only cross-reference of preexisting Stage105 fine_20k report and Stage109 report; not fresh audio processing; no assistant access to private raw/report bytes",
+    "sample_rate_hz": 48000,
+    "bin_width_frames": 20000,
+    "metrics_table": [
+      {
+        "start": 1300000,
+        "stop_exclusive": 1320000,
+        "candidate_di_rms": 0.39762403,
+        "manager_reference_rms": 0.0370770454,
+        "open_nam_rms": 0.119602426,
+        "per_bin_fitted_gain_diagnostic_only": 0.310002417,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0474644461,
+        "stage109_floor_mismatches": 62,
+        "stage109_abs_error_gt_1_lsb": 0,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1320000,
+        "stop_exclusive": 1340000,
+        "candidate_di_rms": 0.397628785,
+        "manager_reference_rms": 0.0124541379,
+        "open_nam_rms": 0.04016697,
+        "per_bin_fitted_gain_diagnostic_only": 0.310058881,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.139771763,
+        "stage109_floor_mismatches": 68,
+        "stage109_abs_error_gt_1_lsb": 0,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1340000,
+        "stop_exclusive": 1360000,
+        "candidate_di_rms": 0.177821195,
+        "manager_reference_rms": 0.00160507724,
+        "open_nam_rms": 0.00518113244,
+        "per_bin_fitted_gain_diagnostic_only": 0.309747623,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 1.70668327,
+        "stage109_floor_mismatches": 1700,
+        "stage109_abs_error_gt_1_lsb": 429,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1360000,
+        "stop_exclusive": 1380000,
+        "candidate_di_rms": 0,
+        "manager_reference_rms": 0.0000610351562,
+        "open_nam_rms": 0.000204392854,
+        "per_bin_fitted_gain_diagnostic_only": 0.298616879,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0000458557712,
+        "stage109_floor_mismatches": null,
+        "stage109_abs_error_gt_1_lsb": null,
+        "excluded_from_stage109_active": true
+      },
+      {
+        "start": 1380000,
+        "stop_exclusive": 1400000,
+        "candidate_di_rms": 0,
+        "manager_reference_rms": 0.0000610351562,
+        "open_nam_rms": 0.000204392854,
+        "per_bin_fitted_gain_diagnostic_only": 0.298616879,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0000458557712,
+        "stage109_floor_mismatches": null,
+        "stage109_abs_error_gt_1_lsb": null,
+        "excluded_from_stage109_active": true
+      },
+      {
+        "start": 1400000,
+        "stop_exclusive": 1420000,
+        "candidate_di_rms": 0,
+        "manager_reference_rms": 0.0000610351562,
+        "open_nam_rms": 0.000204392854,
+        "per_bin_fitted_gain_diagnostic_only": 0.298616879,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0000458557712,
+        "stage109_floor_mismatches": null,
+        "stage109_abs_error_gt_1_lsb": null,
+        "excluded_from_stage109_active": true
+      },
+      {
+        "start": 1420000,
+        "stop_exclusive": 1440000,
+        "candidate_di_rms": 5.8582174869318434e-8,
+        "manager_reference_rms": 0.0000610351562,
+        "open_nam_rms": 0.000204393138,
+        "per_bin_fitted_gain_diagnostic_only": 0.298616463,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.00659734522,
+        "stage109_floor_mismatches": 0,
+        "stage109_abs_error_gt_1_lsb": 0,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1440000,
+        "stop_exclusive": 1460000,
+        "candidate_di_rms": 0.0405055256,
+        "manager_reference_rms": 0.0502342162,
+        "open_nam_rms": 0.162045796,
+        "per_bin_fitted_gain_diagnostic_only": 0.310000102,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0352251188,
+        "stage109_floor_mismatches": 561,
+        "stage109_abs_error_gt_1_lsb": 0,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1460000,
+        "stop_exclusive": 1480000,
+        "candidate_di_rms": 0.0349009781,
+        "manager_reference_rms": 0.028585708,
+        "open_nam_rms": 0.0922118838,
+        "per_bin_fitted_gain_diagnostic_only": 0.310000201,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0619750362,
+        "stage109_floor_mismatches": 268,
+        "stage109_abs_error_gt_1_lsb": 0,
+        "excluded_from_stage109_active": false
+      },
+      {
+        "start": 1480000,
+        "stop_exclusive": 1500000,
+        "candidate_di_rms": 0.0406162901,
+        "manager_reference_rms": 0.0244736214,
+        "open_nam_rms": 0.0789460366,
+        "per_bin_fitted_gain_diagnostic_only": 0.310004348,
+        "per_bin_relative_fitted_residual_pct_diagnostic_only": 0.0741841856,
+        "stage109_floor_mismatches": 810,
+        "stage109_abs_error_gt_1_lsb": 33,
+        "excluded_from_stage109_active": false
+      }
+    ],
+    "quasi_idle_1420k": {
+      "start": 1420000,
+      "stop_exclusive": 1440000,
+      "candidate_di_rms_exact_from_user_followup": 5.8582174869318434e-8,
+      "nonzero_but_near_idle": true,
+      "manager_rms": 0.0000610351562,
+      "open_rms": 0.000204393138,
+      "floor_pcm16_exact_count": 20000,
+      "floor_pcm16_frames": 20000,
+      "true_materially_active_input_parity_demonstrated": false,
+      "original_stage109_denominator_unchanged": true,
+      "optional_excluding_quasi_idle_sensitivity": {
+        "floor_exact": 315248,
+        "frames": 320000,
+        "exact_fraction": 0.98515
+      }
+    },
+    "result": "Stage109 exact window [1420000,1440000) is near idle, not meaningful active NAM parity. All late 462 >1 LSB errors remain confined to [1340000,1360000) and [1480000,1500000), with no uniquely identified causal mechanism."
   }
 }
