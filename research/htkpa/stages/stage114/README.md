@@ -18,7 +18,7 @@ Stage114 checks existing capture integrity and event schemas. It does **not** re
 
 Before a new native run, identify from original-PE instructions **which exact argument crosses into NAM inference** and whether it carries the 48-kHz sample buffer (not merely a WAV/fitter/resampler object). Prove candidate offset, sample type, count, rate, lifetime and relation to one wrapper invocation. Only then design a bounded SHA-pinned, **metadata-only** probe in the **existing universal Frida runner**; evaluate historical Manager crash risks before any operator run. A separate, narrower **private sample** capture would require its own validated site/acceptance, not arbitrary memory dumping. No new Stage115 capture script or Windows action is claimed ready.
 
-See [public result](OPERATOR_RESULT_20261021.md) and [evidence](evidence.json). The detailed Stage114 report remains private; no Stage102–113 reruns or source audio publication. The local tested Stage114 audit code/test bundle is available separately while code mirroring is finalized.
+See [public result](OPERATOR_RESULT_20261021.md) and [evidence](evidence.json). The detailed Stage114 report remains private; no Stage102–113 reruns or source audio publication. The Stage114 public auditor is at [GO.py](GO.py), and the independent synthetic fixtures are at [tools/test_htkpa_stage114.py](../../../../tools/test_htkpa_stage114.py). The same Stage114 auditor and fixtures were tested locally (15/15 PASS).
 
 Historical read-only source-audit command (the original private report already exists, so **do not rerun** against its same output):
 ```bash
