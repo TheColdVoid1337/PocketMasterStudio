@@ -68,6 +68,29 @@ The **first** late-active mismatched absolute sample index was `1104003`, the **
 
 **Next narrowly falsifiable gate (not yet built or run):** First perform a **metrics-only cross-reference** against the original existing Stage105 fine 20k rows for `[1300000,1500000)`: candidate resampled DI RMS and reference/open output RMS, plus diagnostic gain, especially `[1340000,1360000)`, the three excluded zeros, and the exact `[1420000,1440000)` bin. Only if that confirms a transition-specific target, consider a new SHA-gated read-only Stage110 tool which subdivides the two nontrivial error windows at finer temporal resolution. Do not claim resampler/model/buffer cause or infer a vendor PCM16 quantizer from the matching floor behavior.
 
+## Stage105 × Stage109 post-run DI-level cross-check (2026-10-21 Bangkok)
+
+**Provenance:** Real user-provided WSL **read-only, text-only** cross-reference of preexisting ignored `stage105_error_topology_private.json` fine 20k aggregate metrics and preexisting Stage109 `stage109_floor_residual_topology_private.json` integer errors. **No new NAM inference, WAV loading, resampling, DLL/Manager, Frida, fitter, CLO, hardware, or report re-generation.** This is operator console evidence, not assistant independent private JSON/WAV/f64 inspection. All frame starts are absolute at 48 kHz and fit-residual percentages are separately **per-window gain-fitted diagnostics**, not fixed-0.31 residuals.
+
+| Start (20k frames) | Candidate DI RMS | Manager RMS | Open NAM RMS | Fitted gain (diagnostic) | Fit residual % | Floor nonmatch | Floor GT1 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1,300,000 | 0.39762403 | 0.0370770454 | 0.119602426 | 0.310002417 | 0.0474644461 | 62 | 0 |
+| 1,320,000 | 0.397628785 | 0.0124541379 | 0.04016697 | 0.310058881 | 0.139771763 | 68 | 0 |
+| **1,340,000** | **0.177821195** | **0.00160507724** | **0.00518113244** | **0.309747623** | **1.70668327** | **1,700** | **429** |
+| 1,360,000 | 0 | 0.0000610351562 | 0.000204392854 | 0.298616879 | 0.0000458557712 | excluded | excluded |
+| 1,380,000 | 0 | 0.0000610351562 | 0.000204392854 | 0.298616879 | 0.0000458557712 | excluded | excluded |
+| 1,400,000 | 0 | 0.0000610351562 | 0.000204392854 | 0.298616879 | 0.0000458557712 | excluded | excluded |
+| **1,420,000** | **0.0000000585821749** | **0.0000610351562** | **0.000204393138** | **0.298616463** | **0.00659734522** | **0** | **0** |
+| 1,440,000 | 0.0405055256 | 0.0502342162 | 0.162045796 | 0.310000102 | 0.0352251188 | 561 | 0 |
+| 1,460,000 | 0.0349009781 | 0.028585708 | 0.0922118838 | 0.310000201 | 0.0619750362 | 268 | 0 |
+| **1,480,000** | **0.0406162901** | **0.0244736214** | **0.0789460366** | **0.310004348** | **0.0741841856** | **810** | **33** |
+
+**Resolved interpretive boundary at `[1420000,1440000)`:** Stage105 actually measured candidate 48-kHz DI RMS `5.8582174869318434e-08`: **nonzero in floating point but effectively near idle**. Manager and open output RMS also track their earlier zero-DI floors (`~0.0000610351562` and `~0.000204393`, respectively). Consequently, Stage109's **20,000/20,000 exact floor PCM16 output comparisons in this bin are *not evidence of parity under materially active input***. Stage109 deliberately defines its original *active* denominator by excluding only the seven **exact-zero-DI Stage107 bins**, so the published canonical `335248/340000 = 98.60235%` remains **unchanged**. As a separately labeled sensitivity calculation (not a replacement metric), excluding this newly recognized quasi-idle 20k bin would leave **315,248 / 320,000 = 98.515%** exact for the remaining late bins. This does not prove sample-level identity of native/model output.
+
+**Localized error / level relationship:** `[1340000,1360000)` is a mixed-energy pre-silence 20k window: DI RMS **0.177821**, gain-fitted normalized residual **1.70668%**, and fixed-floor **429** errors above 1 LSB (of 1,700 nonmatches). Neighboring stronger-input bins `[1300000,1340000)` have DI RMS ~0.3976 and **zero** GT1; subsequent actual zero-DI bins and quasi-idle `[1420000,1440000)` show floor-like output. Yet `[1480000,1500000)` has DI RMS **0.0406163**, fitted residual only **0.07418%**, and still **33** GT1. Thus GT1 is **strongly localized**, not uniquely explained by silence or a fixed DI RMS threshold. Stage105 gain `~0.298616` in idle is the fitted ratio of two nonzero floors; **not a proprietary gain switch**.
+
+**Next narrowly falsifiable decision, not yet an executed stage:** A source-first, SHA-gated **Stage110** candidate may inspect only existing immutable Stage97/102 artifacts and private reports, subdividing `[1340000,1360000)` and `[1480000,1500000)` into smaller windows (e.g. 1k frames) to measure spatial clustering of `|floor(0.31 * f64 * 32768) − ManagerPCM16| > 1`. Include quiet/loud controls and do not fit gain, lag or DC. Such localization cannot by itself establish resampler identity, model bytes or vendor buffer provenance. Do not rerun Stage102–109, silently rewrite existing private outputs or promote any proprietary parity claim.
+
 ## Interpretation and evidence ceiling
 
 - Strong candidate floor+0.31 correspondence on later active signal is corroborated in a real SHA-gated audit; it **does not identify Sonicake's native output quantizer, gain, inference implementation or buffer provenance**.
