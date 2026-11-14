@@ -1,0 +1,39 @@
+name: Documentation inventory
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/docs-inventory.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect tracked source and documentation references
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess
+          tracked=subprocess.check_output(['git','ls-files','-z']).split(b'\0')
+          words=('HTKPA','re5868USB','5868USB','research/htkpa','NAM→CLO reverse-engineering','NAM->CLO reverse-engineering','Stage67','Stage66','Stage115','Stage116')
+          count=0
+          for raw in tracked:
+              if not raw:continue
+              path=raw.decode('utf-8')
+              if path=='.github/workflows/docs-inventory.yml':continue
+              if path.endswith(('.gz','.b64','.nam')):continue
+              b=pathlib.Path(path).read_bytes()
+              if len(b)>2000000 or b'\0' in b[:4096]:continue
+              data=b.decode('utf-8',errors='replace')
+              for n,line in enumerate(data.splitlines(),1):
+                  matching=[w for w in words if w.casefold() in line.casefold()]
+                  if matching:
+                      count+=1
+                      print(f'REFERENCE {path}:{n} ({", ".join(matching)}): {line[:260]}')
+          print('REFERENCE_COUNT',count)
+          PY
