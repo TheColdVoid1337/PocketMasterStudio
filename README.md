@@ -1,5 +1,8 @@
 # PocketMaster Studio
 
+> **Research repository moved (14 November 2026):** all 613 public-safe `5868USB.dll` reverse-engineering files have been SHA-verified and relocated to [re5868USB](https://github.com/TheColdVoid1337/re5868USB). See [migration notice](docs/HTKPA_RESEARCH_MOVED.md). The browser application, production NAM converter, editor, presets and device integration remain here. Private evidence stays in [RE_HTKPA](https://drive.google.com/drive/folders/1rH8Zr5kKRAItF5SuRjOtNR8BU3RhOYHK).
+
+
 A **single, self-contained HTML app** that generates, edits and packages guitar presets for the
 **Sonicake PocketMaster** pedal — everything runs in the browser, with no server and no
 dependencies. Open the file, use it, save it.
