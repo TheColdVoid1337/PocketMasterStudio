@@ -18,6 +18,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+      - name: Rebuild HTML before product assertions
+        run: node src/build_studio.js
       - name: Product JavaScript and native preset tests
         run: node --test tests/*.cjs
       - name: Loopback server security tests
