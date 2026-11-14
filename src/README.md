@@ -53,4 +53,17 @@ To edit the app: change a module here and re-run `build_studio.js`. To add/edit 
 
 ## Native `.prst` export (fork integration)
 
-The self-contained HTML Studio now includes **Studio → Overview → Native SONICLINK .prst export** for one native preset or an artist ZIP (Modeled, Clone/NAM, Mixed). Two genuine SONICLINK templates (Modeled and **actual Clone-ON**) are selected automatically—**no donor upload required**; Mixed selections use the appropriate donor for each preset. New generated presets still require hardware readback/listening. You can optionally upload a custom .prst donor from the same pedal/firmware; Clone still requires a device-verified NAM slot map. Codec and mappings come from this owner's [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab). See [docs/NATIVE_PRST.md](../docs/NATIVE_PRST.md). Offline CRC is not hardware acceptance. Source UI: `prst_studio_ui.js`; Node converter: `../tools/sonicmaster_to_prst.js`.
+The self-contained HTML Studio now includes **.prst Lab → Export .prst** for one native preset or an artist ZIP (Modeled, Clone/NAM, Mixed). Two genuine SONICLINK templates (Modeled and **actual Clone-ON**) are selected automatically—**no donor upload required**; Mixed selections use the appropriate donor for each preset. New generated presets still require hardware readback/listening. You can optionally upload a custom .prst donor from the same pedal/firmware; Clone still requires a device-verified NAM slot map. Codec and mappings come from this owner's [PRST Lab](https://github.com/TheColdVoid1337/PRST-Lab). See [docs/NATIVE_PRST.md](../docs/NATIVE_PRST.md). Offline CRC is not hardware acceptance. Source UI: `prst_studio_ui.js`; Node converter: `../tools/sonicmaster_to_prst.js`.
+
+## Offline NAM converter and tests
+
+The standalone HTML embeds the compiled SonicMaster DSP Web Worker and reference DI. Conversion and fitting use browser Web Workers; the local Python server is an optional static-page launcher only. Dart and `tools/nam_js/` are needed for release rebuilding, **not** for ordinary use.
+
+```bash
+node --test tests/*.cjs
+python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+node tools/nam_js/verify_golden.cjs
+node src/build_studio.js
+```
+
+See [developer guide](../docs/dev/README.md) and [current product behavior](../docs/VOID_MOD.md).

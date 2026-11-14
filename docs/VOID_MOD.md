@@ -51,7 +51,7 @@ The **NAM/Clone** menu provides exactly **five physical User Profile slots**. Fo
 
 **Clone preference is ON by default.** A generated preset uses Clone only if its modeled AMP matches an explicitly assigned/confirmed Full Rig slot. Every other amp falls back to Modeled; no generic amp-family inference or silent JCM800/AC30 substitution. Unassigned slots remain idle. Turn off "Prefer configured NAM/Clone" to force modeled generation without deleting the mapping. Clone always exports with IR **OFF**; the built-in IR DSP does not process Clone audio.
 
-This v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. The original upstream README descriptions and the preceding Void's MOD research history remain above, but **this v0.3.0 section governs current runtime behavior**. The Full Rig attestation is user-supplied, not automatic acoustic verification.
+This v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. This slot mapping governs current runtime behavior regardless of older example mappings. The Full Rig attestation is user-supplied, not automatic acoustic verification.
 
 Local export and CLI also read \`config/nam_clone.json\`, when present. \`node src/export_tree.js\` regenerates loose \`json_nam/\` and \`json_mixed/\` trees for a release (not required after each edit). \`node --test tests/*.cjs\` checks the policy, storage contract and bundle.
 
@@ -142,46 +142,20 @@ The floating **Log / Debug** button appears in the bottom-right of all top-level
 - PRST export logs selected Modeled/Clone/Mixed mode, artist/selection, donor, configured NAM slots, counts of Clone/Modeled/native presets, byte size and CRC results per file, resulting filename and size, download initiation and any refusal. A browser download does not guarantee a successful pedal import, readback or sound check.
 - Library source and collection edits, project ZIP operations, NAM mapping and config saves have contextual log entries rather than just menu-open records. Emoji are stripped from diagnostic log text; ordinary names, parameters and Editor detail remain intact. These changes do not alter native PRST snapshots or project config schemas.
 
-### Experimental Sonicake User Profile writer (NAM/Clone, stage 1)
+## NAM/Clone — browser-only conversion and upload
 
-This stage adds **direct upload of verified .clo profile files** to the pedal from **NAM/Clone**, independent of embedded PocketEdit. The original five modeled amplifier → Full Rig NAM mapping controls are unchanged, and a profile upload never silently enables that mapping.
+NAM/Clone provides two independent operations: convert a supported WaveNet NAM into a full VTSI `.clo`, and (only after explicit confirmation) upload a full `.clo` to a physical User Profile slot. Neither conversion nor download writes to the pedal or changes the saved Full Rig mapping.
 
-**Provenance:** The `void_clone_protocol.js` and `void_clone_transport.js` ports follow the MIT-licensed SonicMaster project by Skyggedans, at commit `a3059ccd0570640782d36bc0f08defc4fb428cd2`. Relevant upstream files are `app/lib/protocol/clo_codec.dart`, `clo_upload_frame.dart`, `sysex_chunk_upload.dart`, `crc16_modbus.dart`, `crc8_smbus.dart`, `app/lib/device/device_service.dart`, and `app/lib/state/clone_upload.dart`. Fixture `tests/fixtures/sonicmaster_clone_upload_golden.json` derives from the upstream project's USB capture under the same MIT license. Upstream: https://github.com/Skyggedans/SonicMaster.
+**Sources and license:** The protocol/transport and offline DSP follow [SonicMaster](https://github.com/Skyggedans/SonicMaster), MIT licensed, pinned at `a3059ccd0570640782d36bc0f08defc4fb428cd2`; see [SonicMaster license](third_party/SONICMASTER_LICENSE.txt). Application files: `src/void_clone_protocol.js`, `src/void_clone_transport.js`, `src/void_clone_upload_ui.js`, `src/void_nam_converter.js`, `tools/nam_js/clo_dsp.dart` and `tools/nam_js/worker.dart`.
 
-**Supported input now:** the full 8,840-byte VTSI `.clo` file. The implementation verifies exact size, header, declared length, FIR layout, CRC-16/MODBUS and finite coefficients *before any hardware write*. For transfer it changes the payload to the 2,696-byte runtime form (post-FIR 512 taps), recalculates CRC-16 and constructs a 2,770-byte slot/name/blob packet (opcode `1125`) broken into 146 CRC-8/SMBUS SysEx chunks (19 source bytes each). The generated full 146-frame USB sequence has been compared byte-for-byte to SonicMaster's recorded upload golden. Physical User Profile slots 1–5 are numbered 0–4 on wire. Names are printable ASCII (15 bytes max), and readback supports 10 character codes.
+**Validation:** The upload accepts an **8,840-byte VTSI** file after checks of its length, header, CRC-16/MODBUS, FIR layout and coefficients. For the device it prepares the 2,696-byte runtime profile (512 post-FIR taps), builds the 2,770-byte slot/name/blob packet (opcode `1125`), and transmits **146 CRC-8/SMBUS SysEx chunks** of 19 payload bytes each. Slots 1–5 are addressed as 0–4 on wire. The protocol implementation is fixture-tested against captured golden upload frames.
 
-**Protocol:** USB-MIDI with SysEx permission or BLE-MIDI GATT service `03b80e5a-ede8-4b33-a751-6ce34ec4c700` / characteristic `7772e5db-3868-4112-a1a9-f2669d106bf3`. A user click opens the browser's device permission chooser. The writer requires successful `020300` edit-session response and `020204` User Profile name read before any destructive write. Each chunk requires an actual device ACK (`F00B02000100000003010400080000F7`) with up to ten timeout retries. After all chunks the device must send a separate flash-commit notification in domain 03 (`0102010B0003`). A missing ACK or commit is reported as FAILURE, not success. A post-commit `020204` name readback must match the stored name prefix (10 characters); otherwise the result is explicitly **committed but not verified**. The interface warns that the selected physical slot will be overwritten, requires a checkbox and a separate overwrite confirmation. File selection and connection alone never write to the pedal.
+**Transport:** USB-MIDI/SysEx or BLE-MIDI GATT service `03b80e5a-ede8-4b33-a751-6ce34ec4c700`, characteristic `7772e5db-3868-4112-a1a9-f2669d106bf3`. A real user permission and connection handshake plus User Profile name query precede any destructive operation; every chunk needs ACK, the complete transfer needs flash-commit notification, and a post-commit name readback is attempted. Missing ACK/commit or unverifiable readback is reported explicitly. The user must select a slot and separately confirm overwrite. Physical backup/restore of an installed profile is not implemented.
 
-**Not yet implemented:** actual `.nam` WaveNet → `.clo` conversion. NAM selection performs architecture validation only and cannot enable the upload button. SonicMaster's full converter performs WaveNet inference across five probe levels against a fixed 44.1 kHz reference DI (about 12 MB), then fits a Wiener–Hammerstein model using a 1,400-line DSP implementation; merely repackaging NAM weights would be unsafe/incorrect. This conversion remains the next work item. NAM LSTM, gated WaveNet, active FiLM/head layers and unsupported formats must remain blocked. Exporting the workflow into the Editor remains a later task.
+**Acceptance boundary:** Numerical golden and mocked protocol tests validate software behavior only. Verify a disposable physical slot, readback, persistence and listening before treating any profile as hardware-accepted. Disable competing device sessions for the uploader.
 
-**Hardware status:** only software, golden frame parity and mocked ACK/commit/readback tests have passed. The feature is visibly marked experimental. Do not claim hardware success until a spare User Profile has been uploaded to and read back from a physical Pocket Master / Smart Box, ideally with power-cycle persistence and listening tests. Disable/disconnect PocketEdit's own device session while using this separate transfer interface. The physical backup/restore of existing profiles is not implemented.
+### Offline WaveNet inference and fitting
 
-**Files:** `src/void_clone_protocol.js`, `src/void_clone_transport.js`, `src/void_clone_upload_ui.js`; the main NAM/Clone UI mounts the upload tool below slot mapping. Current `config/nam_clone.json` and `config/studio_state.json` schemas and existing installed NAM labels are preserved.
-
-
-## NAM/Clone — local native NAM-to-CLO converter (10 October 2026, stage 2)
-
-**Implementation:** The SonicMaster MIT Rust DSP core, pinned to upstream commit `a3059ccd0570640782d36bc0f08defc4fb428cd2`, is now vendored as `tools/nam_dsp/src/generator.rs`; `tools/nam_dsp/src/main.rs` reads standard WaveNet or a supported SlimmableContainer .nam JSON on stdin and emits a full 8840-byte VTSI .clo with SonicMaster's fixed DC-block biquad and a computed CRC16/MODBUS. The local server `tools/studio_server.py` delegates inference to the native executable in a subprocess; this does not freeze the browser UI. The reference 44.1 kHz DI must be fetched once from the exact SonicMaster commit and Git-blob SHA verified. It remains a private, ignored local asset and is never served over HTTP. Rust dependencies are build-time requirements; NO vendor binary/DLL is bundled.
-
-**Setup (the same OS that launches the local Python server):**
-```sh
-python tools/nam_dsp/fetch_reference.py
-cargo build --release --manifest-path tools/nam_dsp/Cargo.toml
-```
-Windows START.bat launches Windows Python, so it requires **Windows** Cargo/Rust and the Windows native executable, unless the user starts the Python server in WSL (in which case build the Linux executable in WSL). Do not run the Windows Python server with an ELF binary or vice versa.
-
-**User flow:** Choose `.nam` in NAM/Clone → `Convert NAM to CLO` (local computation, no pedal access) → inspect the resulting VTSI/CRC16 → `Download .clo` as a local backup → choose User Profile 1–5, connect pedal, explicitly confirm destructive overwrite, then send through the **existing** packet/ACK/commit/readback transport. Imported `.clo` still skips computation. Mapping and physical upload remain independent. `Cancel conversion` sends a process kill request to the server. Do not suggest any upload has happened merely because conversion succeeded.
-
-**Safety/security:** The HTTP server remains bound to 127.0.0.1; only `/api/nam/availability`, `/api/nam/convert`, and `/api/nam/cancel` are exposed in addition to its original standalone HTML. Requests use explicit same-origin and content-type gates. NAM max size is 32 MiB; concurrent native conversions are rejected. Conversion times out at 600 seconds. Generated output must match fixed layout and CRC before being offered for download or hardware upload. A failed Rust worker, missing prerequisites, cancelled job, invalid NAM or CLO never opens the hardware transfer gate. Private config/dumps remain blocked by the HTTP server.
-
-**Verification:** `node --test tests/*.cjs`, `python -m unittest discover -s tests -p 'test_studio_server.py' -v`, `cargo test --manifest-path tools/nam_dsp/Cargo.toml`. An optional CPU-intensive numerical parity check uses the exact upstream `ref_input.nam` and `golden_ref.clo`: `python -m unittest discover -s tests -p 'test_nam_dsp_golden.py' -v` after setup. Never conflate software/golden parity with verified physical flash writes. Do not assume untested formats will render correctly.
-
-**Status:** Source-integrated and local toolchain-dependent; actual native compilation, numerical parity and Chrome/hardware validation have not yet been independently confirmed by the user. The uploader remains experimental. Integration in Editor and a pure-browser Web Worker backend remain later tasks.
-
-
-## NAM/Clone — JS-only offline DSP is canonical (10 October 2026)
-
-**This supersedes the earlier experimental Rust-local-backend stage described immediately above.**
 The user-facing `.nam` → `.clo` conversion no longer uses Rust, Cargo, a local
 Python conversion API, binary executable, network fetch, or any vendor DLL.
 `tools/studio_server.py` again serves only `PocketMasterStudio.html` on loopback:

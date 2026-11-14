@@ -1,23 +1,22 @@
-# Local Void's MOD state: browser-owned, not part of the distributable app.
+# Browser-owned state and device logs; never part of the distributable project.
 /config/
-# Browser-exported debug logs may contain local device/preset details.
 /logs/
 /.venv/
 /node_modules/
 __pycache__/
 *.pyc
 
-# Rebuildable local Rust DSP, reference DI and scratch assets.
+# Locally rebuildable DSP inputs and tool caches.
 /tools/nam_js/data/*.f32
 /tools/nam_js/data/*.tmp
 /.dart_tool/
 
-# Private, user-owned HTKPA reverse-engineering inputs for local Codex work.
-# Keep the entire tree out of GitHub (vendor DLL, NAM, WAV, CLO, capture ZIPs).
-/research/_LOCAL_FILES/
-
-# Local-only private HTKPA chat rollover bundles (may be downloaded to repo root).
-/POCKET_MASTER_HTKPA_PRIVATE_ROLLOVER_*.zip
-
-# Active research output staging: private files are packaged here before atomic .tar.gz publication.
-/research/.research_run_staging/
+# Private user-owned inputs and archives; old local private directories remain ignored.
+**/_LOCAL_FILES/
+**/_PRIVATE/
+*.dll
+*.dylib
+*.nam
+*.clo
+*.wav
+*.zip

@@ -377,7 +377,7 @@ The **NAM/Clone** menu provides exactly **five physical User Profile slots**. Fo
 
 **Clone preference is ON by default.** A generated preset uses Clone only if its modeled AMP matches an explicitly assigned/confirmed Full Rig slot. Every other amp falls back to Modeled; no generic amp-family inference or silent JCM800/AC30 substitution. Unassigned slots remain idle. Turn off "Prefer configured NAM/Clone" to force modeled generation without deleting the mapping. Clone always exports with IR **OFF**; the built-in IR DSP does not process Clone audio.
 
-This v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. The original upstream README descriptions and the preceding Void's MOD research history remain above, but **this v0.3.0 section governs current runtime behavior**. The Full Rig attestation is user-supplied, not automatic acoustic verification.
+This v0.3.0 slot configuration replaces the **previous hardcoded legacy five-capture mapping and its AC30-only verified allowlist for automatic generation**. This slot mapping governs current runtime behavior regardless of older example mappings. The Full Rig attestation is user-supplied, not automatic acoustic verification.
 
 Local export and CLI also read \`config/nam_clone.json\`, when present. \`node src/export_tree.js\` regenerates loose \`json_nam/\` and \`json_mixed/\` trees for a release (not required after each edit). \`node --test tests/*.cjs\` checks the policy, storage contract and bundle.
 
@@ -423,3 +423,13 @@ All native `.prst` interactions now live in the **`.prst Lab`** item in the main
 Neither importer nor exporter is displayed on **Studio → Overview** anymore. The **NAM/Clone** menu continues to configure five physical Full Rig slots; `.prst Lab` uses that configuration without moving or duplicating it. Existing imported PRST records remain in `config/studio_state.json`, and no data migration or new save format is needed. This is a UI reorganization; the native decoder, converter and byte-preserving archive behavior have not changed.
 
 Older v0.4.0 text above that references `Studio → Overview → Import .prst` describes the previous interface; **the `.prst Lab` menu is now authoritative**.
+
+## NAM/Clone — offline NAM-to-CLO conversion
+
+The **NAM/Clone** screen converts supported WaveNet `.nam` captures (including supported SlimmableContainers) into 8,840-byte VTSI `.clo` models using the bundled MIT-licensed SonicMaster DSP. Inference and Wiener–Hammerstein fitting run in browser Web Workers. The standalone app needs **no vendor DLL, local conversion server, Rust executable or cloud service**; other NAM architectures are rejected.
+
+**Workflow:** select a NAM → Convert NAM to CLO → inspect and optionally download the result → choose a physical User Profile slot → connect the pedal → explicitly confirm overwrite and upload. Conversion and download alone never write to the pedal. Existing `.clo` files can also be uploaded without conversion. Uploaded profiles are not automatically marked Full Rig in the preset mapping.
+
+The compiled JavaScript worker and 44.1-kHz reference DI are already embedded in `PocketMasterStudio.html`; Dart and the pinned DI-fetch script under `tools/nam_js/` are **release build dependencies only**. Protocol checks, firmware ACK/commit and name readback guard uploads. Software tests do not replace physical listening and flash-persistence checks.
+
+**Maintenance:** `node --test tests/*.cjs`, `python3 -m unittest discover -s tests -p 'test_studio_server.py' -v`, and (for full five-level worker numerical parity) `node tools/nam_js/verify_golden.cjs`. See [conversion and upload documentation](docs/VOID_MOD.md#namclone--browser-only-conversion-and-upload).

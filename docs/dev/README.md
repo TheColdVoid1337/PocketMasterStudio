@@ -1,12 +1,27 @@
-# Development entrypoints
+# PocketMasterStudio developer guide
 
-The historical HTKPA / 5868USB.dll research and all stage-specific documents now live in [re5868USB](https://github.com/TheColdVoid1337/re5868USB).
+PocketMasterStudio is a **standalone browser application**. Its editable sources are in `data/`, `src/` and `catalog/`; the checked-in `PocketMasterStudio.html` and `json*/` trees are generated outputs.
 
-- [Current research status](https://github.com/TheColdVoid1337/re5868USB/blob/main/docs/CURRENT_STATUS.md)
-- [Historical stage index](https://github.com/TheColdVoid1337/re5868USB/blob/main/docs/STAGE_INDEX.md)
-- [Append-only RE log](https://github.com/TheColdVoid1337/re5868USB/blob/main/research/htkpa/RE_LOG.md)
-- [Stage116 metadata preflight](https://github.com/TheColdVoid1337/re5868USB/blob/main/research/htkpa/stages/stage116/README.md)
-- [Source content and migration hashes](https://github.com/TheColdVoid1337/re5868USB/blob/main/MIGRATION_MANIFEST.json)
-- [Preserved historical version of this handoff file](https://github.com/TheColdVoid1337/PocketMasterStudio/blob/9d52cf0b7c1601bbcea50d00f3bd773c9cd65210/docs/dev/README.md)
+## Documentation map
 
-This PocketMasterStudio repository retains app and production converter sources. Archived research commands referencing its former `research/htkpa/` files should be run in the new research checkout. No proprietary or private data has been transferred through Git.
+- [Main README](../../README.md) — setup, library, NAM/Clone, backups, editor and native PRST.
+- [Source and build](../../src/README.md) — main HTML and loose-file build pipeline.
+- [Void's MOD](../VOID_MOD.md) — current configuration, Full Rig rules, offline conversion, upload and diagnostics.
+- [Native PRST](../NATIVE_PRST.md) — native preset import/export.
+- [Third-party license](../third_party/SONICMASTER_LICENSE.txt) — attribution to SonicMaster.
+- [CI workflow](../../.github/workflows/nam-js-build.yml) — Dart-to-JS worker build, pinned reference DI and parity checks.
+
+## Verify and rebuild
+
+```bash
+node --test tests/*.cjs
+python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+node tools/nam_js/verify_golden.cjs
+node src/build_studio.js
+```
+
+`src/README_STUDIO.md` is the **canonical main README source**, which should remain identical to the repository's `README.md`; the HTML builder embeds that source. The standalone HTML carries the prebuilt DSP worker and compressed DI, so there is no runtime dependency on a cloud service, vendor library, Dart, Rust or the local Python server.
+
+For release rebuilds that actually modify the DSP, follow the CI workflow to refresh `src/assets/nam_dsp_worker.js` and the pinned reference asset before rebuilding `PocketMasterStudio.html`. `node src/export_tree.js` regenerates the optional preset JSON exports.
+
+A passed numerical fixture or SysEx protocol test is **not physical device acceptance**. Actual upload requires deliberate slot selection, overwrite permission, readback, and sensible listening checks.
