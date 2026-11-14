@@ -1,39 +1,71 @@
-name: Documentation inventory
+name: Verify synchronized product documentation
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/docs-inventory.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inventory:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect tracked source and documentation references
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Product JavaScript and native preset tests
+        run: node --test tests/*.cjs
+      - name: Loopback server security tests
+        run: python3 -m unittest discover -s tests -p 'test_studio_server.py' -v
+      - name: Full browser-worker numerical fixture comparison
+        timeout-minutes: 12
+        run: node tools/nam_js/verify_golden.cjs
+      - name: Rebuild embedded HTML and verify product documentation
         run: |
+          node src/build_studio.js
           python3 - <<'PY'
-          import pathlib, subprocess
-          tracked=subprocess.check_output(['git','ls-files','-z']).split(b'\0')
-          words=('HTKPA','re5868USB','5868USB','research/htkpa','NAM→CLO reverse-engineering','NAM->CLO reverse-engineering','Stage67','Stage66','Stage115','Stage116')
-          count=0
-          for raw in tracked:
+          import pathlib,subprocess
+          root=pathlib.Path('.')
+          assert (root/'README.md').read_bytes()==(root/'src/README_STUDIO.md').read_bytes(), 'README != embedded source'
+          forbidden=('HTKPA','re5868USB','5868USB','research/htkpa','PMHTKPAWasmAdapter','test_htkpa_wasm_adapter')
+          names=subprocess.check_output(['git','ls-files','-z']).split(b'\0')
+          total=0
+          for raw in names+[b'PocketMasterStudio.html']:
               if not raw:continue
-              path=raw.decode('utf-8')
-              if path=='.github/workflows/docs-inventory.yml':continue
-              if path.endswith(('.gz','.b64','.nam')):continue
-              b=pathlib.Path(path).read_bytes()
-              if len(b)>2000000 or b'\0' in b[:4096]:continue
-              data=b.decode('utf-8',errors='replace')
+              name=raw.decode()
+              if name=='.github/workflows/docs-inventory.yml' or name.endswith(('.gz','.b64','.nam')):continue
+              f=root/name
+              if not f.is_file():continue
+              content=f.read_bytes()
+              if b'\0' in content[:4096]:continue
+              data=content.decode('utf-8',errors='replace')
               for n,line in enumerate(data.splitlines(),1):
-                  matching=[w for w in words if w.casefold() in line.casefold()]
-                  if matching:
-                      count+=1
-                      print(f'REFERENCE {path}:{n} ({", ".join(matching)}): {line[:260]}')
-          print('REFERENCE_COUNT',count)
+                  if any(term.casefold() in line.casefold() for term in forbidden):
+                      total+=1
+                      print(f'UNWANTED_REFERENCE {name}:{n}: {line[:210]}')
+          if total:
+              raise SystemExit(f'FAIL: {total} unwanted references in tracked files')
+          guide=(root/'docs/VOID_MOD.md').read_text()
+          assert 'tools/nam_dsp/' not in guide
+          assert 'cargo build' not in guide
+          assert 'browser-only conversion and upload' in guide.lower()
+          assert (root/'src/void_nam_converter.js').is_file()
+          assert (root/'tools/nam_js/worker.dart').is_file()
+          print('PASS: no discontinued references, canonical README in sync, browser converter documented')
           PY
+      - name: Commit refreshed standalone HTML if needed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add PocketMasterStudio.html
+          if git diff --cached --quiet; then
+            echo 'HTML already reflects the canonical product documentation.'
+          else
+            git commit -m 'build: synchronize embedded product documentation'
+            git push origin HEAD:main
+          fi
