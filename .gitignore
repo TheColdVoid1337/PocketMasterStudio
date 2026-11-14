@@ -11,12 +11,14 @@ __pycache__/
 /tools/nam_js/data/*.tmp
 /.dart_tool/
 
-# Private user-owned inputs and archives; old local private directories remain ignored.
+# Keep private user-owned inputs, scratch outputs and backups out of source control.
 **/_LOCAL_FILES/
 **/_PRIVATE/
+**/.*_staging/
 *.dll
 *.dylib
 *.nam
 *.clo
 *.wav
 *.zip
+*.tar.gz
